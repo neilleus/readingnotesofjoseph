@@ -597,11 +597,15 @@ VERSION命令（略）
 objdump程序选项介绍
 ******************************************************************************
 
+-x --all-headers	all headers[文件格式，架构，段头，LOAD头]
+			相当于（-a, -f, -h, -p的总和）
+-t --syms		查看目标文件的符号表
+-d --disassemble	反汇编可执行段
+-D --disassemble-all	反汇编全部段
+
+/* 各头部分别打印选项 */
 -a --archive-headers	archive header 显示文件格式信息
 -f --file-headers	overall file header，可以查看一个目标文件的架构
 -p --private-headers	specific file header，它描述了目标文件如何装载到内存
 -h --[section-]headers	section headers
--x --all-headers	all headers
--d --disassemble	反汇编可执行段
--D --disassemble-all	反汇编全部段
--t --syms		查看目标文件的符号表
+
