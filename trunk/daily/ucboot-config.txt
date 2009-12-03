@@ -1,3 +1,5 @@
+#	删除
+@	更改
 *******************************************************************************
 关于ARCH
 CONFIG_S3C2400
@@ -27,8 +29,8 @@ CONFIG_CPU_SA110
 
 CONFIG_ARCH_GROCX
 CONFIG_ARCH_KS8695
-CONFIG_ARCH_KS8695P
-#CFG_BOARD_KS8695PX
+#CONFIG_ARCH_KS8695P
+@CFG_BOARD_KS8695PX
 
 *******************************************************************************
 关于Linux
@@ -41,7 +43,7 @@ CONFIG_LINUX_TAG_REVISION
 
 *******************************************************************************
 关于CMD
-#CONFIG_CMD
+@CONFIG_CMD
 CONFIG_COMMANDS
 CONFIG_CMD_LONGHELP
 CONFIG_CMD_PROMPT 
@@ -112,9 +114,9 @@ CONFIG_PREBOOT
 CONFIG_EXTRA_ENV_SETTINGS
 CFG_ENV_ADDR_REDUND 
 CONFIG_ENV_NAND 
-CFG_AUTOLOAD
+CONFIG_AUTOLOAD
 CFG_ENV_SECT_SIZE
-CFG_ENV_IS_IN_FLASH
+#CFG_ENV_IS_IN_FLASH
 CFG_CONSOLE_IS_IN_ENV
 CFG_CONSOLE_ENV_OVERWRITE
 
