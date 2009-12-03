@@ -1,0 +1,120 @@
+*******************************************************************************
+关于环境变量
+CFG_ENV_OFFSET
+CFG_ENV_SIZE
+CFG_ENV_ADDR
+
+
+*******************************************************************************
+关于FLASH和存储器以及Monitor
+MAX_FLASH_BANKS_DETECT
+    动态配置
+    用来分配足够可能的空间供flash_info使用，确定的flash bank数量在运行时确定。
+    运行时通过detect_num_flash_banks()将bank数量存放到一个变量中
+CFG_MONITOR_BASE
+CFG_MONITOR_LEN
+CFG_FLASH_ERASE_TOUT
+CFG_FLASH_WRITE_TOUT
+CFG_LOAD_ADDR
+
+
+*******************************************************************************
+关于命令集
+CONFIG_COMMANDS
+CONFIG_AUTOCOMPLETE	根据环境变量来进行自动补全
+    			删除这个配置，始终支持自动补全功能
+
+
+*******************************************************************************
+关于KCONFIG
+./core/KCONFIG增加SILENT_CONSOLE
+
+
+################################进 度 分 割 线#################################
+
+
+*******************************************************************************
+关于AUTOBOOT的配置
+两个功能：可以停止进入U-BOOT命令行，可以自定义超时重试功能和超时时间，可以自定
+义停止自动启动字符串和提示信息，可以自定义重试方式（是否重启）
+
+为什么autoboot要用特殊的字符串？
+因为如果使用任意键停止的话，可能在启动的时候，串口由于电平扰动，发送乱码，然后
+导致U-boot停止，系统无法启动，在嵌入式设备上这毫无征兆。
+参考文档README.autoboot
+
+有关的CONFIG
+    CONFIG_BOOT_RETRY_TIME
+    CONFIG_BOOT_RETRY_MIN
+    在U-Boot命令行无输入一定时间之后自动重试AUTOBOOT，如果CONFIG值为负，表示不
+    重试，要支持重试，第一个CONFIG必须定义。参见bootretry
+    CONFIG_AUTOBOOT_KEYED
+    CONFIG_AUTOBOOT_PROMPT
+    CONFIG_AUTOBOOT_DELAY_STR
+    CONFIG_AUTOBOOT_STOP_STR
+    CONFIG_AUTOBOOT_DELAY_STR2
+    CONFIG_AUTOBOOT_STOP_STR2
+	用来停止AUTOBOOT的相关配置项，可以指定特定字符或者字符串。
+	CONFIG_AUTOBOOT_KEYED用来启用自定义停止符号这组配置，这时必须指定
+	CONFIG_AUTOBOOT_DELAY_STR和CONFIG_AUTOBOOT_STOP_STR否则无法停止自动启动
+	CONFIG_AUTOBOOT_PROMPT用来提示正在自动启动，不定义则没有提示。
+	如果用DELAY_STR停止自动启动，则命令行超时后会重试自动启动
+	如果用STOP_STR停止自动启动，则不会再进行重试，即使超时。
+	STR2表示需要输入第二个字符串，主要用在输入密码这种应用中。
+    CONFIG_ZERO_BOOTDELAY_CHECK
+	设置这个选项，即使bootdelay设为0，也可以通过按键来停止自动启动
+    CONFIG_RESET_TO_RETRY
+	自动启动重试会采取重启系统的方式
+有关的环境变量
+    bootdelay
+    bootretry
+    bootdelaykey
+    bootdelaykey2
+    bootstopkey
+    bootstopkey2
+
+更改情况：
+    删除 CONFIG_AUTOBOOT_XXX
+    删除 CONFIG_BOOT_RETRY_MIN
+    删除 CONFIG_ZERO_BOOTDELAY_CHECK
+    删除 CONFIG_RESET_TO_RETRY
+    更改 CONFIG_BOOT_RETRY_TIME为始终配置，负数表示不重试
+
+
+*******************************************************************************
+关于终端
+CFG_CONSOLE_OVERWRITE_ROUTINE	是否定义了overwrite_console函数，如果定义了就使
+用串口，如果没有定义就使用环境变量值。
+
+CFG_CONSOLE_IS_IN_ENV	如果定义了表示，环境变量中定义了stdin, stdout, stderr
+三个环境变量
+
+CFG_CONSOLE_INFO_QUIET	是否在启动U-Boot的时候打印终端的配置信息，无用，删除
+CONFIG_SPLASH_SCREEN	
+	压缩显示内容为一张预先准备好的bmp图片，终端设备配置为nulldev。
+CONFIG_SILENT_CONSOLE
+	禁止自动启动时终端的输出，调用console_init_f()设置全局gd的flag，然后根
+	据它，通过将std_devices[]设为nulldev,	如果自动启动过程被终止，终端会
+	被重新设置为串口。
+
+
+*******************************************************************************
+当前应用的环境变量表
+current envrionment name-value pairs
+bootdelay=3
+baudrate=115200
+ethaddr="00:10:20:30:40:50"
+offset_flash=0x10000000
+offset_kernel=0x10060000
+offset_ramwork=0x03000000
+ethact=STAR_GSW_LAN
+bootcmd=tftp 0x21000000 u_kernel; tftp 0x21500000 u_rootfs;bootm 0x21000000 0x21500000
+ipaddr=192.168.100.182
+serverip=192.168.100.100
+netmask=255.255.255.0
+bootargs=console="ttyS0,115200"
+stdin=serial
+stdout=serial
+stderr=serial
+
+
