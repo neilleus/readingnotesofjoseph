@@ -1,16 +1,22 @@
 *******************************************************************************
-uc-boot
+关于ucboot:
+
 跳转表用作什么用途？
+
 为什么通过openjtag复位时do_initcalls会被调用两次？
-
-env的存放，管理和配置修改怎么实现的？
-
 
 glue_7和glue_7t是什么段？.init.text和.exit.text是怎么指定的，.init和.fini段呢？
 .rodata.str1.4是什么段？.comment是谁加的？
 
 setup_commandline_tag()中的strcpy为什么cmdline[]只有1字节，是因为联合的原因么？
 
-已经解决的问题：
+memory, flash??
+
+net, tftp, dhcp, rarp...?
+
+env的作用，初始化，作用过程，env的存放位置，管理函数的实现？
+
+*******************************************************************************
+已解决
 silent以后启动到一半死掉，是不是参数传递的问题？
     是fixup_silent_linux()这个函数更改了bootargs的问题。
