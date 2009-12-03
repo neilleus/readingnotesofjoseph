@@ -30,16 +30,6 @@ CONFIG_AUTOCOMPLETE	根据环境变量来进行自动补全
 ./core/KCONFIG增加SILENT_CONSOLE
 
 
-*******************************************************************************
-关于杂乱CONFIG项
-删除CONFIG_OMAP2420, arch/arm/core/cache.c
-删除CONFIG_OMAP1510, include/nand.h
-删除CONFIG_8xx, cli/cmd_mii.c
-删除CONFIG_I386, include/exports.h
-更改CFG_BOARD_KS8695PX为CONFIG_BOARD_CENTAUR, 在mach-ks8695/Kconfig中增加
-更改CONFIG_CMD宏为PCI_CONFIG_CMD，仅在grocx的pci.c中用到，需要进一步确定
-
-
 ################################进 度 分 割 线#################################
 
 
