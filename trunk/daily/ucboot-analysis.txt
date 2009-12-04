@@ -1,3 +1,5 @@
+******************************************************************************
+关于初始化
 U-boot ARM926EJS relocate和设置栈的过程
 relocate:				/* relocate U-Boot to RAM */
 	adr	r0, _start		/* r0 <- current position of code */
@@ -90,6 +92,7 @@ __init会把代码放到init.text段，这些代码的内存在调用后会被�
 __initcall用来收集某些init函数，以便按照顺序调用这些函数。这个是链接器脚本确定
 的，这个是Linux的设计。
 
+
 ******************************************************************************
 关于console
 
@@ -128,6 +131,7 @@ void printf(const char *fmt, ...); 	最后调用puts
 void vprintf(const char *fmt, va_list args); 最后调用puts
 void serial_printf(const char *fmt, ...); 直接调用串口驱动的方法。
 
+
 ******************************************************************************
 关于device
 
@@ -152,6 +156,7 @@ chardev_t *search_device(int flags, char *name);
 chardev_t *search_device_flags(int flags);
     返回满足指定flag的第一个设备
 
+
 ******************************************************************************
 关于env
 CONFIG_ENV_OVERWRITE		串口和MAC地址是否可以更改
@@ -160,8 +165,19 @@ CONFIG_ENV_FLASH		环境变量保存在FLASH中
 CONFIG_ENV_NVRAM		环境变量保存在NVRAM中
 CONFIG_ENV_NAND 		环境变量保存在NAND中，需要支持NAND
 CONFIG_ENV_NOWHERE		环境变量不保存
-CFG_ENV_ADDR_REDUND 
+
+CFG_ENV_ADDR			ENV的位置
+CFG_ENV_SIZE			ENV的大小（这里定义为FLASH的SECT大小）
+CFG_ENV_OFFSET			ENV在FLASH上的偏移
+CFG_ENV_SECT_SIZE		同上
+CFG_ENV_ADDR_REDUND 		冗余备份位置
+CFG_ENV_SIZE_REDUND		冗余备份大小
+CFG_ENV_OFFSET_REDUND		冗余备份偏移
 CFG_REDUNDAND_ENVIRONMENT
+CFG_LOAD_ADDR
+ENV_SIZE			环境变量大小，不包括CRC校验和标志
+ENV_IS_EMBEDDED			环境变量编译到二进制中
+ENV_HEADER_SIZE			CRC校验和标志（当前还是备份）的大小
 
 CONFIG_BOOTARGS
 CONFIG_BOOTCOMMAND
@@ -189,15 +205,68 @@ CFG_ENV_SECT_SIZE
 CFG_CONSOLE_IS_IN_ENV
 CFG_CONSOLE_ENV_OVERWRITE
 
+简单介绍
+形如"name=value"的C风格字符串，保存在一个表中，该表以"\0"结尾。新项总是加在表
+尾端，删除时剩下的表项会往前移动。修改值的话相当于删除旧表项再添加新表项。
+environment数据结构中有一个32位的CRC校验码覆盖数据部分。
+
 数据结构
-uchar default_environment[];
-__PPCENV__
-__PPCTEXT__
+uchar default_environment[];	在没有设置环境变量时使用缺省环境变量表
+extern uchar environment[];	自定义的环境变量表
+env_t environment __PPCENV = {ENV_CRC, 1, {""}};
+
+char *env_name_spec;
+#define __PPCENV__	__attribute__ ((section(".text")))
+#define __PPCTEXT__	__attribute__ ((section(".text")))
+typedef struct environment_s {
+	unsigned long crc;		/* crc32 over data bytes */
+	unsigned char flags;		/* active / obsolete */
+	unsigned char data[ENV_SIZE];	/* data bytes */
+} env_t;
+
+char *env_name_spec = "Flash";
+static env_t *flash_addr = (env_t *)CFG_ENV_ADDR;
+env *env_ptr = (env_t *)CFG_ENV_ADDR;
+gd->env_addr;
+
+static env+t *flash_addr_new = (env_t *)CFG_ENV_ADDR_REDUND;
+static ulong end_addr = CFG_ENV_ADDR + CFG_ENV_SECT_SIZE - 1;
+static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
+#define ACTIVE_FLAG 	1
+#define OBSOLETE_FLAGS 	0
 
 操作方法
+int env_init(void);	主要通过计算CRC校验和设置env地址值和有效标志。
+void env_crc_update(void);  更新env-ptr指向的crc。
+uchar *env_get_addr(int index); 返回env中index位置的指针
 int env_complete(char *var, int maxv, char *cmdv[], int bufsz, char *buf);
-void env_crc_update(void);
-uchar *env_get_addr(int index);
+用于名令自动完成
+
+void env_relocate(void);	将env重定位到ram中，如果不是使用缺省，调用spec
+void env_relocate_spec(void);	将env从flash拷贝到内存中的位置。
+
+uchar (*env_get_char)(int);
+uchar env_get_char_spec(int);
 static uchar env_get_char_init(int index);
 uchar env_get_char_memory(int index);
-void env_relocate(void);
+
+static int envmatch(uchar *s1, int i2);
+char *getenv(char *); 在环境变量表中查找对应名字的环境变量并返回该环境变量指针
+int getenv_r(char *name, char *buf, unsigned len);
+int saveenv(void);
+void setenv(char *, char *);
+
+int _do_setenv(int flag, int argc, char *argv[]);
+int do_askenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_printenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_setenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+
+
+
+******************************************************************************
+关于启动操作系统
+
+
+******************************************************************************
+关于命令以及自动完成

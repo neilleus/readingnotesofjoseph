@@ -16,6 +16,10 @@ net, tftp, dhcp, rarp...?
 
 command, cmd_confdefs.h的作用
 
+env_init()中flag == 0xFF时为什么都有效？
+
+scripts中的environment.c，envcrc.c干什么用的？
+
 env的作用，初始化，作用过程，env的存放位置，管理函数的实现？
 
 *******************************************************************************
