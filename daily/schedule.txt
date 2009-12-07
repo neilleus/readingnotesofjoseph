@@ -99,13 +99,6 @@ CONFIG_SILENT_CONSOLE
 
 
 *******************************************************************************
-关于环境变量
-把env_flash.c和env_nand.c中的env_t *env_ptr = (env_t *)(&environment[0]);改为
-			     env_t *env_ptr = (env_t *)(&environment);
-
-
-
-*******************************************************************************
 关于CONFIG
 CFG_BOARD_KS8695PX	更改为CONFIG_BOARD_CENTAUR
 CONFIG_CMD		更改为PCI_CONFIG_CMD
