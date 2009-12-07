@@ -227,10 +227,12 @@ typedef struct environment_s {
 
 char *env_name_spec = "Flash";
 static env_t *flash_addr = (env_t *)CFG_ENV_ADDR;
+    环境变量在闪存上的地址
 env *env_ptr = (env_t *)CFG_ENV_ADDR;
 gd->env_addr;
 
 static env+t *flash_addr_new = (env_t *)CFG_ENV_ADDR_REDUND;
+    冗余环境变量在闪存上的地址
 static ulong end_addr = CFG_ENV_ADDR + CFG_ENV_SECT_SIZE - 1;
 static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
 #define ACTIVE_FLAG 	1
