@@ -1,8 +1,6 @@
 *******************************************************************************
 关于ucboot:
 
-跳转表用作什么用途？
-
 为什么通过openjtag复位时do_initcalls会被调用两次？
 
 glue_7和glue_7t是什么段？.init.text和.exit.text是怎么指定的，.init和.fini段呢？
@@ -27,8 +25,13 @@ env_t *env_ptr = (env_t *)(&environment[0]);这里的environment为什么可以�
 
 env只能存放在一个sector么，ENV和sector的关系？
 
+frame buffer什么作用？
+
+CFG_MONITOR_BASE和在flash还是在dram中有关系么？
 
 *******************************************************************************
 已解决
 silent以后启动到一半死掉，是不是参数传递的问题？
     是fixup_silent_linux()这个函数更改了bootargs的问题。
+跳转表用作什么用途？
+    用于导出函数供外部程序调用，可以避免版权问题。
