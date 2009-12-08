@@ -101,6 +101,7 @@ static int ctrlc_disabled = 0;
 static int ctrlc_was_pressed = 0;
 chardev_t stdio_devices[] = {NULL, NULL, NULL};
 char* stdio_names[] = {"stdin", "stdout", "stderr"};
+char console_buffer[MAX_CBSIZE];
 
 操作方法
 以下函数用来设置终端
@@ -130,6 +131,22 @@ void puts(const char *s);
 void printf(const char *fmt, ...); 	最后调用puts
 void vprintf(const char *fmt, va_list args); 最后调用puts
 void serial_printf(const char *fmt, ...); 直接调用串口驱动的方法。
+
+static uint64_t endtime = 0;
+static char erase_seq[] = "\b \b";
+static char tab_seq[] = "        ";
+static int menuey = 0;
+static int retry_time = -1;
+
+static __inline__ abort_boot(int bootdelay);
+static char *delete_char(char *buffer, char *p, int *colp, int *np, int plen);
+int do_run(cmd_tbl_t *cmdtp, nt flag, int argc, char *argv[] );
+void main_loop(void);
+int parse_line(char *line, char *argv[]);
+int process_macros(const char *input, char *output);
+int readline(const char *const prompt);
+void reset_cmd_timeout(void);
+int run_command(const char *cmd, int flag);
 
 
 ******************************************************************************
@@ -248,9 +265,9 @@ int env_complete(char *var, int maxv, char *cmdv[], int bufsz, char *buf);
 void env_relocate(void);	将env重定位到ram中，如果不是使用缺省，调用spec
 void env_relocate_spec(void);	将env从flash拷贝到内存中的位置。
 
-uchar (*env_get_char)(int);
-uchar env_get_char_spec(int);
-static uchar env_get_char_init(int index);
+uchar (*env_get_char)(int);	函数指针，指向env_get_char_init
+uchar env_get_char_spec(int);	特定于env存放位置的get_char函数。
+static uchar env_get_char_init(int index);	从spec或这default取env。
 uchar env_get_char_memory(int index);
 
 static int envmatch(uchar *s1, int i2);
@@ -270,30 +287,37 @@ int do_printenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 
-
 ******************************************************************************
 关于Flash
+一个系统内可以有多个bank的flash，每bank的flash有多个sectors。擦写的单位是sector
+对每个bank的flash都对应一个flash_info数据结构。
+FLASH有哪些属性呢？厂家ID号，设备ID号，大小，块数
 EON EN29LV640T，共有8个8KB块（用于顶端和底端引导，硬件决定，T为顶端引导，B为底
 端引导），127个64KB块。支持单块保护和块组保护，支持单块擦除和整片擦除。时间参考
-值：字写（8us），块擦除
-（500ms），整块擦除（64s）。
+值：字写（8us），块擦除（500ms），整块擦除（64s）。
+需要保护的内容：monitor区，环境变量区，冗余备份环境变量区
 Grocx:
 CFG_ENV_ADDR		FLASH_BASE+0x50000
 CFG_ENV_OFFSET		0x50000
 CFG_ENV_SIZE		0x10000
+TEXT_BASE		0x23000000		defined in Makefile
 
 KS8695:
 CFG_ENV_ADDR		FLASH_BASE + 0x00020000
+TEXT_BASE		0x00F00000		defined in Makefile
 数据结构：
-typedef struct {}flash_info_t;
+typedef struct {} flash_info_t;
 
 flash.c
 void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
 void flash_perror(int err);
 int flash_write(char *src, ulong addr, ulong cnt);
     将内存的内容拷贝到Flash中，注意这里写的区域必须落在flash内，并且不能有写保
-    护的区域。
+    护的区域。实现判断传入的地址是否合法，是否落在了写保护区域内。然后擦除要写
+    的块，然后从addr所在块的起始写入，知道end所在块。擦除是按块擦除的。
 flash_info_t *addr2info(ulong addr);
+    遍历flash_info数组，查找addr是否位于某个flash_info指向的地址范围内，如果有
+    返回该flash_info的地址。
 
 /* cmd_flash.c */
 static int abbrev_spec(char *str, flash_info_t **pinfo,
@@ -309,13 +333,18 @@ int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 /grocx_flash.c/
-flash_info
+flash_info_t flash_info[MAX_FLASH_BANKS];
 int flash_erase(flash_info_t *info, int s_first, int s_last);
-static ulong flash_get_size(vu_long *addr, flash_info_t *info);
-unsigned long flash_init(void);
-void flash_print_info(flash_info_t *info);
 int write_buff(flash_info_t *info, uchar *src, ulong addr, ulong cnt);
 static int write_byte(flash_info_t *info, ulong dest, uchar data);
+
+static ulong flash_get_size(vu_long *addr, flash_info_t *info);
+    向flash写命令获得厂家id，并打印厂家信息，获得设备ID，根据设备ID设置
+    flash_info数据结构的各个字段，包括id，块数，大小，保护位置零，设置各个块
+    的基地址，确定每个块是否被保护，最后复位到读模式。
+unsigned long flash_init(void);
+    flash初始化，把每个bank的flash_id设为FLASH_UNKNONW
+void flash_print_info(flash_info_t *info);
 
 
 ******************************************************************************
@@ -323,4 +352,54 @@ static int write_byte(flash_info_t *info, ulong dest, uchar data);
 
 
 ******************************************************************************
-关于命令以及自动完成
+关于命令以及命令的自动完成
+
+typedef struct cmd_tbl_s cmd_tbl_t;
+命令保存在一个（数组）表中，通过链接时段收集作用收集到一起，表的边界为：
+	__u_boot_cmd_start, ..., __u_boot_cmd_end
+	它们定义在链接器脚本中。
+
+所有命令处理函数有共同的格式如下：
+	void function(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+
+#define U_BOOT_CMD(name, maxargs, repeat, cmd, usage, long_help)	\
+	cmd_tbl_t __u_boot_cmd##name Struct_Section = {...}
+
+static char tmp_buf[MAX_CBSIZE];
+
+int cmd_auto_complete(const char *const prompt, char *buf,
+		      int *np, int *colp)
+int cmd_get_data_size(char* arg, int default_size)
+static int complete_cmdv(int argc, char *argv[], char last_char,
+			 int maxv, char *cmdv[])
+cmd_tbl_t *find_cmd (const char *cmd)
+static int find_common_prefix(char *argv[])
+void install_auto_complete(void)
+static void install_auto_complete_handler(const char *cmd,
+		int (*complete)(int argc, char *argv[], char last_char,
+				int maxv, char *cmdv[]))
+static int make_argv(char *s, int argvsz, char *argv[])
+static void print_argv(const char *banner, const char *leader,
+		       const char *sep, int linemax, char *argv[])
+int var_complete(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
+int do_echo(cmd_tbl_t *cmdtp, int flag,
+	    int argc, char *argv[])
+int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_version(cmd_tbl_t *cmdtp, int flag,
+
+
+
+******************************************************************************
+关于jump table来自Wolfgang Denk的回复：
+The "jump table provided by U-Boot exactly for this purpose" is the
+list of functions exported through the "include/_exports.h" header
+file.
+Only these functions are available from standalone programs without
+linking against any of the U-Boot provided libraries. If your program
+links and runs fine using only these functions then you are free to
+license your standalone application whatever you like; if you need to
+link against any of the U-Boot libraries then you must release your
+code under GPL.
+上面的意思就是说：所谓jump table就是在include/_exports.h头文件中导出的函数的列
+表。如果外部的独立软件仅仅调用了这些函数，那么它可以是任意License，如果它内部链
+接了U-Boot的其它库函数，则必须以GPL方式发布。
