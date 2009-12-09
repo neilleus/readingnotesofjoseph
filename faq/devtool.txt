@@ -1,0 +1,211 @@
+01. Debian下CVS的配置过程
+02. CVS的日常使用
+03. CVS Branch 项目多分支同步开发 
+04. Patch管理工具quilt的用法 
+05. 关于预编译头文件 
+06. GTK开发环境的建立
+07. 处理目标文件的工具箱
+--------------------------------------------------------------------------
+
+01. Debian下CVS的配置过程
+    http://linux.chinaunix.net/bbs/thread-907161-1-1.html
+    a) 服务器端配置：
+       1) 检查有没有安装cvs，没有，则安装它
+       $whereis cvs
+       $sudo apt-get install cvs
+       2) 创建cvs用户和主目录以及cvs用户组
+       $sudo groupadd cvs
+       $sudo mkdir /home/cvsroot
+       $sudo useradd -g cvs -G cvs -d /home/cvsroot cvsroot
+       $sudo passwd cvsroot
+       3) 然后更改文件属主及访问权限
+       $sudo chown -R cvsroot.cvs /home/cvsroot
+       $sudo chmod -R 775 /home/cvsroot
+       4) 切换到cvsroot用户操作
+       #su cvsroot
+       设置全局变量CVSROOT
+       $export CVSROOT=/home/cvsroot
+       初始化cvs仓库
+       $cvs init
+       5) 创建登陆cvs的用户管理文件
+       $touch /home/cvsroot/CVSROOT/passwd
+       $vim /home/cvsroot/CVSROOT/passwd
+       以以下格式填入内容：
+       username:password:cvsroot
+       其中password由以下perl脚本passwdgen.pl生成
+       ------------------------------------------------------------------------
+       #!/usr/bin/perl
+       srand (time());
+       my $randletter = "(int (rand (26)) + (int (rand (1) + .5) % 2 ? 65 : 97))";
+       my $salt = sprintf ("%c%c", eval $randletter, eval $randletter);
+       my $plaintext = shift;
+       my $crypttext = crypt ($plaintext, $salt);
+       print "${crypttext}\n";
+       ------------------------------------------------------------------------
+       运行方法为perl passwdgeg.pl yourpasswd
+       然后会输出加密后的字符串，填入上面passwd文件中的对应位置即可。
+       6) 设置开机启动，查看/etc/services中关于cvspserver的选项是否开启，
+       若没有则取消前面的#号
+       创建cvspserver文件，切换用户
+       $cd /etc/xinetd.d/
+       如果没有xinetd.d这个目录，是因为没有安装xinetd.d，所以先安装它
+       $sudo apt-get install xinetd
+       然后进入上述目录
+       $sudo touch cvspserver
+       $vim cvspserver
+       填入以下内容
+       ------------------------------------------------------------------------
+       service cvspserver
+       {
+       disable = no
+       socket_type = stream
+       wait = no
+       user = root
+       server = /usr/bin/cvs
+       server_args = -f --allow-root=/home/cvsroot pserver
+       log_on_success += USERID
+       log_on_failure += USERID
+       }
+       ------------------------------------------------------------------------
+       注意每行第一个"="两端要有空格，各选项要顶格写。
+       然后重启xinetd服务
+       $sudo /etc/init.d/xinetd restart
+       然后运行
+       $netstat -l|grep cvspserver
+       看是否cvspserver已经启动
+       服务器端配置完成
+
+    b) 客户端配置
+       1) 登陆
+       $cvs -d ":pserver:username@cvsserveraddress:/home/cvsroot" login
+       2) 上传档案
+       进入你希望cvs管理的代码目录，运行
+       $cvs -d ":pserver:username@cvsserveraddress:/home/cvsroot" import -m "project" projectname username start
+       选项 -d指定连接的cvs服务器的名称
+            import表示操作为导入档案
+    -m后的选项为log内容，模块名称，装载者，标识符号，空目录会被忽略
+       3) 取出档案
+       $cvs -d ":pserver:username@cvsserveraddress:/home/cvsroot" login" checkout dirname
+       dirname为你确定的project的名称或存放档案的目录的名称。
+       如果成功，说明一切OK，配置成功了。
+       4) 权限管理
+       可以在CVSROOT底下建立两个文件，readers和writers。文件中每一行写一个
+       用户名，readers里面的用户具有只读权限，writers用户有读写权限。
+
+02. CVS的日常使用
+    a) 将文件同步到最新的版本
+       cvs update -d
+       cvs update file_name
+    b) 确认修改写入到CVS库里
+       cvs commit -m "write some comments here" file_name
+    c) 修改某个文件某个版本的注释：
+       cvs admin -m 1.3:"write some comments here" file_name
+    d) 添加文件
+       cvs add new_file
+       注意：对于二进制格式的文件，需要使用cvs add -kb选项按2进制文件方式
+       导入(k表示扩展选项，b表示binary)，否则会出现文件被破坏的情况
+       如果关键词替换属性在首次导入时设置错了怎么办？
+       cvs admin -kkv new_file.css
+       然后确认修改并注释
+       cvs ci -m "write some comments here"
+    e) 删除文件
+       将某个源文件物理删除后，比如：rm file_name
+       cvs rm file_name
+       然后确认修改并注释
+       cvs ci -m "write some comments here"
+       以上面前2步合并的方法为：
+       cvs rm -f file_name
+       cvs ci -m "why delete file"
+    f) 添加目录
+       cvs add dir_name
+    g) 查看修改历史
+        cvs log file_name
+        cvs history file_name
+    h) 查看当前文件不同版本的区别
+       cvs diff -u -r1.3 -r1.5 file_name
+       选项-u用+/-来表示文件行的变化
+    i) 正确的通过CVS恢复旧版本的方法：
+       如果用cvs update -r1.2 file.name
+       这个命令是给file.name加一个STICK TAG： "1.2"
+       正确的恢复版本的方法是：
+       cvs update -p -r1.2 file_name »file_name
+       如果不小心已经加成STICK TAG的话：用cvs update -A 解决
+    j) 移动文件/文件重命名
+       cvs里没有cvs move或cvs rename，因为这两个操作是可以由先
+       cvs remove old_file_name，然后cvs add new_file_name实现的。
+    k) 删除/移动目录
+       让管理员直接移动
+    l) 项目发布导出不带CVS目录的源文件
+       使用cvs export命令，export只能针对一个TAG或者日期导出，比如：
+       cvs export -r release1 project_name
+       cvs export -D 20021023 project_name
+       cvs export -D now project_name
+  m) 特殊标识
+         $Id$
+         $Author$        - The last CVS user to commit the file.
+         $Date$  - The date of the last commit.
+         $Name$  - The tag name
+         $Log$   - All Log Messages from commits to this file
+         $RCSfile$       - The RCS name of the file (without a path).
+         $Revision$      - The Revision (or Version) number.
+         $Source$        - The full pathname of the RCS file in the repository.
+
+
+
+03. CVS Branch 项目多分支同步开发
+    a) 确认版本TAG：多个文件各自版本号不一样，项目到一定阶段，可以给所有文
+       件统一指定一个阶段TAG版本号，方便以后按照这个阶段TAG版本号导出项目，
+       同时也是项目的多个分支开发的基础。
+         cvs tag release_1_0
+       开始一个新的TAG：
+         cvs commit -r 2 标记所有文件开始进入2.x的开发
+       注意：CVS里的revsion和软件包的发布版本可以没有直接的关系。但所有文件
+       使用和发布版本一致的版本号比较有助于维护
+     b) 版本分支的建立
+        在开发项目的2.x版本的时候发现1.x有问题，但2.x又不敢用，则从先前标记
+的TAG：release_1_0导出一个分支 release_1_0_patch
+cvs rtag -b -r release_1_0 release_1_0_patch proj_dir
+
+04. Patch管理工具quilt的用法
+     a) 查看当前改动
+ quilt diff -z -P patchname filename
+     b) 将改动写入patch
+ quilt refresh
+     c) 添加patch（向series文件）
+ quilt new patchname
+     d) 删除patch（从series文件），-r同时删除patch文件，如果patch已经被应用，则只能从
+ 最顶部的开始删除。
+ quilt delete [-r] [--backup] [patchname|-n]
+     e) 向patch内添加文件
+ quilt -P patchname filename
+     f) 从patch内删除文件
+ quilt remove [-P patchname] filename
+     g) patch文件改名
+ quilt rename -P patchname newname
+
+05. 关于预编译头文件
+    采用预编译头是为了加快编译速度，在编译的时候将那些固定的基本不会改变的
+    头文件预先编译成一个中间格式，以后每次编译的时候就不再去重新解析这些头
+    文件了，直接把这个预编译好的东西包含进来了，当然此处并不是把它们编译成
+    了那种和最终结果一样的二进制文件，它是一种完全不同的中间二进制格式。
+    gcc要生成预编译头的手段就是编译的时候把.h文件和.c或.cc文件一起编译，这
+    样就会同时生成一个.h.gch的文件。就是这个样子。 
+ 
+06. GTK开发环境的建立 
+Deibian：安装gnome-core-devel, pkg-config, devhelp, libglib2.0-doc, libgtk2.0-doc, glade, libglade2-dev 
+第一个将安装libgtk2.0-dev libglib2.0-dev这一系列包，第二个是个工具，第三四五个是文档和文档阅读工具，第六七个是界面设计工具。 
+Windows：解压缩gtk-bundle-win32.zip到某个目录，并将其下的bin目录加入PATH，然后再visual C++中directories中添加各个include和lib路径，注意lib底下也有一些头文件需要include，然后建立工程后，在setting中设置要连接的库。
+
+07. 开发用小工具
+ar 创建静态库，插入、删除、列出和提取成员
+strings 列出一个目标文件中的所有可打印的字符串
+size 列出目标文件中节的名字和大小
+readelf 显式一个目标文件的完整结构，包括ELF头中编码的所有信息，包含size和nm的功能
+
+objdump 可以反汇编，可以dump出二进制文件的信息
+nm        列出一个目标文件中符号表中定义的符号
+ldd     列出一个可执行文件在运行时需要的共享库
+strip   从目标文件中删除符号表信息
+strace   可以跟踪调用过程
+elfutils，包括eu-开头的一系列工具如eu-ld，eu-nm，eu-size，eu-strip，
+              eu-readelf， eu-elflint等
