@@ -330,7 +330,10 @@ int flash_sect_erase(ulong addr_first, ulong addr_last);
 int flash_sect_protect(int p, ulong addr_first, ulong addr_last);
 int do_flerase(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+    打印指定或者全部bank的flash的信息，包括厂商型号，大小，块数信息以及每块的
+    起始地址和保护位的设置情况。
 int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+    设置指定块或者全部块或者指定地址范围的保护标记。
 
 /grocx_flash.c/
 flash_info_t flash_info[MAX_FLASH_BANKS];
@@ -346,6 +349,8 @@ unsigned long flash_init(void);
     flash初始化，把每个bank的flash_id设为FLASH_UNKNONW
 void flash_print_info(flash_info_t *info);
 
+CONFIG_FLASH_PROTECTION
+    flash是否在硬件上支持块擦写保护
 
 ******************************************************************************
 关于启动操作系统
