@@ -1,3 +1,6 @@
+Author: Joseph Lee
+Mail:   fdlixiaojun@gmail.com
+
 #include <fcntl.h>
 int open(const char *pathname, int oflag, ... /* mode_t mode */ );
 成功返回文件描述符，出错返回-1； 第三个参数仅在创建文件时使用。

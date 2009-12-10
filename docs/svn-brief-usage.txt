@@ -1,3 +1,6 @@
+Author: Joseph Lee
+Mail:   fdlixiaojun@gmail.com
+
 本文档仅是客户端的使用，怎么建服务器不在这里说明
 本文档仅描述基本命令和概念。
 

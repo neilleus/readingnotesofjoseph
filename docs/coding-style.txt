@@ -1,3 +1,6 @@
+Author: Joseph Lee
+Mail:   fdlixiaojun@gmail.com
+
 内核编码风格
 
 缩进:
