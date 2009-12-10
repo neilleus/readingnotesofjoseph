@@ -1,4 +1,7 @@
-﻿高级IO
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+高级IO
 
 非阻塞IO
 对于一个给定的描述符，可以有以下方法指定其为非阻塞IO：

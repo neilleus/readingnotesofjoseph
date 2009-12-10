@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 异常和中断有什么不同?
 异常产生时必须考虑与处理器时钟同步。
 一般常用的异常：缺页异常，指令异常等，产生异常时需要陷入内核，由内核来处理。

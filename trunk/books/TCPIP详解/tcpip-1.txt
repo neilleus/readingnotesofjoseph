@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 TCP/IP协议分四层，如图所示
 	+--------+
 	| 应用层 |	ftp/telnet/smtp/http/snmp/...

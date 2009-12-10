@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 网络套接字
 
 经典本地系统进程间通信：管道，FIFO，消息队列，semaphores，共享内存。

@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 第一部分 背景知识
 这一部分一共分三章讲述，第一章介绍术语，工具，编程规范等基础；第二章讲述关键的
 数据结构，其中包括最重要的两个sk_buff和net_device；第三章讲述用户空间到内核之

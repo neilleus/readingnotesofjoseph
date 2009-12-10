@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 FTP协议，Telnet和Rlogin协议，SMTP协议
 
 文件传输协议FTP

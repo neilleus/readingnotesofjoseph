@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 模块要具有入口和出口函数，入口函数必须符合形式：
 	int my_init(void);
 出口函数必须符合形式：

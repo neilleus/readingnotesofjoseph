@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 进程环境
 /*
  * 主函数如何被调用，程序怎么样执行，命令行传输如何传递

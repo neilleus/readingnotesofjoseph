@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 链路层
 
 TCP/IP支持多种链路层协议，这取决于网络所采用的硬件，比如以太网，令牌环，FDDI等

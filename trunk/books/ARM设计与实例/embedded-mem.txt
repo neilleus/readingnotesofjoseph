@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 关于存储器
 
 文档原则：这事儿不可说的太细，不高大全。

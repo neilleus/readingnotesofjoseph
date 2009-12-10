@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 系统数据文件和信息
 /etc/passwd文件
 每此用户登录和每次执行ls -l命令都会访问该文件
