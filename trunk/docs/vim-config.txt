@@ -1,4 +1,5 @@
-"Joseph's vim settings
+"Author: Joseph Lee
+"Mail:   fdlixiaojun@gmail.com
 
 "nmap setting
 nmap Tn :tabnext<CR>

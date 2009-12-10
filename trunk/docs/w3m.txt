@@ -1,3 +1,6 @@
+Author: Joseph Lee
+Mail:   fdlixiaojun@gmail.com
+
 w3m常用命令
 
 浏览器操作
