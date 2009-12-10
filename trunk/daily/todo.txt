@@ -4,6 +4,7 @@
 	添加CUSTOM_STOP_KEY逻辑
 	monitor protect, env embedded, flash protected, env overwrite???
 	flash_base->bd_info
+	制作一个设备管理器，注册块设备、字符设备，platform，参考2.4内核
 
     总结ARM中的伪指令
     居住证相关办理
