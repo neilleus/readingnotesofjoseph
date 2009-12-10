@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 --------------------------------windows-----------------------------------
 Windows
 01. 删除打开方式中的无用条目和删除选择程序列表中的多余项
