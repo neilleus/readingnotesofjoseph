@@ -1,5 +1,5 @@
 Author: Joseph Lee
-Mail:   fdlixiaojun@gmail.com
+E-Mail: fdlixiaojun@gmail.com
 
 内核编码风格
 
