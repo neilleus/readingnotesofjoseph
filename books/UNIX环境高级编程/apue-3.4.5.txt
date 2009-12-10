@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 出错处理
 当UNIX函数出错时，常常返回一个负值，整型变量errno通常被设置为含有附加信息的一
 个值。头文件<errno.h>定义了符号errno以及可以赋予它的各种常量，这些常量都以字

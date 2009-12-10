@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 这里讨论四个函数
 
 #include <setjmp.h>

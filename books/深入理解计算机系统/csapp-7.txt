@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 链接
 
 链接的时机：链接可以执行于编译时；也可以执行于加载时；甚至执行于运行时；

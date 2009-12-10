@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 虚拟存储器
 
 虚拟存储器是硬件异常、硬件地址翻译、主存、磁盘文件和内核软件的完美交互。它为每

@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 ICMP协议和Ping，traceroute程序
 
 *******************************************************************************

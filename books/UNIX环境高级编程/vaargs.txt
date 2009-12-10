@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 可变长参数列表
 
 用于遍历未具名和未知类型的参数列表

@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 本文件夹存放读书笔记
 
 限于书籍阅读，文档须注明为书名
