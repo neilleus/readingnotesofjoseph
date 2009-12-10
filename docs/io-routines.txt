@@ -1,5 +1,5 @@
 Author: Joseph Lee
-Mail:   fdlixiaojun@gmail.com
+E-Mail: fdlixiaojun@gmail.com
 
 #include <fcntl.h>
 int open(const char *pathname, int oflag, ... /* mode_t mode */ );
