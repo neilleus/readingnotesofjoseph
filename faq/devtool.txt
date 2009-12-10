@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 01. Debian下CVS的配置过程
 02. CVS的日常使用
 03. CVS Branch 项目多分支同步开发 

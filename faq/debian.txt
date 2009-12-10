@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 01. 英文系统配置中文输入法以及字体和中文显示相关问题
 02. 系统时间超前8小时的解决办法
 03. 使用debian安装盘和LiveCD修复GRUB

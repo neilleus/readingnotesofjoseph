@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 ----------------------------Searching-------------------------------------
 01. 如何继续前次搜索
 02. 如何定位搜索结果
