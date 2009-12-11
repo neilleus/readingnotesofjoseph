@@ -33,8 +33,7 @@ E-Mail: fdlixiaojun@gmail.com
        export QT_IM_MODULE=xim
        scim &
     d) 重起X window。
-    e) 几个字体，Qterm中选择Nsimsum 14，BBS Encoding选择
-GBK，Display Code
+    e) 几个字体，Qterm中选择Nsimsum 14，BBS Encoding选择GBK，Display Code
        选择GBK，终端的字体采用默认的monospace 12就非常好用
     f)  字体配置：拷贝windows的
                simsun.ttc tahoma.ttf tahomabd.ttf
@@ -47,7 +46,8 @@ GBK，Display Code
          应用程序字体，文档字体，桌面字体选择tahoma-9，窗口标题选择
          tahoma bold-9，等宽字体选择DejaVu Sans Mono-10
     g) Java程序无法显示中文
-          只需到jre/lib/fonts目录下建一个系统已有的中文字体的软链接即可，比如宋体，如下：
+       只需到jre/lib/fonts目录下建一个系统已有的中文字体的软链接即可，比如宋
+       体，如下：
           #ln -sf /usr/share/fonts/truetype/simsun.ttc /usr/share/...../jre/lib/fonts/simsun.ttc
     h) xmms播放列表和标题中文乱码问题
     播放列表的字体填入：
@@ -85,8 +85,8 @@ GBK，Display Code
           如果运行成功，则把此参数添加为hwclock的缺省参数即可。
           在debian 4.0之后，可以直接在/etc/default/rcS中添加一行：
           HWCLOCKPARS="--directisa“
-  在4.0以前，只能在hwclock启动脚本中添加，/etc/init.d/hwclock.sh，
-  把里面的”/sbin/hwclock“ 全部替换为 ”/sbin/hwclock --directisa"。
+       在4.0以前，只能在hwclock启动脚本中添加，/etc/init.d/hwclock.sh，
+       把里面的”/sbin/hwclock“ 全部替换为 ”/sbin/hwclock --directisa"。
        2) 换用其他内核rtc模块，用如下方法测试哪个模块好用：
           # modprobe rtc
           # hwclock --show
@@ -245,8 +245,8 @@ GBK，Display Code
 
 12. 如何利用ssh传文件
     利用scp命令即可，最简单用法为
-          下载：$scp username@servername:source-file-path target-file-path
-           上传：$scp source-file-path username@servername:target-file-path
+       下载：$scp username@servername:source-file-path target-file-path
+       上传：$scp source-file-path username@servername:target-file-path
 
 13. 如何将dos格式的文本文档转换为unix格式
     find -type f | xargs dos2unix -o
@@ -255,10 +255,15 @@ GBK，Display Code
     find 如何排除指定目录，使用 -path "?path?" -prune -o 参数，这里要注意几点：
           0. 这里的路径要使用绝对路径，似乎相对路径不起作用，有待进一步确认。
           1. -path的参数末尾不可以有'/'，否则无法排除该目录
-          2. 可以在指定排除某个目录后在其后面用 ! -path "?path?" -prune -o 来包括已排除目录的某个子目录，当然要把前面-path 后面的-prune -o去掉，即应该是连续的-path指定然后是-prune -o。
+          2. 可以在指定排除某个目录后在其后面用 ! -path "?path?" -prune -o 来
+	  包括已排除目录的某个子目录，当然要把前面-path 后面的-prune -o去掉，
+	  即应该是连续的-path指定然后是-prune -o。
           3. 要注意-path后面参数中 '*' 的使用，这个要多体会。
-          举例： find  /home/joseph/linux -path "/home/joseph/linux/arch/*" ! -path "/home/joseph/linux/arch/x86" -prune -o -print
-                     说明，这句find查找/home/joseph/linux中除了arch目录外所有的文件，但包括/home/jospeh/arch/x86目录。
+          举例： find  /home/joseph/linux \
+		  -path "/home/joseph/linux/arch/*" \
+		  ! -path "/home/joseph/linux/arch/x86" -prune -o -print
+                     说明，这句find查找/home/joseph/linux中除了arch目录外所有
+		     的文件，但包括/home/jospeh/arch/x86目录。
           4. 可以用 -name *."[chsS]" 指定查找的文件的后缀名为.c, .h, .s 或者.S
 
 15. 如何将光盘制作成ISO文件
