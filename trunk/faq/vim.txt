@@ -32,6 +32,7 @@ E-Mail: fdlixiaojun@gmail.com
 -------------------------------Misc---------------------------------------
 01. 如何查看一个字符的ascii码值
 02. 如何按列操作文本
+03. 如何用VIM加密文本
 --------------------------------------------------------------------------
 
 01. 如何继续前次搜索
@@ -51,9 +52,9 @@ E-Mail: fdlixiaojun@gmail.com
     ?
     ~
     $
-    \e表示«esc»
-    \r表示«cr»
-    \b表示«bs»
+    \e表示?esc?
+    \r表示?cr?
+    \b表示?bs?
 
 04. 如何匹配空白，换行
     \n可以表示一个换行
@@ -79,17 +80,17 @@ E-Mail: fdlixiaojun@gmail.com
     \l和\u表示小（大）写字母，\L和\U表示非小（大）写字母
 
 08. 怎样删除包含某个模式的所有行
-    :{range}g/«pattern»/cmd，对符合pattern的行执行cmd操作，
-    :{range}g!/«pattern»/cmd，对不符合pattern的行操作
-    :{range}v/«pattern»/cmd，同g!
+    :{range}g/?pattern?/cmd，对符合pattern的行执行cmd操作，
+    :{range}g!/?pattern?/cmd，对不符合pattern的行操作
+    :{range}v/?pattern?/cmd，同g!
     如：:g/^string/d 删除所有以字符串string开头的行 
   
 09. 怎样匹配以某个字符串开头的单词 
-    /\«string\w* 
+    /\?string\w* 
     同理可以写出匹配包含某个字符串的单词，匹配以某个字符串结尾的单词。
     应用举例：删除某个文件的 其它内容，仅保留以"CONFIG_"开头的单词，命令：
-    :%s/^\(.*\)\(\«CONFIG_\w\+\)\(.*\)$/\2/g
-    :%g/^\(\«CONFIG_\w\+\)\@!/d
+    :%s/^\(.*\)\(\?CONFIG_\w\+\)\(.*\)$/\2/g
+    :%g/^\(\?CONFIG_\w\+\)\@!/d
 
 
 
@@ -113,8 +114,8 @@ E-Mail: fdlixiaojun@gmail.com
     移动到下一个单词尾ge
 
 05. 如何跳转到前/后次光标所在的位置
-    光标位置后退一次   «C-O»
-    光标位置前进一次   «C-I»
+    光标位置后退一次   ?C-O?
+    光标位置前进一次   ?C-I?
 
 06. 如何在代码块中跳转（大括号分隔的代码块）
     [代表往上查找，]代表往下查找
@@ -140,11 +141,11 @@ E-Mail: fdlixiaojun@gmail.com
     跳转到屏幕中行                   M
 
 08. 如何滚屏
-    向下移动一屏                     «C-F»
-    向上移动一屏                     «C-B»
-    向下移动半屏                     «C-D»
-    向上移动半屏                     «C-U»
-    屏幕向下移动一行                 «C-E»
+    向下移动一屏                     ?C-F?
+    向上移动一屏                     ?C-B?
+    向下移动半屏                     ?C-D?
+    向上移动半屏                     ?C-U?
+    屏幕向下移动一行                 ?C-E?
 
 ------------------------------Editing-------------------------------------
 01. 如何拷贝剪切一个区块的文字
@@ -156,9 +157,9 @@ E-Mail: fdlixiaojun@gmail.com
     大小写反转命令                   ~
     转换到大写名令                   U
     转换到小写命令                   u 
-    操作字母                              g«CMD»«N»«SPACE» 
-    操作单词                              g«CMD»«N»w
-    操作行                                  g«CMD»«N»«CMD» 
+    操作字母                              g?CMD??N??SPACE? 
+    操作单词                              g?CMD??N?w
+    操作行                                  g?CMD??N??CMD? 
     CMD代表转换命令~，u，U，N代表数量。
 
 03. 编辑模式下的命令
@@ -173,7 +174,7 @@ E-Mail: fdlixiaojun@gmail.com
     打开命令：\be
 
 02. cscope跳转命令
-    :cs find «Mode»:  ;map to «C-\» by cscope_maps.vim
+    :cs find ?Mode?:  ;map to ?C-\? by cscope_maps.vim
              0/s      ; find this c symbol
              1/g      ; find this definition
              2/d      ; find called function by this
@@ -184,12 +185,12 @@ E-Mail: fdlixiaojun@gmail.com
              8/i      ; find files #including this file
 
 03. ctags跳转命令
-    跳转到某个标签处                 :tag xx或光标处«C-]»
+    跳转到某个标签处                 :tag xx或光标处?C-]?
     列出当前的标签栈                 :tags
-    返回                             :pop或«C-T»
+    返回                             :pop或?C-T?
     在preview窗口中列出匹配列表      :ptselect
     在preview窗口中列出匹配项        :ptag xx
-    设置tags文件                     :set tags=«dir»/set tags+=«dir»
+    设置tags文件                     :set tags=?dir?/set tags+=?dir?
 
 04. sketch -- ascii图绘制工具
     进入sketch绘图模式：             :call Sketch()
@@ -201,4 +202,7 @@ E-Mail: fdlixiaojun@gmail.com
 02. 如何按列操作文本
     按CTRL+V进入visual列选择模式，然后进行操作
     如果是windows，则需要CTRL+Q进入visual列选择模式
+
+03. 如何用VIM加密文本
+    用-x命令行选项打开文件即可
 --------------------------------------------------------------------------
