@@ -117,7 +117,29 @@ GBK，Display Code
        grub»quit
        完成
     b) 使用debian安装盘的方法：
-       有待总结
+       用debian安装盘启动Alt+F2进入到busybox shell，运行
+       #mount /dev/hda7 /mnt		;my partition mounted at /root
+       #mount /dev/hda8 /mnt/usr	;my partition mounted at /usr
+       #mount /dev/hda9 /mnt/home	;my partition mounted at /home
+       #mount -o bind /dev /mnt/dev	;the devices should be mounted also
+       #chroot /mnt			;change root file system
+       #grub				;go into the grub shell
+   grub>find /boot/grub/stage1		;list the booting partition
+       (hd0,6)				;list the result like this
+   grub>root (hd0,6)
+   grub>setup (hd0)
+       success				;grub reinstall success
+   grub>quit
+       #exit
+       #umount /mnt/dev
+       #umount /mnt/usr
+       #umount /mnt/home
+       #umount /mnt
+       #reboot
+       这样修复后的menu.lst可能还有问题，根据前面等到的信息更改一下即可，注意
+       linux启动命令行参数中的硬盘分区次设备号和root(hd0,6)指定的数字相差1。
+       比如这里linux启动命令行的rootfs所在的分区应该是hda7，而第一行的命令为
+       root(hd0,6)。
 
 04. 常用软件包
     glibc-doc
