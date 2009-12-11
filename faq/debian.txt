@@ -108,13 +108,13 @@ GBK，Display Code
        终端下运行命令，进入grub命令行:
        $sudo grub
        grub命令行下输入：
-       grub»find /boot/grub/stage1
+       grub?find /boot/grub/stage1
        它会输出一个位置，比如(hda0,5)，这里0和5之间没有空格
        运行如下命令，这里0和5根据上一条命令的结果得出，root和左括号间有空格：
-       grub»root (hda0,5)
+       grub?root (hda0,5)
        运行命令：
-       grub»setup(hd0)
-       grub»quit
+       grub?setup(hd0)
+       grub?quit
        完成
     b) 使用debian安装盘的方法：
        用debian安装盘启动Alt+F2进入到busybox shell，运行
@@ -252,10 +252,10 @@ GBK，Display Code
     find -type f | xargs dos2unix -o
 
 14. 使用find，xargs和grep
-    find 如何排除指定目录，使用 -path "«path»" -prune -o 参数，这里要注意几点：
+    find 如何排除指定目录，使用 -path "?path?" -prune -o 参数，这里要注意几点：
           0. 这里的路径要使用绝对路径，似乎相对路径不起作用，有待进一步确认。
           1. -path的参数末尾不可以有'/'，否则无法排除该目录
-          2. 可以在指定排除某个目录后在其后面用 ! -path "«path»" -prune -o 来包括已排除目录的某个子目录，当然要把前面-path 后面的-prune -o去掉，即应该是连续的-path指定然后是-prune -o。
+          2. 可以在指定排除某个目录后在其后面用 ! -path "?path?" -prune -o 来包括已排除目录的某个子目录，当然要把前面-path 后面的-prune -o去掉，即应该是连续的-path指定然后是-prune -o。
           3. 要注意-path后面参数中 '*' 的使用，这个要多体会。
           举例： find  /home/joseph/linux -path "/home/joseph/linux/arch/*" ! -path "/home/joseph/linux/arch/x86" -prune -o -print
                      说明，这句find查找/home/joseph/linux中除了arch目录外所有的文件，但包括/home/jospeh/arch/x86目录。

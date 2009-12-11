@@ -100,16 +100,16 @@ Windows
   制台程序的
     b) 解决方法：
        1) 针对VC++ 6.0
-          进入project-»setting-»c/c++, 在category中选择preprocessor，
+          进入project-?setting-?c/c++, 在category中选择preprocessor，
       在processor definitions中删除_CONSOLE, 添加_WINDOWS
-          进入project-»setting-»Link, 在Project options中将 /subsystem:console
+          进入project-?setting-?Link, 在Project options中将 /subsystem:console
               改为/subsystem:windows.
           保存设置，Rebuild All.
        2) 针对Visual Studio 2005
-          菜单中选择 Project-»Properties, 弹出Property Pages窗口
-          在左边栏中依次选择：Configuration Properties-»C/C++-»Preprocessor，
+          菜单中选择 Project-?Properties, 弹出Property Pages窗口
+          在左边栏中依次选择：Configuration Properties-?C/C++-?Preprocessor，
       然后在右边栏的Preprocessor Definitions对应的项中删除_CONSOLE，
       添加_WINDOWS
-          在左边栏中依次选择：Configuration Properties-»Linker-»System，然后在
+          在左边栏中依次选择：Configuration Properties-?Linker-?System，然后在
               右边栏的SubSystem对应的项改为Windows(/SUBSYSTEM:WINDOWS)
           保存设置，Rebuild All
