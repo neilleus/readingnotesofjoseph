@@ -131,7 +131,7 @@ E-Mail: fdlixiaojun@gmail.com
        如果用cvs update -r1.2 file.name
        这个命令是给file.name加一个STICK TAG： "1.2"
        正确的恢复版本的方法是：
-       cvs update -p -r1.2 file_name »file_name
+       cvs update -p -r1.2 file_name ?file_name
        如果不小心已经加成STICK TAG的话：用cvs update -A 解决
     j) 移动文件/文件重命名
        cvs里没有cvs move或cvs rename，因为这两个操作是可以由先
