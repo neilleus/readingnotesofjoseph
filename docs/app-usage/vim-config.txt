@@ -2,8 +2,6 @@
 "E-Mail: fdlixiaojun@gmail.com
 
 "nmap setting
-nmap Tn :tabnext<CR>
-nmap Tp :tabprevious<CR>
 nmap Tf :tabfirst<CR>
 nmap Tl :tablast<CR>
 
