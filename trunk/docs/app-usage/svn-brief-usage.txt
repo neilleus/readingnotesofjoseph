@@ -49,6 +49,8 @@ Subversion建立在一个叫做APR - the Apache Portable Runtime库的可移植�
         更名或者转移位置，如果不指定--parents选项，不会创建中间目录。
     svn mkdir [name]
         增加目录
+    svn revert
+        取消未提交的更改
 
 7.  检查更改
     以下命令的执行不依赖于网络，即不是通过仓库进行对比得出更改情况的。
