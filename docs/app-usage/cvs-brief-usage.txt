@@ -1,4 +1,4 @@
-Author: $Author$
+Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 Version: $Revision$ $Date$
 
