@@ -1,6 +1,5 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
-Version: $Revision$ $Date$
 
 Debian下CVS服务器的配置过程
 
