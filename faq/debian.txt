@@ -17,6 +17,7 @@ E-Mail: fdlixiaojun@gmail.com
 14. 使用find，xargs，grep
 15. 如何将光盘制作成ISO文件
 16. bash中有哪些特殊变量
+17. 如何建立GTK+开发环境
 --------------------------------------------------------------------------
 
 01. 在英文系统中输入中文的设置方法
@@ -279,4 +280,22 @@ E-Mail: fdlixiaojun@gmail.com
     $#  参数个数
     $@  将各个参数加双引号返回
     $*  将参数列表加双引号返回
+
+17. 如何建立GTK+开发环境
+    Deibian: 需要安装如下开发包：
+             gnome-core-devel
+	     glade
+	     libglade2-dev 
+	     pkg-config
+	     devhelp
+	     libglib2.0-doc
+	     libgtk2.0-doc
+    第一个将安装libgtk2.0-dev libglib2.0-dev这一系列包
+    第二个是个界面绘制工具和开发包
+    第三个是安装包管理工具
+    后面三个是文档和文档阅读工具
+
+    Windows：解压缩gtk-bundle-win32.zip到某个目录，并将其下的bin目录加入PATH，
+    然后再visual C++中directories中添加各个include和lib路径，注意lib底下也有一
+    些头文件需要include，然后建立工程后，在setting中设置要连接的库。
 
