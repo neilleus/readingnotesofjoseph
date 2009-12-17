@@ -1,0 +1,158 @@
+Author: $Author$
+E-Mail: fdlixiaojun@gmail.com
+Version: $Revision$ $Date$
+
+Debian下CVS服务器的配置过程
+
+服务器端配置：
+    1) 检查有没有安装cvs，没有，则安装它
+    $whereis cvs
+    $sudo apt-get install cvs
+    2) 创建cvs用户和主目录以及cvs用户组
+    $sudo groupadd cvs
+    $sudo mkdir /home/cvsroot
+    $sudo useradd -g cvs -G cvs -d /home/cvsroot cvsroot
+    $sudo passwd cvsroot
+    3) 然后更改文件属主及访问权限
+    $sudo chown -R cvsroot.cvs /home/cvsroot
+    $sudo chmod -R 775 /home/cvsroot
+    4) 切换到cvsroot用户操作
+    #su cvsroot
+    设置全局变量CVSROOT
+    $export CVSROOT=/home/cvsroot
+    初始化cvs仓库
+    $cvs init
+    5) 创建登陆cvs的用户管理文件
+    $touch /home/cvsroot/CVSROOT/passwd
+    $vim /home/cvsroot/CVSROOT/passwd
+    以以下格式填入内容：
+    username:password:cvsroot
+    其中password由以下perl脚本passwdgen.pl生成
+    ------------------------------------------------------------------------
+    #!/usr/bin/perl
+    srand (time());
+    my $randletter = "(int (rand (26)) + (int (rand (1) + .5) % 2 ? 65 : 97))";
+    my $salt = sprintf ("%c%c", eval $randletter, eval $randletter);
+    my $plaintext = shift;
+    my $crypttext = crypt ($plaintext, $salt);
+    print "${crypttext}\n";
+    ------------------------------------------------------------------------
+    运行方法为perl passwdgeg.pl yourpasswd
+    然后会输出加密后的字符串，填入上面passwd文件中的对应位置即可。
+    6) 设置开机启动，查看/etc/services中关于cvspserver的选项是否开启，
+    若没有则取消前面的#号
+    创建cvspserver文件，切换用户
+    $cd /etc/xinetd.d/
+    如果没有xinetd.d这个目录，是因为没有安装xinetd.d，所以先安装它
+    $sudo apt-get install xinetd
+    然后进入上述目录
+    $sudo touch cvspserver
+    $vim cvspserver
+    填入以下内容
+    ------------------------------------------------------------------------
+    service cvspserver
+    {
+    disable = no
+    socket_type = stream
+    wait = no
+    user = root
+    server = /usr/bin/cvs
+    server_args = -f --allow-root=/home/cvsroot pserver
+    log_on_success += USERID
+    log_on_failure += USERID
+    }
+    ------------------------------------------------------------------------
+    注意每行第一个"="两端要有空格，各选项要顶格写。
+    然后重启xinetd服务
+    $sudo /etc/init.d/xinetd restart
+    然后运行
+    $netstat -l|grep cvspserver
+    看是否cvspserver已经启动
+    服务器端配置完成
+    权限管理
+    可以在CVSROOT底下建立两个文件，readers和writers。文件中每一行写一个
+    用户名，readers里面的用户具有只读权限，writers用户有读写权限。
+
+
+CVS日常使用
+    以下命令有时需要用-d选项指定连接的CVS服务器
+    1) 登陆
+    $cvs -d ":pserver:username@cvsserveraddress:/home/cvsroot" login
+    2) 将工程纳入CVS管理
+    进入你希望cvs管理的代码目录，运行cvs import命令导入你的工程
+    $cvs import -m "project" projectname username start
+    空目录会被忽略
+    3) 取出档案
+    $cvs checkout projectname
+    4) 更新版本
+    cvs update -d	;-d选项表示更新目录
+    cvs update file_name
+    5) 提交更新
+    cvs commit -m "write some log here" file_name
+    6) 修改某个文件某个版本的更新日志：
+    cvs admin -m 1.3:"write some comments here" file_name
+    7) 添加文件
+    cvs add new_file
+    注意：对于二进制格式的文件，需要使用cvs add -kb选项按2进制文件方式
+    导入(k表示扩展选项，b表示binary)，否则会出现文件被破坏的情况
+    如果关键词替换属性在首次导入时设置错了怎么办？
+    cvs admin -kb file_name
+    然后确认修改并注释
+    cvs ci -m "write some comments here"
+    8) 删除文件
+    将某个源文件物理删除后，比如：rm file_name
+    cvs rm file_name
+    然后确认修改并注释
+    cvs ci -m "write some comments here"
+    以上面前2步合并的方法为：
+    cvs rm -f file_name
+    cvs ci -m "why delete file"
+    9) 添加目录
+    cvs add dir_name
+    a) 查看修改历史
+     cvs log file_name
+     cvs history file_name
+    b) 查看当前文件不同版本的区别
+    cvs diff -u -r1.3 -r1.5 file_name
+    选项-u用+/-来表示文件行的变化
+    c) 正确的通过CVS恢复旧版本的方法：
+    如果用cvs update -r1.2 file.name
+    这个命令是给file.name加一个STICK TAG： "1.2"
+    正确的恢复版本的方法是：
+    cvs update -p -r1.2 file_name ?file_name
+    如果不小心已经加成STICK TAG的话：用cvs update -A 解决
+    d) 移动文件/文件重命名
+    cvs里没有cvs move或cvs rename，因为这两个操作是可以由先
+    cvs remove old_file_name，然后cvs add new_file_name实现的。
+    e) 删除/移动目录
+    让管理员直接移动
+    f) 项目发布导出不带CVS目录的源文件
+    使用cvs export命令，export只能针对一个TAG或者日期导出，比如：
+    cvs export -r release1 project_name
+    cvs export -D 20021023 project_name
+    cvs export -D now project_name
+
+特殊标识
+    $Id$
+    $Author$	- The last CVS user to commit the file.
+    $Date$	- The date of the last commit.
+    $Name$	- The tag name
+    $Log$	- All Log Messages from commits to this file
+    $RCSfile$	- The RCS name of the file (without a path).
+    $Revision$	- The Revision (or Version) number.
+    $Source$	- The full pathname of the RCS file in the repository.
+
+项目多分支同步开发
+    1)  确认版本TAG：多个文件各自版本号不一样，项目到一定阶段，可以给所有文
+        件统一指定一个阶段TAG版本号，方便以后按照这个阶段TAG版本号导出项目，
+        同时也是项目的多个分支开发的基础。
+	cvs tag release_1_0
+	开始一个新的TAG：
+	cvs commit -r 2 标记所有文件开始进入2.x的开发
+        注意：CVS里的revsion和软件包的发布版本可以没有直接的关系。但所有文件
+        使用和发布版本一致的版本号比较有助于维护
+    2)  版本分支的建立
+	在开发项目的2.x版本的时候发现1.x有问题，但2.x又不敢用，则从先前标记的
+	TAG：release_1_0导出一个分支 release_1_0_patch
+	$cvs rtag -b -r release_1_0 release_1_0_patch proj_dir
+
