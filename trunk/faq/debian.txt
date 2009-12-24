@@ -19,6 +19,7 @@ E-Mail: fdlixiaojun@gmail.com
 16. bash中有哪些特殊变量
 17. 如何建立GTK+开发环境
 18. 重定向标准输出，标准出错到文件
+19. apt-get出现gpg error错误时的修正脚本
 --------------------------------------------------------------------------
 
 01. 在英文系统中输入中文的设置方法
@@ -303,4 +304,9 @@ E-Mail: fdlixiaojun@gmail.com
 18. 重定向标准输出，标准出错到文件
     $app >output 2>&1
     #注意这里重定向的顺序不可掉换，首先重定向标准输出，然后重定向标准出错
+
+19. apt-get出现gpg error错误时的修正脚本
+    #!/bin/sh
+    gpg --keyserver pgpkeys.mit.edu --recv-key $1
+    gpg -a --export $1 | apt-key add -
 
