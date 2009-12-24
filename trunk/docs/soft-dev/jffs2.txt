@@ -50,7 +50,33 @@ EBS可以工作于NOR和NAND闪存，通常来说在NAND闪存和擦除块大的
 *******************
 *   JFFS2 FAQ 
 *******************
-为什么无法挂在JFFS2并且看到"Magic bitmask 0x1985 not found"错误信息？
+为什么无法挂载JFFS2并且看到"Magic bitmask 0x1985 not found"错误信息？
+如果无法挂载JFFS2文件系统并且看到许多如下消息：
+jffs2_scan_eraseblock(): Magic bitmask 0x1985 not found at 0x00000024: 0x2b10
+			 instead 
+	...
+Further such events for this erase block will not be printed
+这表示在你闪存设备上的数据不是有效的JFFS2文件系统格式。对此没有唯一解决方案，
+但是我们可以尝试提供一些点子来修正此问题。
+首先需要回答的第一个问题是，为什么我闪存设备上的数据不正确使得JFFS2拒绝处理它。
+可能原因有许多，比如：
+(1) 你的闪存设备有严重的bug导致读出的是垃圾而不是有效数据
+(2) 你烧写了垃圾数据而不是有效的JFFS2镜像
+(3) 你没有正确烧写JFFS2镜像导致你闪存以垃圾结尾，尽管原镜像正确
+(4) 你忘了在烧写前先擦除它，等等
+不管怎么，JFFS2不会在它能找到正确数据时抱怨，如果它抱怨了，那么它读了错误数据。
+一个常见错误是使用/dev/mtdX或者/dev/mtdblockX设备访问NAND闪存上的JFFS2镜像，
+比如：
+	$cp jffs2_fs.img /dev/mtd2
+这是不正确的，因为当处理NAND闪存时必须跳过坏块并且只在NAND页大小的聚集上写。请
+使用nandwrite组件替代。
+此外，别忘了在烧写镜像前擦除你的闪存。你可以使用flash_eraseall组件来做。它会确
+保读回擦除的MTD设备并且检查是否仅仅写了0xFF。
+你可以通过在烧写完镜像后将镜像读出来比对的方法来判断是否烧写成功。在nand闪存上
+推荐使用nandread组件。
+你可以做一下试验来保证JFFS2工作正常，擦除你的MTD设备并且挂载到JFFS2。你会以一个
+空间系统结束。拷贝一些文件到这个JFFS2文件系统并且卸载它。然后再挂载，查看是否
+成功无错挂载。如果是，那么说明这不太可能是JFFS2的BUG。
 
 可以在硬盘上使用JFFS2吗？
 
