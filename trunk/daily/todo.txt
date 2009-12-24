@@ -1,13 +1,40 @@
 *******************************************************************************
 重要：
     ucboot
+        jffs2文件系统
+	    +-------------+
+	    | boot loader |
+	    +-------------+
+	    |             | <- u_kernel & u_rootfs & configs
+	    |    jffs2    | <- firmware update...
+	    |             | <- /boot, can be mounted
+	    +-------------+
+	    |             |
+	    |   unused    |
+	    |             |
+	    +-------------+
+	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，需要
+	识别jffs2文件系统，寻找固件更新方法
 	添加CUSTOM_STOP_KEY逻辑
 	monitor protect, env embedded, flash protected, env overwrite???
 	flash_base->bd_info
 	制作一个设备管理器，注册块设备、字符设备，platform，参考2.4内核
 
+    (1) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
+    (2) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
+    (3) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
+        增加mtdram功能，开发期不必烧写flash
+    (4) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
+    	系统中。
+	(a) 不分区支持mtd驱动
+	(b) 如何分区
+	(c) 开会讨论方案
+    (5) 整理ucboot内的fs，把它们模块话（至少ext2/vfat, jffs2, 最好支持yaffs2,
+    	ubifs，并调查cramfs）
+    (6) 能否通过udev获得mtd name，通过udev monitor截取udev事件
+    (7) 能否支持ubifs，如何实现，它可以支持断电保护功能。
+
     总结ARM中的伪指令，访存指令
-    居住证相关办理
 
 *******************************************************************************
 不重要
