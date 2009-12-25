@@ -99,3 +99,10 @@ JFFS2怎么处理NAND闪存中将要坏掉的块？
 cleanmarker是什么，用来做什么？
 
 如何编译mkfs.jffs2？
+
+
+---------------------------------------
+参考文件:
+http://www.linux-mtd.infradead.org/doc/jffs2.html
+http://www.linux-mtd.infradead.org/faq/jffs2.html
+
