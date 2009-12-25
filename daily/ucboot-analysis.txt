@@ -186,7 +186,7 @@ CONFIG_ENV_NOWHERE		环境变量不保存
 CFG_ENV_ADDR			ENV的位置，应该位于某个sector的边界上。
 CFG_ENV_SIZE			ENV的大小（这里定义为FLASH的SECT大小）
 CFG_ENV_OFFSET			ENV在FLASH上的偏移
-CFG_ENV_SECT_SIZE		同上
+CFG_ENV_SECT_SIZE		
 CFG_ENV_ADDR_REDUND 		冗余备份位置
 CFG_ENV_SIZE_REDUND		冗余备份大小
 CFG_ENV_OFFSET_REDUND		冗余备份偏移
@@ -222,6 +222,11 @@ CONFIG_AUTOLOAD
 CFG_ENV_SECT_SIZE
 CFG_CONSOLE_IS_IN_ENV
 CFG_CONSOLE_ENV_OVERWRITE
+
+CFG_ENV_SIZE和CFG_ENV_SECT_SIZE
+如果CFG_ENV_SIZE小于CFG_ENV_SECT_SIZE的话，表示在同一个SECT上可能还存在其它数
+据，由于flash擦写是整块sector来擦写的，在saveenv的时候会导致这里的其他数据被
+擦除，所以要区分这两个，区分了怎么保证呢？
 
 简单介绍
 形如"name=value"的C风格字符串，保存在一个表中，该表以"\0"结尾。新项总是加在表
