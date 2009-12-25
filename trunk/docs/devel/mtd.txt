@@ -1,9 +1,6 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
-/* 翻译自 linux-mtd.infradead的文档 */
-http://www.linux-mtd.infradead.org/doc/general.html
-
 *******************
 *    MTD概览
 *******************
@@ -128,8 +125,8 @@ mkfs.ubifs组件依赖zlib，lzo和uuid库。前两个用来压缩数据，最�
 
 
 
-参考：
-闪存设备和块设备的不同：
-http://www.linux-mtd.infradead.org/faq/general.html#L_mtd_vs_hdd
-UBI文件系统
-http://www.linux-mtd.infradead.org/doc/ubifs.html
+---------------------------------------
+参考文件:
+http://www.linux-mtd.infradead.org/doc/general.html
+http://www.linux-mtd.infradead.org/faq/general.html
+
