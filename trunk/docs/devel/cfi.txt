@@ -1,0 +1,19 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+cfi.doc @ fdlixiaojun@gmail.com
+The chinese translation of common flash interface specification made by Joseph.
+If someone need it, please mail to me.
+
+# The doc is too large to download from the subversion database.
+# And it complaints like the following issue:
+#
+# http://subversion.tigris.org/faq.html
+# Why am I getting an error saying "Could not read response body: Secure
+# connection truncated" when doing a checkout from Apache?
+
+
+---------------------------------------
+参考文件:
+JEDEC standard: Common Flash Interface (CFI) JESD68.01 September 2003
+Common Flash Memory Interface Specification Release 2.0 December 1,2001 - AMD
