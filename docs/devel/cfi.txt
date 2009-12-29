@@ -12,6 +12,27 @@ If someone need it, please mail to me.
 # Why am I getting an error saying "Could not read response body: Secure
 # connection truncated" when doing a checkout from Apache?
 
+keywords:
+数据总线连接方式：x8, x16...
+进入查询状态命令：向闪存相对位置55H写入98H
+查询标记字符串：在闪存相对位置10H处返回，五部分
+	标识：'Q' 'R' 'Y'
+	16位主算法集ID
+	主算法集扩展表地址
+	16位备选算法集ID
+	备选算法集扩展表地址
+设备信息：电压，时序等
+闪存拓扑：大小，块组织方式等
+命令集扩展表（可选）
+
+命令集：
+在Linux内核中看到三种主要算法集：
+	Intel系
+	AMD和富士通系
+	意法半导体系
+
+闪存命令集操作：
+	
 
 ---------------------------------------
 参考文件:
