@@ -2,7 +2,8 @@
 关于环境变量
 CFG_ENV_OFFSET
 CFG_ENV_SIZE
-CFG_ENV_ADDR
+CFG_ENV_ADDR	环境变量存放位置，如果该位置没有ENV，则读取镜像中的default env
+		saveenv的时候会把env存放到该位置
 
 
 *******************************************************************************

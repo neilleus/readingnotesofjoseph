@@ -184,6 +184,10 @@ CONFIG_ENV_NAND 		环境变量保存在NAND中，需要支持NAND
 CONFIG_ENV_NOWHERE		环境变量不保存
 
 CFG_ENV_ADDR			ENV的位置，应该位于某个sector的边界上。
+				环境变量存放位置，如果该位置没有ENV，则读取镜
+				像中的default env，saveenv的时候会把env存放到
+				该位置
+
 CFG_ENV_SIZE			ENV的大小（这里定义为FLASH的SECT大小）
 CFG_ENV_OFFSET			ENV在FLASH上的偏移
 CFG_ENV_SECT_SIZE		

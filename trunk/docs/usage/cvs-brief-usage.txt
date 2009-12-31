@@ -98,6 +98,7 @@ CVS日常使用
     cvs admin -kb file_name
     然后确认修改并注释
     cvs ci -m "write some comments here"
+    或者通过修改.cvswrapper文件
     8) 删除文件
     将某个源文件物理删除后，比如：rm file_name
     cvs rm file_name
