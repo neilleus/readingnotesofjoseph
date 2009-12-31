@@ -125,4 +125,26 @@ stdin=serial
 stdout=serial
 stderr=serial
 
+mtd-utils命令集，全部位于/usr/sbin下面:
+docfdisk
+doc_loadbios
+flashcp
+flash_eraseall
+flash_info
+flash_lock
+flash_unlock
+flash_otp_dump
+flash_otp_info
+ftl_check
+ftl_format
+jffs2dump
+mkfs.jffs2
+mtd_debug
+nanddump
+nandwrite
+nftldump
+nftl_format
+rfddump
+rfdformat
+sumtool
 
