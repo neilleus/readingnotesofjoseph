@@ -16,6 +16,7 @@
 	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，需要
 	识别jffs2文件系统，寻找固件更新方法
 
+    (1) 整理MTD-Utils命令，列表格，区分对设备、分区、文件系统操作的命令
     (2) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
     (3) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
         增加mtdram功能，开发期不必烧写flash
