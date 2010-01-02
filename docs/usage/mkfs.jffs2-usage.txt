@@ -1,0 +1,94 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+mkfs.jffs2用法
+
+JFFS2: Second Journalling Flash File System
+mkfs.jffs2用目录和文件创建JFFS2文件系统映像文件
+
+描述：
+-r选项指定输入的文件和目录路径，不指定则为当前路径
+放到映像中的文件会被指定的压缩模式压缩，文件系统的endianness和主机相同，除非用
+-b或-l选项指定。
+JFFS2需要和MTD驱动一起使用
+
+选项：选项内的大小值可以是十进制、八进制或者十六进制
+
+-p, --pad[=SIZE]
+	向填充填充SIZE字节的0xFF，如果SIZE没有指定则填充直到最后一个擦除块末尾
+-r, -d, --root=DIR
+	用DIR目录制作文件系统，缺省为当前目录
+-s, --pagesize=SIZE
+	设定页面大小为SIZE，缺省为4KB，页面大小是指一个数据节点的最大大小
+-e, --eraseblock=SIZE
+	设定擦除块大小为SIZE，缺省为64KB，如果你使用的擦除块与MTD设备的实际擦除
+	块大小不一致，则JFFS2表现不会很好，如果SIZE设置小于4096，则假定单位为
+	KB。
+-c, --cleanmarker=SIZE
+	以大小为SIZE写入CLEANMARKER节点。正常情况下都使用缺省值12字节。
+-n, --no-cleanmarkers
+	不在每个擦除块的开始处写入CLEANMARKER节点。这对于在NAND闪存上使用JFFS2
+	映像并且使用于不同种类硬件且擦除块大小不同时可能有用。
+-o, --output=FILE
+	输出映像到文件FILE，缺省是标准输出。
+-l, --little-endian
+	创建小端映像，缺省是与主机配置相同
+-b, --big-endian
+	创建大端映像，缺省是与主机配置相同
+-D, --devtable=FILE
+	使用指定文件作为一个设备表文件，在创建的映像中包含设备和更改许可，当
+	用户在给定的源文件系统上没有创建许可。
+-f, --faketime	
+	将所有文件时间戳设为0
+-P, --squash-perms
+	压缩许可和拥有者，是所有文件为超级用户所有，并且删除组和其它用户的写权限
+-U, --squash-uids	
+	压缩所有文件的拥有者为超级用户
+-P, --squash-perms
+	压缩所有文件的许可，删除组和其它用户的写权限
+--with-xattr
+	启用xattr，将所有xattr条目加入到jffs2映像文件中
+--with-selinux
+	启用xattr，仅将SELinux标签加入到jffs2映像文件中
+--with-posix-acl
+	启用xattr，仅POSIX ACL条目加入到jffs2映像文件中
+-m, --compression-mode=MODE
+	设置缺省压缩模式。缺省模式有限于预定义顺序，并且选用第一个成功的。可选
+	项有：none（不压缩），size（尝试所有压缩并且选择最优压缩比的）
+-x, --disable-compressor=NAME
+	禁止某个压缩算法，使用-L选项查看可用的压缩算法和它们的缺省状态
+-X, --enable-compressor=NAME
+	启用某个压缩算法，使用-L选项查看可用的压缩算法和它们的缺省状态
+-y, --compressor-priority=PRIORITY:NAME
+	设置某个压缩算法的优先级，使用-L选项查看可用的压缩算法和它们的缺省状态
+	优先级在压缩模式优先级中使用
+-L, --list-compressors
+	列出可用个的压缩算法和它们的状态
+-t, --test-compression
+	在每次压缩完后调用解压缩和源数据比较
+-h, --help
+-v, --verbose	
+-V, --version
+-i, --incremental=FILE
+
+限制：
+	设备文件表的格式和语法不允许它在根工作目录下不存在符号链接时创建符号
+	符号链接。
+	但是，可以在设备文件表中中使用l类型来设置符号链接的许可和所有者
+
+缺陷：	
+	JFFS2限制设备的主、次符号各8位宽度。
+	mkfs.jffs2没有妥善的处理输入目录结构中的硬连接。当前硬连接会在输出映像
+	中被展开成多个相同的文件。
+
+作者：
+       David Woodhouse
+       Manual page written by David Schleef <ds@schleef.org>
+
+参见：
+       mkfs(8), mkfs.jffs(1), fakeroot(1)
+
+---------------------------------------
+参考文件:
+mkfs.jffs2 manpage
+
