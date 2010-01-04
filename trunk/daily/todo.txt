@@ -16,7 +16,6 @@
 	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，需要
 	识别jffs2文件系统，寻找固件更新方法
 
-    (1) 整理MTD-Utils命令，列表格，区分对设备、分区、文件系统操作的命令
     (2) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
     (3) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
         增加mtdram功能，开发期不必烧写flash
@@ -29,16 +28,17 @@
     	ubifs，并调查cramfs）
     (6) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (7) 能否支持ubifs，如何实现，它可以支持断电保护功能。
+    (8) monitor protect, env embedded, flash protected, env overwrite???
+    (9) 添加CUSTOM_STOP_KEY逻辑
 
 #   flash_base->bd_info
 #   (1) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
-    添加CUSTOM_STOP_KEY逻辑
-    整理FLASH_BASE
-    monitor protect, env embedded, flash protected, env overwrite???
-    制作一个设备管理器，注册块设备、字符设备，platform，参考2.4内核
 
-    总结ARM中的伪指令，访存指令
-    搞一下Kbuild系统的实现
+    (a) 总结ARM中的伪指令，访存指令
+    (b) 搞一下Kbuild系统的实现
+    (c) find, sed, awk, split/csplit, join, grep, sort, tr, fmt
+    (d) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
+    (e) 编码系统，内码，外码，utf8，gbk，字体等
 
 *******************************************************************************
 不重要
