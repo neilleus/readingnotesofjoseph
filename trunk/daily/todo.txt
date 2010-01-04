@@ -30,16 +30,15 @@
     (7) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (8) monitor protect, env embedded, flash protected, env overwrite???
     (9) 添加CUSTOM_STOP_KEY逻辑
+    (10) 串口下载功能
 
 #   flash_base->bd_info
 #   (1) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
 
     (a) 总结ARM中的伪指令，访存指令
     (b) 搞一下Kbuild系统的实现
-    (c) find, sed, awk, split/csplit, join, grep, sort, tr, fmt
+    (c) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
     (d) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
     (e) 编码系统，内码，外码，utf8，gbk，字体等
+    (f) 总结内核启动参数的传递，arm启动参数的tag结构的使用
 
-*******************************************************************************
-不重要
-    总结内核启动参数的传递，arm启动参数的tag结构的使用

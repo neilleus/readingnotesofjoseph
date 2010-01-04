@@ -1,0 +1,8 @@
+通过ucboot烧写jffs2.img到flash
+1. 擦除
+#erase [addr] +[size]
+2. 下载
+#tftp [addr] [filename]
+3. 烧写
+#cp [dst_addr] [src_addr] [size]
+
