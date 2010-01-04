@@ -31,6 +31,7 @@
     (8) monitor protect, env embedded, flash protected, env overwrite???
     (9) 添加CUSTOM_STOP_KEY逻辑
     (10) 串口下载功能
+    (11) xinetd
 
 #   flash_base->bd_info
 #   (1) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device

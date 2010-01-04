@@ -1,8 +1,19 @@
-通过ucboot烧写jffs2.img到flash
+####通过ucboot烧写jffs2.img到闪存
 1. 擦除
 #erase [addr] +[size]
-2. 下载
-#tftp [addr] [filename]
-3. 烧写
-#cp [dst_addr] [src_addr] [size]
+2. 下载到DRAM
+#tftp [addr_in_dram] [filename]
+3. 烧写NOR闪存
+#cp [dst_addr_in_flash] [src_addr_in_dram] [size]
+
+####通过mtd-utils烧写jffs2.img到闪存
+1. 擦除
+#flash_eraseall -j /dev/mtd[n]
+2. 烧写NOR闪存
+#flashcp filename.jffs2 /dev/mtd[n]
+2. 烧写NAND闪存
+#nandwrite -p /dev/mtd[n] filename.jffs2
+
+
+####启动一个位于闪存分区的JFFS2文件系统中的内核
 
