@@ -1,0 +1,17 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+### 如何编译内核
+
+内核不支持模块
+
+内核支持模块
+
+内核不使用initrd
+
+内核使用initrd
+
+---------------------------------------
+参考文件:
+JEDEC standard: Common Flash Interface (CFI) JESD68.01 September 2003
+Common Flash Memory Interface Specification Release 2.0 December 1,2001 - AMD
