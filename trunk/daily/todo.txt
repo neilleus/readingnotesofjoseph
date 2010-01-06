@@ -18,7 +18,6 @@
 
     (0) 博客，内核编译，bzImage, vmlinux, vmlinux.bin
     (1) 编译内核，非模块方式和模块方式，形成文档
-    (2) 帮曾杰搞定如何silent启动，splash...
     (3) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
         增加mtdram功能，开发期不必烧写flash
     (4) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
