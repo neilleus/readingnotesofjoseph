@@ -24,6 +24,9 @@ $mv initrd.img.gz initrd.img
 $find . | cpio -c -o > ../initrd.img
 $gzip ../initrd.img
 $mv ../initrd.img.gz ../initrd.img
+另一种方法，直接在内核源代码目录下运行make install即可。
+
+问题：怎么准备initrd目录？？？
 
 ### 关于initrd
 initrd由bootloader加载到内存，内核启动时会在访问真正的根文件系统前访问内存中的
