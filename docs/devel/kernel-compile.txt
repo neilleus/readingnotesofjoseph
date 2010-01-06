@@ -7,11 +7,63 @@ E-Mail: fdlixiaojun@gmail.com
 
 内核支持模块
 
-内核不使用initrd
+### 如何制作initrd
+拷贝一个已有的initrd，可以通过一下命令序列解压缩获得其中的文件内容
+$mv initrd.img initrd.img.gz
+$gunzip initrd.img.gz
+$cpio -ivmd <initrd.img
+内核源码树下面提供了生成initrd的工具脚本
+一个是scripts/gen_initramfs_list.sh用于生成准备好的rootfs下的文件列表
+一个是usr/gen_init_cpio用于使用上面的文件列表生成cpio归档的initrd
+最后将该initrd压缩即可，命令序列如下
+$gen_initramfs_list.sh rootfs/ >filelist
+$gen_init_cpio filelist >initrd.img
+$gzip initrd.img
+$mv initrd.img.gz initrd.img
+另一种方法，在准备好的的rootfs的目录下，运行
+$find . | cpio -c -o > ../initrd.img
+$gzip ../initrd.img
+$mv ../initrd.img.gz ../initrd.img
 
-内核使用initrd
+### 关于initrd
+initrd由bootloader加载到内存，内核启动时会在访问真正的根文件系统前访问内存中的
+这个初始内存盘文件系统。这样Linux启动分为了两个阶段，第一阶段先执行initrd内指定
+的程序，完成加载驱动模块等任务，第二阶段再执行真正的根文件系统中的/sbin/init程
+序。第一阶段启动最主要的是要加载根文件系统存储介质的驱动模块。可能是IDE，SCSI或
+USB等多种介质。
+
+2.4内核时期的initd是文件系统镜像文件。
+2.4过程：加载内核和/dev/initrd的内容到内存，/dev/initrd是由bootloader初始化的
+设备；内核启动时解压缩/dev/initrd内容到/dev/ram0；读写方式挂载/dev/ram0；结束
+（此为最终根文件系统）或者执行initrd中的linuxrc（脚本）文件，加载驱动并挂载真
+正的根文件系统；如果真正根文件系统存在/initrd目录，将/dev/ram0挂载到/initrd，
+否则卸载/dev/ram0，执行真正根文件系统上的/sbin/init，正常启动。
+特点：在/linuxrc之后内核会继续执行初始化代码，这是2.4内核时代的特点。
+
+2.6内核支持两种类型的initrd：（1）向前兼容的文件系统镜像；（2）cpio归档的压缩
+文件，核心文件为/init；
+2.6过程，bootloader加载内核和initrd到内存特定位置；内核判断initrd格式，如果是
+cpio，解压缩并释放其内容到rootfs中；执行initrd中的/init，内核工作结束，init接管
+2.6过程，如果判断是文件系统镜像，则内核将其内容保存到rootfs下的/initrd.image文
+件，然后把它读入到/dev/ram0设备，后面的过程就与2.4的一样了。
+
+文件系统镜像initrd制作过程，假设当前位于准备好的initrd文件系统根目录下
+# dd if=/dev/zero of=../initrd.img bs=512k count=5
+# mkfs.ext2 -F -m0 ../initrd.img
+# mount -t ext2 -o loop ../initrd.img  /mnt
+# cp -r  * /mnt
+# umount /mnt
+# gzip -9 ../initrd.img
+cpio归档initrd制作过程，假设当前位于准备好的initrd文件系统根目录下
+# find . | cpio -c -o > ../initrd.img
+# gzip ../initrd.img
+
+cpio归档initrd的优点：制作简单，启动时不需要挂载/卸载ramdisk，启动完/init，内核
+任务就结束了，简洁不必担心后续衔接问题。
+
+rootfs：一个基于内存的文件系统，linux初始化时加载的第一个文件系统
+realfs：用户最终使用的文件系统
 
 ---------------------------------------
 参考文件:
-JEDEC standard: Common Flash Interface (CFI) JESD68.01 September 2003
-Common Flash Memory Interface Specification Release 2.0 December 1,2001 - AMD
+http://www.ibm.com/developerworks/cn/linux/l-k26initrd/index.html
