@@ -101,3 +101,9 @@ GIT分支
 
 疑问：
     GIT中镜像服务器是什么地位。
+
+---------------------------------------
+参考文件:
+http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+http://progit.org/book/zh/index.html
+
