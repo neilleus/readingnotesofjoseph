@@ -16,6 +16,6 @@ $ cd ..
 $ echo -e '#!/bin/busybox sh\nmount -t proc proc /proc\nexec busybox sh\n' > init ; chmod +x init
 $ find . | cpio -o -H newc | gzip > ../busybox.initramfs.cpio.gz
 
-通过qemu来模拟
-$ cd /home/jserv/initramfs-workspace/linux-2.6.22.5
-qemu -kernel arch/i386/boot/bzImage -initrd ../busybox.initramfs.cpio.gz -hda /dev/zero
+通过qemu来模拟，linux-0.2.img从http://www.nongnu.org/qemu/linux-0.2.img.bz2下载
+$cd /home/jserv/initramfs-workspace/linux-2.6.22.5
+$qemu -kernel bzImage -initrd initrd.img -hda ./linux-0.2.img -append "root=/dev/sda"
