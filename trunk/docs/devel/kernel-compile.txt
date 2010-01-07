@@ -74,6 +74,9 @@ cpio归档initrd的优点：制作简单，启动时不需要挂载/卸载ramdis
 rootfs：一个基于内存的文件系统，linux初始化时加载的第一个文件系统
 realfs：用户最终使用的文件系统
 
+通过qemu来模拟，linux-0.2.img从http://www.nongnu.org/qemu/linux-0.2.img.bz2下载
+$qemu -kernel bzImage -initrd initrd.img -hda ./linux-0.2.img -append "root=/dev/sda"
+
 ---------------------------------------
 参考文件:
 http://www.ibm.com/developerworks/cn/linux/l-k26initrd/index.html
