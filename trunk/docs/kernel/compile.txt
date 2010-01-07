@@ -22,6 +22,8 @@ $cpio -ivmd <initrd.img
 $find . | cpio -o -H newc > ../initrd.img
 $gzip ../initrd.img
 $mv ../initrd.img.gz ../initrd.img
+注意：这里cpio的-H newc参数选项，在以前的大多数文档中使用的是-c选项，这个现在
+不可用了，需要用新的-H newc选项才行
 
 内核源码树下面提供了生成initrd的工具脚本
 一个是scripts/gen_initramfs_list.sh用于生成准备好的rootfs下的文件列表
