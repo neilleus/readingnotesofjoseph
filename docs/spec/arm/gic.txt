@@ -1,0 +1,188 @@
+ARM-GIC
+
+------------------------------------------------------------------------------
+中断状态：
+	Inactive: 无中断或者Pending
+	Pending: 硬件报告的中断已经由GIC识别或者软件中断，正在等待目标处理器
+		处理。
+	Active: 已经被处理器确认的GIC中断源产生的中断，正在进行处理但
+		还没有处理结束
+	Active and Pending: 处理器正在处理一个中断，GIC处有相同中断源产生的
+		的中断处于pending状态。
+
+中断类型：
+	外设中断
+		类型：
+			私有中断(PPI)，只属于特定处理器
+			共享中断(SPI)，可以被分配给一组处理器内的某个处理
+		触发方式：
+			边沿出发
+			水平出发
+	软件中断（SGI）
+		通过软件向GIC的某个特定寄存器写入产生的中断，系统使用SGI来进行
+		处理器间通信。
+		触发方式为边沿触发，等价于外设中断的边沿触发类型。
+
+中断处理模型
+	1-N模型
+		仅有一个处理器处理这个中断，当多处理器环境时系统要实现选择处理
+		器处理中断的机制。
+	N-N模型
+		所有的处理器独立接收中断，当一个处理器确认了该中断，仅清除该中
+		断位于该处理器的Pending状态。
+
+伪中断		
+	GIC通知了处理器产生了中断，但是等处理器确认中断时，该中断已经不存在了，
+	这时GIC返回一个特殊的中断号表示伪中断。
+
+处理器安全模式，安全/非安全GIC访问（略）
+
+Banking
+	Interrupt banking
+		多处理器模式下，对于PPI和SGI，GIC会有多个有相同中断号的中断，
+		这样的中断叫做banked interrupt，通过中断号和关联的CPU接口来
+		确定。
+	Register banking
+		用来实现同地址的多份寄存器。
+
+------------------------------------------------------------------------------
+GIC partitioning
+	架构抽象: 一个Distributor block和一个或多个CPU interface block
+		Distributor用来处理中断优先级和分配和系统连接的CPU接口
+		CPU接口，每个CPU接口用来执行一个连接到系统的处理器的优先
+		级masking和抢占处理
+		一个GIC可以最多实现8个CPU接口，编号从0到7。
+	Distributor
+		集中所有的中断源，决定每个中断的优先级，并且将最高优先级的中断
+		分配给CPU接口进行优先级掩码和抢占处理
+		它提供如下编程接口：
+			全局打开向CPU接口转发中断
+			打开或关闭某个中断
+			设定某个中断的优先级
+			设定某个中断的目标处理器
+			设定某个外部中断的中断触发模式
+			如果GIC实现了安全扩展，设定某个中断是安全还是非安全访问
+			发送SGI到一个或多个目标处理器
+			此外，
+				每个中断的状态可见
+				为软件提供设置和清除外部中断状态的机制。
+
+	中断号
+		每个CPU可以识别至多1020个中断，由于SPIs和PPIs的banking机制，
+		这意味着distributor支持至多1244个中断。
+		中断号按如下规则分配：
+			32~1019用于共享中断（SPI）
+			0~31用于对CPU interface来说的私有中断
+				ID0~ID15用于软中断（SGI）
+				ID16~ID31用于外设中断(PPI)
+			1020~1023保留作特殊用途
+		多处理机情况
+		单处理机情况
+			单处理机情况下，共享和私有中断没什么区别。此时处理器
+			源ID为0。
+		系统软件独立于中断号设置每个中断的优先级。
+		安全扩展（略）
+	CPU接口
+		每个CPU接口为处理器提供了操作GIC的接口。每个CPU接口提供如下编程
+		接口：
+			使能从CPU interfaces到来的中断请求信号
+			确认某个中断
+			指明某个中断处理结束
+			为处理器设定一个中断优先级掩码
+			为处理器定义抢占策略
+			为处理器选择最高优先级的pending中断。
+		当启用以后，CPU接口选择最高优先级的Pending中断，并且判断是否有
+		足够的优先级要通知处理器进行中断处理。决定是否要通知处理器是通
+		过判断中断优先级掩码和抢占设置来决定的，在任何时刻处理器可以从
+		一个CPU接口寄存器读取他最高优先级的活动中断的优先级，如何通知处
+		理器是实现相关的，在ARM中是通过nIRQ或者nFIQ请求的。
+		处理器通过读取CPU接口的中断确认寄存器来确认中断。CPU接口返回：
+		最高优先级的pending中断号，如果优先级足够或者返回伪中断号。
+		当处理器确认了中断以后，Distributor将中断状态从Pending修改为
+		active或者active and pending。此时CPU接口可以向处理器产生另一个
+		中断，去抢占当前的活跃中断。
+		当处理器处理完中断，向CPU接口写入指明中断结束，然后distributor
+		将中断状态从active设置为inactive或者从active and pending到
+		pending。
+
+------------------------------------------------------------------------------
+中断处理和优先级处理
+	寄存器
+		前三个字母
+			IC 表示 GIC 寄存器
+			D表示Distributor寄存器
+			C表示CPU接口寄存器
+		ICDICTRs Interrupt Controller Type Regisgers
+		ICDDCR Distributor Control Regisgter
+		ICDISERs Interrupt Set-Enable Registers
+		ICDICERn Interrupt Clear-Enable Registers
+		ICDISPRn Interrupt Set-Pending Registers
+		ICDICPRn Interrupt Clear-Pending Registers
+		ICDABRn Active Bit Registers
+		ICDSGIR Software Generated Interrupt Register
+		ICDIPRn Interrupt Priority Registers
+		ICCIAR Interrupt Acknowledge Register
+		ICCEOIR End of Interrupt Register
+		ICCPMR Interrupt Priority Mask Register
+		ICCBPR Binary Point Register
+		CPU接口仅会把处于Pending状态并且优先级足够的中断报告给处理器，
+		有助于防止相同中断嵌套。
+	GIC上的中断控制
+		开关中断控制
+			外设中断
+				打开中断
+					向ICDISER的对应位写入
+				关闭中断
+					向ICDICER的对应位写入
+			软件中断
+				是固定打开或者可以开关是实现相关的
+		注意： 设置ICDISER和ICDICER是禁止Distributor将中断转发给CPU
+			接口，但并不会影响中断状态变化。
+		控制中断为Pending
+			外设中断的Pending状态是可以有处理器来设置的（略）
+			软件中断向ICDISPR和ICDISCR的写入会被GIC忽略，处理器不
+			能通过向这些寄存器写入来改变软件中断的状态。
+		读取中断状态
+			通过ICDISPR或者ICDICPR来读取总段是否pending
+			通过ICDABR来读取中断是否Active
+		产生软件中断
+			向ICDSGIR写入，一个SGI可以面向多个目标处理器，需要指明
+			对于一个CPU接口，某个ID的SGIs中断有相同的优先级，需要
+			序列处理。
+	1-N模型的含义（略）
+	中断处理状态机
+		Distributor为每个中断在每个CPU接口上维护一个状态机
+		注意：SGI由向ICDSGIR写入产生，外设中断由外设或者想ICDISPR写入
+			产生
+	特殊中断号
+		1023，伪中断
+
+	中断优先级处理
+		软件通过给每个中断源分配一个优先级来配置中断优先级处理机制，
+		优先级值是8位的无符号二进制数。GIC支持从16~256级优先级。
+		在GIC处理中，小数字代表高优先级，0表示最高优先级。最低优先
+		级则是根据表3-1配置确定的。
+		确定实现了多少级优先级方法：向ICDIPR写入0xFF，然后读取它。
+		在一个CPU接口上，如果有多个同级中断都可以被报告给处理器，则
+		如何选择是实现相关的。
+		高级中断可以中断低级中断。
+		软件通过设置合适的ICDIPR来为每一个中断设置优先级。
+
+		优先级掩码操作
+			CPU接口通过ICCPMR定义一个到目标CPU的优先级阈值，只有高
+			于这个阈值的中断才会报告给处理器。0表示所有中断。
+		优先级分组操作
+			优先级总是被分为两个字段，组优先级和子优先级，GIC用组
+			优先级来判断是否可以中断当前中断。ICCBPR的binary point
+			字段用来分这两个部分。
+			对于有相同组优先级的中断，GIC使用子优先级字段来解决组内
+			的优先级处理。对于子优先级字段也相同的中断，选择那个中
+			断则是实现相关的。
+	安全扩展处理（略）
+
+------------------------------------------------------------------------------
+编程模型
+	GIC的软件接口，映射到内存空间的GIC寄存器接口操作方法
+
+------------------------------------------------------------------------------
+示例代码
