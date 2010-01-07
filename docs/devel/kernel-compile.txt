@@ -10,9 +10,6 @@ $gpg --verify linux-xxx.tar.bz2.sign linux-xxx.tar.bz2
 
 ### 如何编译内核
 
-内核不支持模块
-
-内核支持模块
 
 ### 如何制作initrd
 拷贝一个已有的initrd，可以通过一下命令序列解压缩获得其中的文件内容
