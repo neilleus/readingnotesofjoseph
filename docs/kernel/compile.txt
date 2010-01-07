@@ -16,6 +16,13 @@ $gpg --verify linux-xxx.tar.bz2.sign linux-xxx.tar.bz2
 $mv initrd.img initrd.img.gz
 $gunzip initrd.img.gz
 $cpio -ivmd <initrd.img
+修改，主要是不同内核版本的模块需要进行一下更新，更进一步的修改需要理解其中执行
+的各个程序或者脚本的内容。
+修改完毕，也就是准备好了initramfs目录，在这个目录下运行如下命令生成initrd.img
+$find . | cpio -o -H newc > ../initrd.img
+$gzip ../initrd.img
+$mv ../initrd.img.gz ../initrd.img
+
 内核源码树下面提供了生成initrd的工具脚本
 一个是scripts/gen_initramfs_list.sh用于生成准备好的rootfs下的文件列表
 一个是usr/gen_init_cpio用于使用上面的文件列表生成cpio归档的initrd
@@ -24,13 +31,6 @@ $gen_initramfs_list.sh rootfs/ >filelist
 $gen_init_cpio filelist >initrd.img
 $gzip initrd.img
 $mv initrd.img.gz initrd.img
-另一种方法，在准备好的的rootfs的目录下，运行
-$find . | cpio -c -o > ../initrd.img
-$gzip ../initrd.img
-$mv ../initrd.img.gz ../initrd.img
-另一种方法，直接在内核源代码目录下运行make install即可。
-
-问题：怎么准备initrd目录？？？
 
 ### 关于initrd
 initrd由bootloader加载到内存，内核启动时会在访问真正的根文件系统前访问内存中的
@@ -62,8 +62,6 @@ cpio，解压缩并释放其内容到rootfs中；执行initrd中的/init，内�
 # umount /mnt
 # gzip -9 ../initrd.img
 cpio归档initrd制作过程，假设当前位于准备好的initrd文件系统根目录下
-# find . | cpio -c -o > ../initrd.img
-# gzip ../initrd.img
 
 cpio归档initrd的优点：制作简单，启动时不需要挂载/卸载ramdisk，启动完/init，内核
 任务就结束了，简洁不必担心后续衔接问题。
