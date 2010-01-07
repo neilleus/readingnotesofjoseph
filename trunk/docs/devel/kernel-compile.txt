@@ -1,6 +1,13 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+### 如何验证下载的内核的签名
+内核包都跟随有一个.sign文件，这个文件用来验证内核压缩文档的openPGP签名。
+Linux内核包的公钥编号是0x517D0F0E，验证时首先从pgp服务器获取签名公钥，然后再进
+行验证。命令如下：
+$gpg --keyserver wwwkeys.pgp.net --recv-key 0x517D0F0E
+$gpg --verify linux-xxx.tar.bz2.sign linux-xxx.tar.bz2
+
 ### 如何编译内核
 
 内核不支持模块
