@@ -16,26 +16,24 @@
 	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，
 	需要识别jffs2文件系统，寻找固件更新方法
 
-    (1) 编译内核，非模块方式和模块方式，文档博客，bzImage, vmlinux, vmlinux.bin
-    (3) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
+    (1) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
         增加mtdram功能，开发期不必烧写flash
-    (4) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
+    (2) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
     	系统中。
 	(a) 不分区支持mtd驱动
 	(b) 如何分区
 	(c) 开会讨论方案
-    (5) 整理ucboot内的fs，把它们模块话（至少ext2/vfat, jffs2, 最好支持yaffs2,
+    (3) 整理ucboot内的fs，把它们模块话（至少ext2/vfat, jffs2, 最好支持yaffs2,
     	ubifs，并调查cramfs）
-    (6) 能否通过udev获得mtd name，通过udev monitor截取udev事件
-    (7) 能否支持ubifs，如何实现，它可以支持断电保护功能。
-    (8) monitor protect, env embedded, flash protected, env overwrite???
-    (9) 添加CUSTOM_STOP_KEY逻辑
-    (10) 串口下载功能
-    (11) xinetd
+    (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
+    (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
+    (6) monitor protect, env embedded, flash protected, env overwrite???
+    (7) 添加CUSTOM_STOP_KEY逻辑
+    (8) 串口下载功能
 
 #   flash_base->bd_info
-#   (1) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
-#   (2) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
+#   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
+#   (*) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
 
     (a) 总结ARM中的伪指令，访存指令
     (b) 搞一下Kbuild系统的实现
@@ -43,4 +41,6 @@
     (d) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
     (e) 编码系统，内码，外码，utf8，gbk，字体等
     (f) 总结内核启动参数的传递，arm启动参数的tag结构的使用
+    (g) 编译内核，非模块方式和模块方式，文档博客，bzImage, vmlinux, vmlinux.bin
+    (h) xinetd
 
