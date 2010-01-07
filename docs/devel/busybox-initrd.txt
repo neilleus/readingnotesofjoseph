@@ -1,0 +1,21 @@
+用busybox建立initramfs
+
+静态链接的BusyBox
+$sudo apt-get install busybox-static
+$file /bin/busybox
+/bin/busybox: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), for GNU/Linux 2.6.8, statically linked, stripped
+
+以此为基础来建立一个小的initramfs + kernel image：
+$cd /home/jserv/initramfs-workspace
+$mkdir -p busybox-initramfs/bin
+$mkdir -p busybox-initramfs/proc
+$cd busybox-initramfs/bin
+$cp /bin/busybox .
+$./busybox --help | ruby -e 'STDIN.read.split(/functions:$/m)[1].split(/,/).each{|i|`ln -s busybox #{i.strip}` unless i=~/busybox/}'
+$ cd ..
+$ echo -e '#!/bin/busybox sh\nmount -t proc proc /proc\nexec busybox sh\n' > init ; chmod +x init
+$ find . | cpio -o -H newc | gzip > ../busybox.initramfs.cpio.gz
+
+通过qemu来模拟
+$ cd /home/jserv/initramfs-workspace/linux-2.6.22.5
+qemu -kernel arch/i386/boot/bzImage -initrd ../busybox.initramfs.cpio.gz -hda /dev/zero

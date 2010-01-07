@@ -15,5 +15,7 @@
 #nandwrite -p /dev/mtd[n] filename.jffs2
 
 
-####启动一个位于闪存分区的JFFS2文件系统中的内核
+### 启动一个位于闪存分区的JFFS2文件系统中的内核
+
+### 杂
 
