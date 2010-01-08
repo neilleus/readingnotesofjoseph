@@ -1,5 +1,5 @@
 *******************************************************************************
-重要：
+当前：
     ucboot
         jffs2文件系统
 	    +-------------+
@@ -36,12 +36,20 @@
 #   (*) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
 #   (*) 编译内核，非模块方式和模块方式
 
+
+*******************************************************************************
+不急
     (a) 总结ARM中的伪指令，访存指令
-    (b) 搞一下Kbuild系统的实现
-    (c) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
-    (d) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
-    (e) 编码系统，内码，外码，utf8，gbk，字体等
-    (f) 总结内核启动参数的传递，arm启动参数的tag结构的使用
-    (h) xinetd
-    (i) udisk-hub-reader产品
+    (b) 总结内核启动参数的传递，arm启动参数的tag结构的使用
+    (c) 搞一下Kbuild系统的实现
+    (d) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
+    (e) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
+    (f) 编码系统，内码，外码，utf8，gbk，字体等
+    (g) xinetd
+
+*******************************************************************************
+重要
+    (a) bash，和C
+    (b) 词汇
+    (c) udisk-hub-reader产品
 
