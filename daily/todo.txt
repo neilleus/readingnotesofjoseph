@@ -34,6 +34,7 @@
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
 #   (*) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
+#   (*) 编译内核，非模块方式和模块方式
 
     (a) 总结ARM中的伪指令，访存指令
     (b) 搞一下Kbuild系统的实现
@@ -41,6 +42,5 @@
     (d) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
     (e) 编码系统，内码，外码，utf8，gbk，字体等
     (f) 总结内核启动参数的传递，arm启动参数的tag结构的使用
-    (g) 编译内核，非模块方式和模块方式，文档博客，bzImage, vmlinux, vmlinux.bin
     (h) xinetd
 
