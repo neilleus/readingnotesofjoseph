@@ -1,0 +1,123 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+01. 基本：
+	元字符：* ? [ ] ' " \ $ ; & ( ) | ^ < > 换行 制表符 空格（不是\n和\t）
+	返回值：0为真，1为假
+	特殊变量：
+		$0：正在执行的命令名
+		$n：对应命令行参数
+		$#：参数个数
+		$*：所有参数构成的双引号字符串
+		$@：所有参数分别被双引号引住的字符串
+		$?：前一命令的退出状态
+		$$：当前shell的PID
+		$!：前一个后台进程的PID
+02. 配置文件：/etc/profile .profile
+03. 文件权限中的SUID位和SGID位（表示用户继承了所有者/组的权限）以及粘滞位
+04. 变量：
+	定义：name=value
+	引用：$name
+	数组：name[n]=value $name[n]
+	只读：readonly name
+05. 通配符：
+	'*'：匹配零到任意个任意字符
+	'?'：匹配一个任意字符
+	'[chars]'：匹配括号内指定字符集内的任意字符
+06. 有待查证的4个运算符：
+	':-'：
+	':='：
+	':+'：
+	':?'：
+07. 执行整数运算：$((expression))
+08. 单引号和双引号，前者不解引用，后者解析特定引用
+09. 测试命令：test
+	缩写形式：[ 空格 测试项 测试对象 空格]
+	测试对象：文件、字符串、整数
+	文件可测试内容：存在，类型，非空，权限，SUID/SGID/STICKY权限位
+	字符串测试内容：空，非空，等，不等
+	整数测试内容：等，不等，大于，小于，大于等于，小于等于
+	测试命令内部复合逻辑，测试对象的复合：与 -a，或 -o，非!
+	外部复合逻辑，两个测试命令的复合：与 &&，或 ||，非 !
+10. if-then-elif-then-else-fi语句：
+	注意：在then之前的条件语句后面要加分号，if和then通常写在一行
+11. case xx in-pattern1) cmd1;;-pattern2) cmd2;;-esac语句
+	注意1：命令后要加双分号结束
+	注意2：case的模式支持模式匹配，模式后要加')'
+	注意3：不要忘了in关键字
+12. (while/until)-cmd-do-cmds-done语句
+	解释：cmd是需要判断返回值的语句，cmds为执行的语句
+13. (for name in word1 word2 ... wordN)-do-cmds-done语句
+	解释：word1-wordN为循环的列表，每次循环值被赋值到name变量
+    (select name in word1 word2 ... wordN)-do-cmds-done语句
+    	解释：交互型的循环，列出循环清单，然后给出一个'#?'提示符，要求用户从清
+	单中选择一个值赋给name，常与case语句一起使用。
+14. break和continue
+	解释：无限循环 while : 或者 while true
+	解释：break可接受一个大于等于1的整数参数，用于指示跳出循环的层数
+15. shell脚本的命令行参数解析：
+	方法1：case语句
+	方法2：getopt命令
+16. 输入输出：
+	向终端输出：普通输出echo，格式化输出printf
+	输入：读行输入的read命令
+	管道，重定向
+17. 函数：
+	定义：name() {cmds;}
+	调用：name，注意不带括号
+18. 信号
+	手册：man 7 signal
+	发送信号：kill
+	设置或取消信号动作：trap
+19. 调试：
+	调试选项，可在执行时传递给shell：
+		-n：读所有命令但不执行，语法检查
+		-v：在shell读脚本时显示所有执行的行，verbose
+		-x：执行时显示所有命令和它们的参数
+	脚本内启动调试：set -x
+	脚本内取消调试：set +x或者set-
+20. 文件包含，可用于实现函数库
+	source命令，也可以用'.'
+21. 判断系统信息
+	uname命令
+	判断shell是否为交互式：tty -s或者test -t
+97. awk和sed
+	
+98. 命令简介：
+	nohup：进程不会因所在终端退出而终止，默认会将输出重定向到文件nohup.out
+	stty -a：列出当前终端的所有设置：包括可发送的信号等
+	basename：接收路径名返回目录或者文件名
+	getopt：参数解析命令，另外shell有内置的参数解析命令getopts
+	head, tail, grep, sort, uniq, tr：文本过滤命令
+	awk：
+	sed：面向流机制的编辑器
+	type：给出命令的路径，或者说明命令是否是shell内置，关键字或别名等
+	expr：执行整数加减乘除和取余运算，乘法运算符为'\*'，运算符两端要有空格
+	
+99. bash内置命令：
+	bg, fg，break，cd，continue, echo, export, fg, history, jobs, kill,
+	printf, logout, pwd, read, test, type, umask, unalias, unset
+	command, compgen, complete, dirs, disown, fc, getopts, hash, let, popd,
+	pushd, set, shift, shopt, suspend, times, ulimit, wait
+	: ：返回真值0，相当于true
+	alias：设置别名
+	bind：设置键盘映射	
+	builtin：执行指定的shell内置命令，可传递参数并获得返回值
+	caller：返回子过程的上下文
+	declare, typeset：设置变量属性
+	enable：启用禁止某个shell内置命令
+	eval：执行指定命令
+	exec：进程替换
+	exit：退出，可指定返回值
+	help：打印内置命令的帮助信息
+	local：创建本地变量
+	read：读取用户一行输入直到回车键
+	readonly：设置只读变量
+	return：从函数返回
+	
+	trap：设置或者取消信号处理函数
+	source：将指定文件包含到当前文件
+
+---------------------------------------
+参考文件:
+UNIX Shell编程24学时教程
