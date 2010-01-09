@@ -1,6 +1,9 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+第16章
+第17章
+
 01. 基本：
 	元字符：* ? [ ] ' " \ $ ; & ( ) | ^ < > 换行 制表符 空格（不是\n和\t）
 	返回值：0为真，1为假
@@ -88,11 +91,11 @@ E-Mail: fdlixiaojun@gmail.com
 	stty -a：列出当前终端的所有设置：包括可发送的信号等
 	basename：接收路径名返回目录或者文件名
 	getopt：参数解析命令，另外shell有内置的参数解析命令getopts
-	head, tail, grep, sort, uniq, tr：文本过滤命令
-	awk：
+	split, join, awk, cut, paste, head, tail, grep, sort, uniq, tr
 	sed：面向流机制的编辑器
 	type：给出命令的路径，或者说明命令是否是shell内置，关键字或别名等
 	expr：执行整数加减乘除和取余运算，乘法运算符为'\*'，运算符两端要有空格
+	
 	
 99. bash内置命令：
 	bg, fg，break，cd，continue, echo, export, fg, history, jobs, kill,
