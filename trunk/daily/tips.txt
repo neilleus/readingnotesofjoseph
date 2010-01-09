@@ -18,27 +18,3 @@
 ### 启动一个位于闪存分区的JFFS2文件系统中的内核
 
 ### 杂
-
-### Shell
-所不清楚的bash内容：进程控制， 输入输出控制，函数，数组，多进制整数运算
-bash初始化配置文件：/etc/profile，.bashrc .profile
-配置内容：终端类型，可执行文件路经，手册路径，
-ls, cat, wc, cp, mv, rm
-cd, pwd, mkdir, rmdir, chmod, chown, chgrp
-文件类型：常规、字符、块、符号、管道、套接字，目录
-权限，SUID和SGID（用户继承了所有者/组的权限），粘滞位
-进程控制：后台&，挂起前台进程<C-Z>, bg( %n) , fg(), nohup(不会因退出终端而终止)
-	jobs, ps, kill, exec（进程替换）
-查看快捷键: stty -a
-
-定义变量：name=value，引用变量：$name
-变量值：值没有类型，有空格字符串要加引号
-数组：name[n]=xxx name[n+1]=xxx，shell只跟踪赋值过的数组元素
-引用数组元素${name[n]}，引用数组所有元素${name[*]}，引用数组最后元素${name[@]}
-只读变量，用readonly标记变量，readonly name
-删除变量：unset name
-export
-常用环境变量：PWD, UID, SHLVL, RANDOM(0-32767), SECONDS, PATH，HOME
-glob: 通配符:*(0或多个任意字符), ?(1个任意字符), [chars]（给定范围内任意字符）
-[a-z][A-Z][0-9], 去反 [!a-z][!A-Z][!0-9]
-变量替换？？？第八章
