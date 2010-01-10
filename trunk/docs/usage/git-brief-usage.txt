@@ -1,6 +1,5 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
-文档参考：http://progit.org/book/zh/
 
 基础概念：
     GIT是分布式版本控制系统，在每个主机上都保存这版本库的完整镜像，这于CVS，SVN

@@ -1,7 +1,7 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
-正则表达式，文本处理类：(3第4章) (24第15,16,17章) (第9,10,11,12章)
+正则表达式，文本处理类：(3第4章) (第9,10,11,12章)
 配置，环境类型：(13)
 编程语法类：(27)
 
@@ -17,7 +17,7 @@ E-Mail: fdlixiaojun@gmail.com
 		$?：前一命令的退出状态
 		$$：当前shell的PID
 		$!：前一个后台进程的PID
-02. 配置文件：/etc/profile .profile
+02. 配置文件：/etc/profile ~/.profile ~/.bash_profile ~/.bashrc
 03. 文件权限中的SUID位和SGID位（表示用户继承了所有者/组的权限）以及粘滞位
 04. 变量：
 	定义：name=value
@@ -75,6 +75,7 @@ E-Mail: fdlixiaojun@gmail.com
 17. 函数：
 	定义：name() {cmds;}
 	调用：name，注意不带括号
+	参数：使用位置参数$1, $2...
 18. 信号
 	手册：man 7 signal
 	发送信号：kill
@@ -106,7 +107,11 @@ E-Mail: fdlixiaojun@gmail.com
 	命令组：可以用()和{}来将命令组合在一起，比如多个命令输出都重定向到同一
 		文件或管道，组合进行逻辑运算等。
 	IFS环境变量：内部字段分隔符，可用如下命令查看echo $IFS|od -b
-97. awk和sed
+24. awk和sed
+	基本格式：awk/sed 'scripts' files, scripts通常为正则表达式匹配
+	sed：能对输入文本的拷贝使用正则表达式进行行匹配，删除，替换等操作
+	awk：支持变量定义，流控制和正则表达式的编程语言 
+25. 正则表达式
 	
 98. 命令简介：
 	at, crontab, &, 
