@@ -17,26 +17,77 @@ E-Mail: fdlixiaojun@gmail.com
 		$?：前一命令的退出状态
 		$$：当前shell的PID
 		$!：前一个后台进程的PID
-02. 配置文件：/etc/profile ~/.profile ~/.bash_profile ~/.bashrc
-03. 文件权限中的SUID位和SGID位（表示用户继承了所有者/组的权限）以及粘滞位
-04. 变量：
-	定义：name=value
-	引用：$name
-	数组：name[n]=value $name[n]
-	只读：readonly name
-05. 通配符：
-	'*'：匹配零到任意个任意字符
-	'?'：匹配一个任意字符
-	'[chars]'：匹配括号内指定字符集内的任意字符
-06. 4个对变量进行解引用并可能进行赋值得运算符
-	格式：${name'op'value}
-	':-'：如果设置了变量值，返回它的值，否则返回value
-	':='：如果设置了变量值，返回它的值，否则返回value并赋值
-	':?'：如果设置了变量值，返回它的值，否则value写入stderr并退出
-	':+'：如果设置了变量值，返回value，否则什么也不做
-07. 执行整数运算：$((expression))
-08. 单引号和双引号，前者不解引用，后者解析特定引用
-09. 测试命令：test
+	配置文件：/etc/profile ~/.profile ~/.bash_profile ~/.bashrc
+	文件权限中的SUID位和SGID位（表示用户继承了所有者/组的权限）以及粘滞位
+	执行整数运算：$((expression))
+	单引号和双引号，前者不解引用，后者解析特定引用
+	设置或取消信号动作：trap
+	重定向：通过文件描述符 >&，
+		>foo 2>&1：注意这里shell从左往右处理重定向，所以两个顺序不能换
+		重定向可以用exec来动态执行
+		>&-：关闭标准输出，如果前面加上文件描述符则关闭与之关联的文件
+		<&-：关闭标准输入，与上类似
+	判断shell是否为交互式：tty -s或者test -t
+	导出变量，当启动子shell时，父shell的环境会拷贝副本给子shell，
+	命令组：可以用()和{}来将命令组合在一起，比如多个命令输出都重定向到同一
+		文件或管道，组合进行逻辑运算等。
+	IFS环境变量：内部字段分隔符，可用如下命令查看echo $IFS|od -b
+
+02. 脚本：
+	变量：
+		定义：name=value
+		引用：$name
+		数组：name[n]=value $name[n]
+		只读：readonly name
+	4个对变量进行解引用并可能进行赋值得运算符
+		格式：${name'op'value}
+		':-'：如果设置了变量值，返回它的值，否则返回value
+		':='：如果设置了变量值，返回它的值，否则返回value并赋值
+		':?'：如果设置了变量值，返回它的值，否则value写入stderr并退出
+		':+'：如果设置了变量值，返回value，否则什么也不做
+	过程控制：
+		1) if-then-elif-then-else-fi语句：
+		注意：在then之前的条件语句后面要加分号，if和then通常写在一行
+		2) (case xx in)-pattern1) cmd1;;-pattern2) cmd2;;-esac语句
+		注意1：命令后要加双分号结束
+		注意2：case的模式支持模式匹配，模式后要加')'
+		注意3：不要忘了in关键字
+		3) (while/until)-cmd-do-cmds-done语句
+		注意：cmd是需要判断返回值的语句，cmds为执行的语句
+		4) (for name in word1 word2 ... wordN)-do-cmds-done语句
+		注意：word1-wordN为循环的列表，每次循环值被赋值到name变量
+		5) (select name in word1 word2 ... wordN)-do-cmds-done语句
+		注意：交互型的循环，列出循环清单，然后给出一个'#?'提示符，要求
+		用户从清单中选择一个值赋给name，常与case语句一起使用。
+		6) break和continue
+		注意：无限循环 while : 或者 while true
+		注意：break可接受大于等于1的整数参数，跳出指定的循环层数
+	函数：
+		定义：name() {cmds;}
+		调用：name，注意不带括号
+		参数：使用位置参数$1, $2...
+	调试：
+		调试选项，可在执行时传递给shell：
+			-n：读所有命令但不执行，语法检查
+			-v：在shell读脚本时显示所有执行的行，verbose
+			-x：执行时显示所有命令和它们的参数
+		启动调试：命令行上加-x参数或者脚本内set -x
+		取消调试：脚本内set +x或者set-
+	文件包含，可用于实现函数库
+		source命令，也可以用'.'
+	通配符：
+		'*'：匹配零到任意个任意字符
+		'?'：匹配一个任意字符
+		'[chars]'：匹配括号内指定字符集内的任意字符
+	shell脚本的命令行参数解析：
+		方法1：case语句，shift位置参数
+		方法2：getopt命令
+	输入输出：
+		输出：普通输出echo，格式化输出printf
+		输入：读行输入的read命令
+		重定向
+		管道
+03. test / [  ]
 	缩写形式：[ 空格 测试项 测试对象 空格]
 	测试对象：文件、字符串、整数
 	文件可测试内容：存在，类型，非空，权限，SUID/SGID/STICKY权限位
@@ -44,55 +95,8 @@ E-Mail: fdlixiaojun@gmail.com
 	整数测试内容：等，不等，大于，小于，大于等于，小于等于
 	测试命令内部复合逻辑，测试对象的复合：与 -a，或 -o，非!
 	外部复合逻辑，两个测试命令的复合：与 &&，或 ||，非 !
-10. if-then-elif-then-else-fi语句：
-	注意：在then之前的条件语句后面要加分号，if和then通常写在一行
-11. case xx in-pattern1) cmd1;;-pattern2) cmd2;;-esac语句
-	注意1：命令后要加双分号结束
-	注意2：case的模式支持模式匹配，模式后要加')'
-	注意3：不要忘了in关键字
-12. (while/until)-cmd-do-cmds-done语句
-	解释：cmd是需要判断返回值的语句，cmds为执行的语句
-13. (for name in word1 word2 ... wordN)-do-cmds-done语句
-	解释：word1-wordN为循环的列表，每次循环值被赋值到name变量
-    (select name in word1 word2 ... wordN)-do-cmds-done语句
-    	解释：交互型的循环，列出循环清单，然后给出一个'#?'提示符，要求用户从清
-	单中选择一个值赋给name，常与case语句一起使用。
-14. break和continue
-	解释：无限循环 while : 或者 while true
-	解释：break可接受一个大于等于1的整数参数，用于指示跳出循环的层数
-15. shell脚本的命令行参数解析：
-	方法1：case语句
-	方法2：getopt命令
-16. 输入输出：
-	向终端输出：普通输出echo，格式化输出printf
-	输入：读行输入的read命令
-	重定向：通过文件描述符 >&，
-		>foo 2>&1：注意这里shell从左往右处理重定向，所以两个顺序不能换
-		重定向可以用exec来动态执行
-		>&-：关闭标准输出，如果前面加上文件描述符则关闭与之关联的文件
-		<&-：关闭标准输入，与上类似
-	管道
-17. 函数：
-	定义：name() {cmds;}
-	调用：name，注意不带括号
-	参数：使用位置参数$1, $2...
-18. 信号
-	手册：man 7 signal
-	发送信号：kill
-	设置或取消信号动作：trap
-19. 调试：
-	调试选项，可在执行时传递给shell：
-		-n：读所有命令但不执行，语法检查
-		-v：在shell读脚本时显示所有执行的行，verbose
-		-x：执行时显示所有命令和它们的参数
-	脚本内启动调试：set -x
-	脚本内取消调试：set +x或者set-
-20. 文件包含，可用于实现函数库
-	source命令，也可以用'.'
-21. 判断系统信息
-	uname命令
-	判断shell是否为交互式：tty -s或者test -t
-22. 启动脚本，运行级别脚本rc.scripts, rcN.d
+		
+04. 启动脚本，运行级别脚本rc.scripts, rcN.d
 	rcN.d：这里的脚本基本是些链接，真正的脚本存放在/etc/init.d目录下
 	运行级别：0为停机，1为单用户，2-5为多用户，6为重启
 	inittab：init程序会查看这个配置文件
@@ -100,19 +104,10 @@ E-Mail: fdlixiaojun@gmail.com
 		个以S开头的脚本赋予参数start，对于每个以K开头的脚本赋予参数stop
 		在启动或者运行级别切换时都会执行。启动进程按数字从低到高进行，
 		杀死进程按照数字从高到低进行。
-23. 环境：
-	登陆后，启动了一个shell的副本，维护了一个独立的环境。
-	export，导出变量到环境，当启动子shell时，父shell的环境会拷贝给子shell
-		因为是拷贝的副本，所以子shell对副本的修改不会影响父shell的值
-	命令组：可以用()和{}来将命令组合在一起，比如多个命令输出都重定向到同一
-		文件或管道，组合进行逻辑运算等。
-	IFS环境变量：内部字段分隔符，可用如下命令查看echo $IFS|od -b
-24. awk和sed
-	基本格式：awk/sed 'scripts' files, scripts通常为正则表达式匹配
-	sed：能对输入文本的拷贝使用正则表达式进行行匹配，删除，替换等操作
-	awk：支持变量定义，流控制和正则表达式的编程语言 
-25. 正则表达式
-	
+05. awk
+06. sed
+07. find
+
 98. 命令简介：
 	at, crontab, &, 
 	nohup：进程不会因所在终端退出而终止，默认会将输出重定向到文件nohup.out

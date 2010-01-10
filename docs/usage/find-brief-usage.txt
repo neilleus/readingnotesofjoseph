@@ -1,9 +1,0 @@
-Author: Joseph Lee
-E-Mail: fdlixiaojun@gmail.com
-
----------------------------------------
-参考文件:
-find manpages
-bash beginners guide
-advanced bash shell guide
-
