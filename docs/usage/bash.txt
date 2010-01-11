@@ -131,6 +131,9 @@ E-Mail: fdlixiaojun@gmail.com
 	ORS：输出记录分隔符，print末尾添加的分隔符ORS，默认为'\n'
 	NR：包含了当前已经处理过的记录的数量值。
 
+07. 正则表达式tips：
+	取不匹配指定模式的：/pattern/!
+
 98. 命令简介：
 	at, crontab, &, 
 	nohup：进程不会因所在终端退出而终止，默认会将输出重定向到文件nohup.out

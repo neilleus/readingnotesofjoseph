@@ -5,9 +5,9 @@
 	    +-------------+
 	    | boot loader |
 	    +-------------+
-	    |             | <- u_kernel & u_rootfs & configs
-	    |    jffs2    | <- firmware update...
-	    |             | <- /boot, can be mounted
+	    |             | <- u_kernel & u_rootfs & configs，只读
+	    |    jffs2    | <- firmware update...，只读
+	    |             | <- /boot, can be mounted，只读
 	    +-------------+
 	    |             |
 	    |   unused    |
