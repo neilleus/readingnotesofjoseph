@@ -12,24 +12,10 @@ env_init()中flag == 0xFF时为什么都有效？
 
 environment.c中用GEN_ABS(env_offset, CFG_ENV_OFFSET);有什么用？
 
-env的作用，初始化，作用过程，env的存放位置，管理函数的实现？
-
 env_t *env_ptr = (env_t *)(&environment[0]);这里的environment为什么可以作数组用
-
-env只能存放在一个sector么，ENV和sector的关系？
 
 frame buffer什么作用？
 
-CFG_MONITOR_BASE和在flash还是在dram中有关系么？
-
-*******************************************************************************
-其他
-
-什么是机制，什么是策略？（UNIX程序设计思路：机制和策略分离设计）
-
-*******************************************************************************
-已解决
-silent以后启动到一半死掉，是不是参数传递的问题？
-    是fixup_silent_linux()这个函数更改了bootargs的问题。
-跳转表用作什么用途？
-    用于导出函数供外部程序调用，可以避免版权问题。
+闪存的设备映射是做什么用的？
+mtd,mtdram,mtdchar它们之间是什么关系？
+mtdpartition怎么制作？

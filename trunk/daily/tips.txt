@@ -13,8 +13,8 @@
 #flashcp filename.jffs2 /dev/mtd[n]
 2. 烧写NAND闪存
 #nandwrite -p /dev/mtd[n] filename.jffs2
+#
+#
+####划分mtd分区
+struct mtd_partition {};
 
-
-### 启动一个位于闪存分区的JFFS2文件系统中的内核
-
-### 杂
