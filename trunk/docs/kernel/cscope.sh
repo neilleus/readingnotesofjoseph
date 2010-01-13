@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#################################
+# Author: Joseph Lee            #
+# E-Mail: fdlixiaojun@gmail.com #
+#################################
+
 LNX=/home/joseph/linux
 
 cd / 	

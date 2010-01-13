@@ -1,0 +1,55 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+### 主机端串口程序的配置
+可以有多种方法来访问目标系统的控制端口，比如使用一个终端服务器，但是更常用的方
+法是将其连接到主机的串口。然后在主机上运行一个 终端模拟程序，比如cu或者kermit。
+或者minicom（u-boot不推荐，据说二者不兼容，下载时有问题）。
+
+配置cu命令
+cu命令是UUCP包的一部分，可以用来做拨入终端。它的文件传输功能可以给u-boot用来
+下载镜像。安装这个软件包，然后填写/etc/uucp/sys和/etc/uucp/port配置文件
+	#
+	# filename: /etc/uucp/sys
+	# /dev/ttyS0 at 115200 bps:
+	#
+	system          S0@115200
+	port            serial0_115200
+	time            any
+
+	#
+	# /etc/uucp/port
+	# /dev/ttyS0 at 115200 bps:
+	#
+	port            serial0_115200
+	type            direct
+	device          /dev/ttyS0
+	speed           115200
+	hardflow        false
+然后可以运行cu S0@115200命令连接即可
+功能键'~'，功能键和后面的按键组合成命令发给cu，如退出命令为'~.'
+
+配置kermit命令
+kermit是一组串口和网络连接软件的名字，这里推荐使用。
+它的配置文件是用户目录下的.kermitrc，配置格式如下：
+	set line /dev/ttyS0
+	set speed 115200
+	set carrier-watch off
+	set handshake none
+	set flow-control none
+	robust
+	set file type bin
+	set file name lit
+	set rec pack 1000
+	set send pack 1000
+	set window 5
+这里假定你使用/dev/ttyS0，速度是115200。
+设置好配置文件，可以用如下命令链接：
+	$kermit -c
+功能键是<C-\>，后面跟C表示继续，跟?查看帮助。
+
+---------------------------------------
+参考文件:
+http://www.denx.de/wiki/U-Boot/Documentation
+http://www.columbia.edu/kermit/
+
