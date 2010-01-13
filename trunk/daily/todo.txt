@@ -19,7 +19,7 @@
     (1) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
         增加mtdram功能，开发期不必烧写flash
     (2) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
-    	系统中。
+    	系统中。（U-boot支持两种，参见其文档）
 	(a) 不分区支持mtd驱动
 	(b) 如何分区
 	(c) 开会讨论方案
@@ -30,6 +30,7 @@
     (6) monitor protect, env embedded, flash protected, env overwrite???
     (7) 添加CUSTOM_STOP_KEY逻辑
     (8) 串口下载功能
+    (9) cli/cmd_**移到相应位置
 
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
@@ -66,9 +67,6 @@ http://www.denx.de/wiki/DULG/Manual
 
 
 *******************************************************************************
-Anatomy of the Linux kernel
-http://www.ibm.com/developerworks/linux/library/l-linux-kernel/index.html
-
 模块机制
 Anatomy of Linux loadable kernel modules
 http://www.ibm.com/developerworks/linux/library/l-lkm/index.html
