@@ -4,7 +4,8 @@
 2. 下载到DRAM
 #tftp [addr_in_dram] [filename]
 3. 烧写NOR闪存
-#cp [dst_addr_in_flash] [src_addr_in_dram] [size]
+#cp.b [dst_addr_in_flash] [src_addr_in_dram] [size]
+#cp需要指定是按byte还是word还是dword来擦写，方法是cp.b, cp.w, cp.l
 
 ####通过mtd-utils烧写jffs2.img到闪存
 1. 擦除
@@ -18,4 +19,5 @@
 #mkfs.jffs2 -r dir -o file.jffs2
 ####划分mtd分区
 struct mtd_partition {};
+
 
