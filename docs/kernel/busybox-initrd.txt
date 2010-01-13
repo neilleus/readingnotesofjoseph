@@ -1,3 +1,6 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 用busybox建立initramfs
 
 静态链接的BusyBox
@@ -19,3 +22,7 @@ $ find . | cpio -o -H newc | gzip > ../busybox.initramfs.cpio.gz
 通过qemu来模拟，linux-0.2.img从http://www.nongnu.org/qemu/linux-0.2.img.bz2下载
 $cd /home/jserv/initramfs-workspace/linux-2.6.22.5
 $qemu -kernel bzImage -initrd initrd.img -hda ./linux-0.2.img -append "root=/dev/sda"
+
+---------------------------------------
+参考文件:
+
