@@ -177,6 +177,8 @@ chardev_t *search_device_flags(int flags);
 ******************************************************************************
 关于env
 grocx为ucboot.bin设置了320KB的flash空间，env保存在0x10050000位置
+更新env CRC的时机：env_valid失效，使用default时计算一次，setenv时会根据是（增
+加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
 CONFIG_ENV_OVERWRITE		串口和MAC地址是否可以更改
 CONFIG_OVERWRITE_ETHADDR_ONCE	MAC地址只可以更改一次，即未设置时初始设置一次。
 CONFIG_ENV_FLASH		环境变量保存在FLASH中
@@ -241,11 +243,9 @@ environment数据结构中有一个32位的CRC校验码覆盖数据部分。
 数据结构
 uchar default_environment[];	在没有设置环境变量时使用缺省环境变量表
 extern uchar environment[];	自定义的环境变量表
-env_t environment __PPCENV = {ENV_CRC, 1, {""}};
+env_t environment = {ENV_CRC, 1, {""}};
 
 char *env_name_spec;
-#define __PPCENV__	__attribute__ ((section(".text")))
-#define __PPCTEXT__	__attribute__ ((section(".text")))
 typedef struct environment_s {
 	unsigned long crc;		/* crc32 over data bytes */
 	unsigned char flags;		/* active / obsolete */
@@ -275,10 +275,10 @@ int env_complete(char *var, int maxv, char *cmdv[], int bufsz, char *buf);
 void env_relocate(void);	将env重定位到ram中，如果不是使用缺省，调用spec
 void env_relocate_spec(void);	将env从flash拷贝到内存中的位置。
 
-uchar (*env_get_char)(int);	函数指针，指向env_get_char_init
-uchar env_get_char_spec(int);	特定于env存放位置的get_char函数。
-static uchar env_get_char_init(int index);	从spec或这default取env。
-uchar env_get_char_memory(int index);
+uchar (*env_get_char)(int);	函数指针，用于获取指定的index对应的env值
+uchar env_get_char_spec(int);	由各种存储介质实现
+static uchar env_get_char_init(int);	调用spec或从default位置取env。
+uchar env_get_char_memory(int index);	env重定位到内存后，使用它来获取env值，它直接从给定内存位置取出或者从default中取出。
 
 static int envmatch(uchar *s1, int i2);
 char *getenv(char *);
