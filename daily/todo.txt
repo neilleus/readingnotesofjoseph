@@ -31,6 +31,7 @@
     (7) 添加CUSTOM_STOP_KEY逻辑
     (8) 串口下载功能
     (9) cli/cmd_**移到相应位置
+    (a) vsc7501/openocd/linux增加mtd驱动patch
 
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
@@ -60,11 +61,6 @@
     (a) bash，（BBG）练习，和C
     (b) 词汇
     (c) udisk-hub-reader产品
-
-*******************************************************************************
-u-boot手册
-http://www.denx.de/wiki/DULG/Manual
-
 
 *******************************************************************************
 模块机制
