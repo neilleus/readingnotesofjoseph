@@ -176,6 +176,7 @@ chardev_t *search_device_flags(int flags);
 
 ******************************************************************************
 关于env
+grocx为ucboot.bin设置了320KB的flash空间，env保存在0x10050000位置
 CONFIG_ENV_OVERWRITE		串口和MAC地址是否可以更改
 CONFIG_OVERWRITE_ETHADDR_ONCE	MAC地址只可以更改一次，即未设置时初始设置一次。
 CONFIG_ENV_FLASH		环境变量保存在FLASH中

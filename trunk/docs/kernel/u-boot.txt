@@ -48,6 +48,37 @@ kermit是一组串口和网络连接软件的名字，这里推荐使用。
 	$kermit -c
 功能键是<C-\>，后面跟C表示继续，跟?查看帮助。
 
+### u-boot镜像格式
+u-boot镜像有个特殊的头部，该头部定义于include/image.h。
+头部需要定义以下基本属性：
+	target operating system
+	target cpu architecture
+	compression type
+	load address
+	entry point
+	image name
+	image timestamp
+头部由一个魔数标识，头部和数据部分用CRC32校验码保护。
+
+### u-boot支持splash
+
+### u-boot的平坦设备树集（Flattened Device Tree Blob）
+内核希望所运行硬件平台的特定信息，对于ppc架构，这个信息是按照open firmware 
+specification设备树来组织的。u-boot没有实现Open Firmware API，通过一个二进制格
+式来传递flattened device tree给内核，通常称作FDT blob。
+设备数以人可读的文本文件定义，是2.6内核的一部分。在powerpc的dts目录的.dts文件
+中定义（ARM的目录下没有发现）。在将设备树传给内核前，应该用dtc编译器将其编译成
+二进制格式。运行如下命令即可:
+	$make [mach-type].dtb
+在blob编好后，就可以通过tftp等协议传给目标机，然后用bootm命令将其位置传递给内
+核。注意：u-boot在将其传给内核前对其自动做了些改动，主要是增加和修改一些运行时
+学到的信息。这个特性比较新。
+
+### 内核启动参数传递
+u-boot通过bootargs环境变量来传递
+
+### 
+
 ---------------------------------------
 参考文件:
 http://www.denx.de/wiki/U-Boot/Documentation
