@@ -1,53 +1,49 @@
 ******************************************************************************
 关于env
 grocx为ucboot.bin设置了320KB的flash空间，env保存在0x10050000位置
-更新env CRC的时机：env_valid失效，使用default时计算一次，setenv时会根据是（增
-加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
 
-简单介绍
 形如"name=value"的C风格字符串，保存在一个表中，该表以"\0"结尾。新项总是加在表
 尾端，删除时剩下的表项会往前移动。修改值的话相当于删除旧表项再添加新表项。
 environment数据结构中有一个32位的CRC校验码覆盖数据部分。
 
 数据结构
-uchar default_environment[];	在没有设置环境变量时使用缺省环境变量表
-extern uchar environment[];	自定义的环境变量表
-env_t environment = {ENV_CRC, 1, {""}};
-
-char *env_name_spec;
 typedef struct environment_s {
 	unsigned long crc;		/* crc32 over data bytes */
 	unsigned char flags;		/* active / obsolete */
 	unsigned char data[ENV_SIZE];	/* data bytes */
 } env_t;
-
+env_t environment = {ENV_CRC, 1, {""}};
+env *env_ptr;			/* 指向系统中env_t数据结构的指针 */
+uchar default_environment[];	/* 在没有设置环境变量时使用缺省环境变量表 */
+extern uchar environment[];	/* 自定义的环境变量表 */
+static env_t *flash_addr	/* 环境变量在闪存上的地址 */
+static env_t *flash_addr_new;	/* 冗余环境变量在闪存上的地址 */
+gd->env_addr;			
+char *env_name_spec;
 char *env_name_spec = "Flash";
-static env_t *flash_addr = (env_t *)CFG_ENV_ADDR;
-    环境变量在闪存上的地址
-env *env_ptr = (env_t *)CFG_ENV_ADDR;
-gd->env_addr;
-
-static env+t *flash_addr_new = (env_t *)CFG_ENV_ADDR_REDUND;
-    冗余环境变量在闪存上的地址
 static ulong end_addr = CFG_ENV_ADDR + CFG_ENV_SECT_SIZE - 1;
 static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
 #define ACTIVE_FLAG 	1
 #define OBSOLETE_FLAGS 	0
 
+更新env CRC的时机：env_valid失效采用default时计算一次，setenv时会根据是（增
+加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
 操作方法
-int env_init(void);	主要通过计算CRC校验和设置env地址值和有效标志。
-void env_crc_update(void);  更新env-ptr指向的crc。
-uchar *env_get_addr(int index); 返回env中index位置的指针
-int env_complete(char *var, int maxv, char *cmdv[], int bufsz, char *buf);
-用于名令自动完成
+int env_init(void);		/* 通过计算CRC校验和设置env地址值和有效标志 */
+void env_crc_update(void);  	/* 更新env_ptr指向的crc。 */
+int env_complete(*var,maxv,*cmdv[],bufsz,*buf); /* 用于命令自动完成 */
 
-void env_relocate(void);	将env重定位到ram中，如果不是使用缺省，调用spec
-void env_relocate_spec(void);	将env从flash拷贝到内存中的位置。
+void env_relocate(void);	/* 重定位env_ptr指向的ram中的位置：
+				 * 可能1）嵌入text段，重定位env_ptr位置即可。
+				 * 可能2）非嵌入方式，需要在堆上分配env空间
+				 */
+void env_relocate_spec(void);	/* 将env从flash拷贝到内存中的位置 */
 
-uchar (*env_get_char)(int);	函数指针，用于获取指定的index对应的env值
-uchar env_get_char_spec(int);	由各种存储介质实现
-static uchar env_get_char_init(int);	调用spec或从default位置取env。
-uchar env_get_char_memory(int index);	env重定位到内存后，使用它来获取env值，它直接从给定内存位置取出或者从default中取出。
+uchar (*env_get_char)(int);	/* 用于获取指定index处env值的函数指针 */
+static uchar env_get_char_init(int);	/* 调用spec或从default位置取env */
+uchar env_get_char_spec(int);	/* 由各种存储介质实现的取env值的函数 */
+uchar env_get_char_memory(int index);	/* 重定位后，用它直接从内存位置返回 */
+uchar *env_get_addr(int index); /* 返回env中index位置的指针 */
 
 static int envmatch(uchar *s1, int i2);
 char *getenv(char *);
