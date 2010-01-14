@@ -1,0 +1,12 @@
+# If define KERNELRELEASE, it is in the kernel source tree, and you
+# can use the built-in statement
+ifneq ($(KERNELRELEASE),)
+	obj-m	:= hello.o
+else
+	KERNELDIR	?= /lib/modules/$(shell uname -r)/build
+	PWD		:= $(shell pwd)
+default:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+clean:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
+endif
