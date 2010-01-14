@@ -1,6 +1,7 @@
 ******************************************************************************
 关于env
 grocx为ucboot.bin设置了320KB的flash空间，env保存在0x10050000位置
+由于ENV_ADDR小于MONITOR_BASE值，所以grocx的env不是嵌入的。
 
 形如"name=value"的C风格字符串，保存在一个表中，该表以"\0"结尾。新项总是加在表
 尾端，删除时剩下的表项会往前移动。修改值的话相当于删除旧表项再添加新表项。
@@ -29,7 +30,12 @@ static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
 更新env CRC的时机：env_valid失效采用default时计算一次，setenv时会根据是（增
 加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
 操作方法
-int env_init(void);		/* 通过计算CRC校验和设置env地址值和有效标志 */
+int env_init(void);		/* 设置gd->env_addr和gd->env_valid值，
+				 * gd->env_addr指向环境变量数据部分的首地址
+				 * 根据是否配置了备用环境变量分为两种情况：
+				 * 有备份）指向flash中的地址
+				 * 无备份）指向内存中重定向过的地址
+				 */
 void env_crc_update(void);  	/* 更新env_ptr指向的crc。 */
 int env_complete(*var,maxv,*cmdv[],bufsz,*buf); /* 用于命令自动完成 */
 
