@@ -494,3 +494,62 @@ CONFIG_SILENT_CONSOLE
 	禁止自动启动时终端的输出，调用console_init_f()设置全局gd的flag，然后根
 	据它，通过将std_devices[]设为nulldev,	如果自动启动过程被终止，终端会
 	被重新设置为串口。
+
+
+*******************************************************************************
+关于命令列表
+已定义
+CONFIG_NET_CMDLINE 
+CONFIG_ENV_CMDLINE
+CONFIG_FLASH_CMDLINE
+
+CONFIG_LINUX_TAG_CMDLINE
+CONFIG_SAVEENV_CMDLINE
+CONFIG_CACHE_CMDLINE
+CONFIG_LOADB_CMDLINE
+CONFIG_BOOTD_CMDLINE
+CONFIG_ASKENV_CMDLINE
+CONFIG_NAND_CMDLINE
+CONFIG_MII_CMDLINE
+CONFIG_LOADB_CMDLINE
+
+dcache
+icache
+bdinfo
+flinfo
+iminfo
+coninfo
+imls
+
+bmp		?
+echo
+help/?
+
+loadb
+loads		?
+go
+run
+cmp
+cp		可否从dram到flash？
+md
+mw
+protect
+erase
+
+reset
+version
+
+printenv
+saveenv
+setenv
+
+boot
+bootm
+bootp
+diskboot	?
+
+rarpboot
+tftpboot
+ping
+dhcp
+
