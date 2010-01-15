@@ -23,7 +23,7 @@
 	(a) 不分区支持mtd驱动
 	(b) 如何分区
 	(c) 开会讨论方案
-    (3) 整理ucboot内的fs，把它们模块话（至少ext2/vfat, jffs2, 最好支持yaffs2,
+    (3) 整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支持yaffs2,
     	ubifs，并调查cramfs）
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
