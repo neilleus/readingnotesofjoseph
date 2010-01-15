@@ -29,9 +29,8 @@
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (6) monitor protect, env embedded, flash protected, env overwrite???
     (7) 添加CUSTOM_STOP_KEY逻辑
-    (8) 串口下载功能
-    (9) cli/cmd_**移到相应位置
-    (a) vsc7501/openocd/linux增加mtd驱动patch
+    (8) 串口kermit下载功能
+    (9) vsc7501/openocd/linux增加mtd驱动patch
 
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
