@@ -27,9 +27,34 @@ modprobe与insmod类似，但是它会检查装载的模块是否引用了一些
 这种情况下使用insmod会失败并记录日志。
 /proc/modules文件和/sys/module目录
 
+### module_init(func_init)和module_exit(func_exit)
+这里的func_init和func_exit原形如下
+static int __init func_init(void);	/* 返回错误状态 */
+static void __init func_init(void);
+初始化失败时要注意释放初始化过程中已经占有的资源。释放前要检查这些资源的状态。
+
+### 模块参数
+insmod和modprobe命令行指定，modprobe还可以从模块的配置文件/etc/modprob.conf中
+读取参数值。
+模块参数用module_param宏声明，该宏定义与<linux/moduleparam.h>文件中。该宏包含
+三个参数：变量名称、类型和用于sysfs入口项的许可掩码。该宏通常放于文件头部。
+内核支持的模块参数类型包括：bool，invbool（与bool相反），charp，long以下各型整
+数。
+module_param_array(name, type, num, perm);	/* perm in <linux/stat.h> */
+用于声明数组参数。
+所有参数都应该有默认值，自定义类型的参数可以用模块代码中的hook设置。
+
 ### 内核版本信息以及vermagic.o，该文件包含了许多内核信息，可用来检查模块兼容性
 <linux/version.h>头文件
 一般而言，依赖于特定版本或平台的代码应该位于低层宏或者函数之后。
+
+
+### 用户空间驱动，可链接C库，可杀死，内存可换出，可调试；无法使用中断，无法直接
+#访问内存（需要经过mmap映射），无法直接访问IO端口（需要使用ioperm或iopl），响
+#应慢。
+例子：libusb，Xserver（指不是基于framebuffer的那种）
+通常用户空间驱动被实现为一个服务器，其任务是替代内核作为硬件控制的唯一代理。客
+户程序通过该服务器和设备进行通信。
 
 块设备：随机无序访问固定大小的块，通常安装文件系统
 字符设备：字符流方式有序访问
