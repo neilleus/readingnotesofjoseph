@@ -1,31 +1,32 @@
 ******************************************************************************
 关于env
-grocx为ucboot.bin设置了320KB的flash空间，env保存在0x10050000位置
+根据配置ENV保存在flash的0x10050000~0x1005FFFF这个擦除块上
 由于ENV_ADDR小于MONITOR_BASE值，所以grocx的env不是嵌入的。
 
-形如"name=value"的C风格字符串，保存在一个表中，该表以"\0"结尾。新项总是加在表
-尾端，删除时剩下的表项会往前移动。修改值的话相当于删除旧表项再添加新表项。
-environment数据结构中有一个32位的CRC校验码覆盖数据部分。
-
-数据结构
+env_t数据结构包括数据部分的CRC校验码、有效标志和ENV数据三部分。其中数据部分是
+形如name=value的字符串集合，通过'\0'将多个字符串隔离开来，最后以空字符串"\0"
+结尾，所有的字符串连贯保存在一个字符数组中。修改环境变量值相当于删除旧表项，然
+后在表格末尾添加一个同名新表项并重新计算32位CRC校验码的值。
 typedef struct environment_s {
 	unsigned long crc;		/* crc32 over data bytes */
 	unsigned char flags;		/* active / obsolete */
 	unsigned char data[ENV_SIZE];	/* data bytes */
 } env_t;
-env_t environment = {ENV_CRC, 1, {""}};
+
+env_t environment = {ENV_CRC, 1, {"..."}};
 env *env_ptr;			/* 指向系统中env_t数据结构的指针 */
 uchar default_environment[];	/* 在没有设置环境变量时使用缺省环境变量表 */
-extern uchar environment[];	/* 自定义的环境变量表 */
-static env_t *flash_addr	/* 环境变量在闪存上的地址 */
-static env_t *flash_addr_new;	/* 冗余环境变量在闪存上的地址 */
-gd->env_addr;			
-char *env_name_spec;
-char *env_name_spec = "Flash";
-static ulong end_addr = CFG_ENV_ADDR + CFG_ENV_SECT_SIZE - 1;
-static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
-#define ACTIVE_FLAG 	1
-#define OBSOLETE_FLAGS 	0
+extern uchar environment[];	/* FIXME: 自定义的环境变量表 */
+gd->env_addr;			/* env数据区的地址 */
+
+char *env_name_spec = "Flash";	/* env名字 */
+static env_t *flash_addr;	/* 环境变量在闪存上的首端地址 */
+static ulong end_addr;		/* 环境变量在闪存上的末端地址 */
+static env_t *flash_addr_new;	/* 冗余环境变量在闪存上的首端地址 */
+static ulong end_addr_new;	/* 冗余环境变量在闪存上的末端地址 */
+
+#define ACTIVE_FLAG 	1	/* 表示该环境变量组被启用 */
+#define OBSOLETE_FLAGS 	0	/* 表示该环境变量组没有被启用 */
 
 更新env CRC的时机：env_valid失效采用default时计算一次，setenv时会根据是（增
 加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。

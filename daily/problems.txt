@@ -1,29 +1,37 @@
 *******************************************************************************
-当前
+关于UCBOOT
+### 为什么调用cfi_mtd_init之后tftp下载时net_recv出现checksum bad错误而无法下载？
 
-在启动cfi_mtd_init时，会导致env_ptr指向零地址的问题。
-由于在堆空间进行malloc失败导致，u-boot大量的malloc不做检查是否有问题？
-为什么调用cfi_mtd_init之后就会失败，不调用则不会？
+### 为什么获得的CFI数据线宽度信息有误，应该是16x8，但现在是8x8？
 
-获得的CFI数据线宽度信息有误，应该是16x8，但现在是8x8。
+### glue_7和glue_7t是什么段？.init.text和.exit.text是怎么指定的？
+    .init和.fini段呢，.rodata.str1.4是什么段？.comment是谁加的？
+    environment.c中用GEN_ABS(env_offset, CFG_ENV_OFFSET);有什么用？
 
-为什么通过openjtag复位时do_initcalls会被调用两次？
+### 为什么要区分ENV_SECT_SIZE和ENV_SIZE？
 
-glue_7和glue_7t是什么段？.init.text和.exit.text是怎么指定的，.init和.fini段呢？
-.rodata.str1.4是什么段？.comment是谁加的？
 
-setup_commandline_tag()中的strcpy为什么cmdline[]只有1字节，是因为联合的原因么？
+*******************************************************************************
+关于mtd
+### 闪存的设备映射是做什么用的？
 
-env_init()中flag == 0xFF时为什么都有效？
+### mtd,mtdram,mtdchar它们之间是什么关系？
 
-environment.c中用GEN_ABS(env_offset, CFG_ENV_OFFSET);有什么用？
+### mtdpartition怎么制作？
 
-env_t *env_ptr = (env_t *)(&environment[0]);这里的environment为什么可以作数组用
 
-frame buffer什么作用？
+*******************************************************************************
+关于内核
 
-疑问，为什么SOCK_STREAM可能发和收到的数量不同？
 
-闪存的设备映射是做什么用的？
-mtd,mtdram,mtdchar它们之间是什么关系？
-mtdpartition怎么制作？
+*******************************************************************************
+关于其他    
+### frame buffer什么作用？
+
+### 为什么SOCK_STREAM可能发和收到的数量不同？
+
+
+为什么要这样拐弯抹角？
+#define XMK_STR(x)	#x
+#define MK_STR(x)	XMK_STR(x)
+
