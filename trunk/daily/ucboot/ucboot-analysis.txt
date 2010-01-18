@@ -117,22 +117,9 @@ int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
     设置指定块或者全部块或者指定地址范围的保护标记。
 
-/grocx_flash.c/
-flash_info_t flash_info[MAX_FLASH_BANKS];
-int flash_erase(flash_info_t *info, int s_first, int s_last);
-int write_buff(flash_info_t *info, uchar *src, ulong addr, ulong cnt);
-static int write_byte(flash_info_t *info, ulong dest, uchar data);
-
-static ulong flash_get_size(vu_long *addr, flash_info_t *info);
-    向flash写命令获得厂家id，并打印厂家信息，获得设备ID，根据设备ID设置
-    flash_info数据结构的各个字段，包括id，块数，大小，保护位置零，设置各个块
-    的基地址，确定每个块是否被保护，最后复位到读模式。
-unsigned long flash_init(void);
-    flash初始化，把每个bank的flash_id设为FLASH_UNKNONW
-void flash_print_info(flash_info_t *info);
-
-CONFIG_FLASH_PROTECTION
-    flash是否在硬件上支持块擦写保护
+cfi_flash.c
+portwidth的变化：在执行CFI QUERY命令时portwidth为16bit，在调用flash_get_size时
+会将其该位8bit，这会影响flash_write_cmd()和flash_map()，注意考虑。
 
 ******************************************************************************
 关于启动操作系统

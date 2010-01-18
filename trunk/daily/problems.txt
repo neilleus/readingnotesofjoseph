@@ -1,8 +1,11 @@
 *******************************************************************************
 关于UCBOOT
-### 为什么调用cfi_mtd_init之后tftp下载时net_recv出现checksum bad错误而无法下载？
+### cfi读取到的manufacture id和device id不正确
+Bank # 1: CFI conformant FLASH (8 x 8)  Size: 8 MB in 135 Sectors
+AMD Standard command set, Manufacturer ID: 0x12, Device ID: 0x00
+Erase timeout: 16384 ms, write timeout: 1 ms
 
-### 为什么获得的CFI数据线宽度信息有误，应该是16x8，但现在是8x8？
+### 为什么调用cfi_mtd_init之后tftp下载时net_recv出现checksum bad错误而无法下载？
 
 ### glue_7和glue_7t是什么段？.init.text和.exit.text是怎么指定的？
     .init和.fini段呢，.rodata.str1.4是什么段？.comment是谁加的？
