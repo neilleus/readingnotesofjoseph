@@ -12,6 +12,9 @@ current宏，包含头文件<linux/sched.h>
 实现，快速，而且可以方便的支持SMP系统。（不理解）
 
 ### 内核栈很小（1~2页），谨慎使用，需要大的自动变量应该动态分配和释放。
+函数、变量需要导出才能被内核别的部分（模块）使用，到处方法为：
+EXPORT_SYMBOL(name);
+模块编程时常用的内核头文件包括：init.h, module.h, moduleparam.h等
 
 ### 模块名为modulename.ko，由源文件file1.c和file2.c生成，Makfile写法如下：
 	obj-m	:= modulename.o
@@ -38,8 +41,8 @@ insmod和modprobe命令行指定，modprobe还可以从模块的配置文件/etc
 读取参数值。
 模块参数用module_param宏声明，该宏定义与<linux/moduleparam.h>文件中。该宏包含
 三个参数：变量名称、类型和用于sysfs入口项的许可掩码。该宏通常放于文件头部。
-内核支持的模块参数类型包括：bool，invbool（与bool相反），charp，long以下各型整
-数。
+内核支持的模块参数类型包括：bool，invbool（与bool相反，true为假，false为真），
+charp，有符号和无符号的short, int, long整数。
 module_param_array(name, type, num, perm);	/* perm in <linux/stat.h> */
 用于声明数组参数。
 所有参数都应该有默认值，自定义类型的参数可以用模块代码中的hook设置。
