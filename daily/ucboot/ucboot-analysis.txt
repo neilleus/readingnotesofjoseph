@@ -5,9 +5,58 @@
 每bank闪存（即每块闪存芯片）对应一个flash_info数据结构。
 需要保护的内容：monitor区，环境变量区，备份环境变量区
 
+u-boot通过flash_info_t数据结构来管理闪存信息。
+
 数据结构：
 /* 表示闪存芯片信息的数据结构 */
-typedef struct {} flash_info_t;
+typedef struct{
+	ulong	size;			/* 单位：字节 */
+	ushort	sector_count;
+	ulong	flash_id;		/* device id和manufacture id的组合 */
+	ulong	start[MAX_FLASH_SECT];
+	uchar	protect[MAX_FLASH_SECT];
+#ifdef CONFIG_MTD_CFI
+	uchar	portwidth;
+	uchar	chipwidth;		/* 闪存实际已连接的数据总线宽度 */
+	ushort	buffer_size;
+	ulong	erase_blk_tout;
+	ulong	write_tout;
+	ulong	buffer_write_tout;
+	ushort	vendor;			/* 主算法id */
+	ushort	cmd_reset;		/* 复位命令码 */
+	ushort	interface;		/* QUERY中给出的闪存数据总线宽度 */
+	ushort	legacy_unlock;
+	uchar	manufacture_id;
+	ushort	device_id;
+	ushort	device_id2;		/* 扩展设备id */
+	ushort	ext_addr;		/* 扩展查询表地址 */
+	ushort	cfi_version;
+	ushort	cfi_offset;		/* cfi QEERY的偏移地址 */
+	ulong	addr_unlock1;
+	ulong	addr_unlock2;
+	const char *name;
+#endif
+} flash_info_t;
+struct cfi_qry{
+	u8	qry[3];			/* 'Q' 'R' 'Y' */
+	u16	p_id;			/* 主算法id */
+	u16	p_adr;			/* 主算法表地址 */
+	u16	a_id;
+	u16	a_adr;
+	...	;			/* 电气时序信息 */
+	u8	dev_size;		/* 闪存大小为：2**dev_size字节 */
+	u16	interface_desc;		/* x8-only, x8/x16, x16-only... */
+	u16	max_buf_write_size;
+	u8	num_erase_regions;	/* 擦除区种类数（分隔的同大小擦除块组
+					   也算不同擦除区） */
+	u32	erase_region_info[NUM_ERASE_REGIONS];
+					/* 32字节分为两部分：
+					 * 高16位z：擦除块大小为256*z字节
+					 * 低16为y：同大小擦除块数量（y+1）
+					 */
+} __attribute__((packed));
+
+struct mtd_info{};
 
 flash.c
 void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
