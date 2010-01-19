@@ -96,6 +96,20 @@ __initcall用来收集某些init函数，以便按照顺序调用这些函数。
 ******************************************************************************
 关于console
 
+CFG_CONSOLE_OVERWRITE_ROUTINE	是否定义了overwrite_console函数，如果定义了就使
+用串口，如果没有定义就使用环境变量值。
+
+CFG_CONSOLE_IS_IN_ENV	如果定义了表示，环境变量中定义了stdin, stdout, stderr
+三个环境变量
+
+CFG_CONSOLE_INFO_QUIET	是否在启动U-Boot的时候打印终端的配置信息，无用，删除
+CONFIG_SPLASH_SCREEN	
+	压缩显示内容为一张预先准备好的bmp图片，终端设备配置为nulldev。
+CONFIG_SILENT_CONSOLE
+	禁止自动启动时终端的输出，调用console_init_f()设置全局gd的flag，然后根
+	据它，通过将std_devices[]设为nulldev,	如果自动启动过程被终止，终端会
+	被重新设置为串口。
+
 数据结构
 static int ctrlc_disabled = 0;
 static int ctrlc_was_pressed = 0;
@@ -148,6 +162,52 @@ int readline(const char *const prompt);
 void reset_cmd_timeout(void);
 int run_command(const char *cmd, int flag);
 
+关于AUTOBOOT的配置
+两个功能：可以停止进入U-BOOT命令行，可以自定义超时重试功能和超时时间，可以自定
+义停止自动启动字符串和提示信息，可以自定义重试方式（是否重启）
+
+为什么autoboot要用特殊的字符串？
+因为如果使用任意键停止的话，可能在启动的时候，串口由于电平扰动，发送乱码，然后
+导致U-boot停止，系统无法启动，在嵌入式设备上这毫无征兆。
+参考文档README.autoboot
+
+有关的CONFIG
+    CONFIG_BOOT_RETRY_TIME
+    CONFIG_BOOT_RETRY_MIN
+    在U-Boot命令行无输入一定时间之后自动重试AUTOBOOT，如果CONFIG值为负，表示不
+    重试，要支持重试，第一个CONFIG必须定义。参见bootretry
+    CONFIG_AUTOBOOT_KEYED
+    CONFIG_AUTOBOOT_PROMPT
+    CONFIG_AUTOBOOT_DELAY_STR
+    CONFIG_AUTOBOOT_STOP_STR
+    CONFIG_AUTOBOOT_DELAY_STR2
+    CONFIG_AUTOBOOT_STOP_STR2
+	用来停止AUTOBOOT的相关配置项，可以指定特定字符或者字符串。
+	CONFIG_AUTOBOOT_KEYED用来启用自定义停止符号这组配置，这时必须指定
+	CONFIG_AUTOBOOT_DELAY_STR和CONFIG_AUTOBOOT_STOP_STR否则无法停止自动启动
+	CONFIG_AUTOBOOT_PROMPT用来提示正在自动启动，不定义则没有提示。
+	如果用DELAY_STR停止自动启动，则命令行超时后会重试自动启动
+	如果用STOP_STR停止自动启动，则不会再进行重试，即使超时。
+	STR2表示需要输入第二个字符串，主要用在输入密码这种应用中。
+    CONFIG_ZERO_BOOTDELAY_CHECK
+	设置这个选项，即使bootdelay设为0，也可以通过按键来停止自动启动
+    CONFIG_RESET_TO_RETRY
+	自动启动重试会采取重启系统的方式
+有关的环境变量
+    bootdelay
+    bootretry
+    bootdelaykey
+    bootdelaykey2
+    bootstopkey
+    bootstopkey2
+
+更改情况：
+    删除 CONFIG_AUTOBOOT_XXX
+    删除 CONFIG_BOOT_RETRY_MIN
+    删除 CONFIG_ZERO_BOOTDELAY_CHECK
+    删除 CONFIG_RESET_TO_RETRY
+    更改 CONFIG_BOOT_RETRY_TIME为始终配置，负数表示不重试
+
 
 ******************************************************************************
 关于device
@@ -175,4 +235,90 @@ chardev_t *search_device_flags(int flags);
 
 
 ******************************************************************************
+关于env
+根据配置ENV保存在flash的0x10050000~0x1005FFFF这个擦除块上
+由于ENV_ADDR小于MONITOR_BASE值，所以grocx的env不是嵌入的。
 
+env_t数据结构包括数据部分的CRC校验码、有效标志和ENV数据三部分。其中数据部分是
+形如name=value的字符串集合，通过'\0'将多个字符串隔离开来，最后以空字符串"\0"
+结尾，所有的字符串连贯保存在一个字符数组中。修改环境变量值相当于删除旧表项，然
+后在表格末尾添加一个同名新表项并重新计算32位CRC校验码的值。
+typedef struct environment_s {
+	unsigned long crc;		/* crc32 over data bytes */
+	unsigned char flags;		/* active / obsolete */
+	unsigned char data[ENV_SIZE];	/* data bytes */
+} env_t;
+
+env_t environment = {ENV_CRC, 1, {"..."}};
+env *env_ptr;			/* 指向系统中env_t数据结构的指针 */
+uchar default_environment[];	/* 在没有设置环境变量时使用缺省环境变量表 */
+extern uchar environment[];	/* FIXME: 自定义的环境变量表 */
+gd->env_addr;			/* env数据区的地址 */
+
+char *env_name_spec = "Flash";	/* env名字 */
+static env_t *flash_addr;	/* 环境变量在闪存上的首端地址 */
+static ulong end_addr;		/* 环境变量在闪存上的末端地址 */
+static env_t *flash_addr_new;	/* 冗余环境变量在闪存上的首端地址 */
+static ulong end_addr_new;	/* 冗余环境变量在闪存上的末端地址 */
+
+#define ACTIVE_FLAG 	1	/* 表示该环境变量组被启用 */
+#define OBSOLETE_FLAGS 	0	/* 表示该环境变量组没有被启用 */
+
+更新env CRC的时机：env_valid失效采用default时计算一次，setenv时会根据是（增
+加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
+操作方法
+int env_init(void);		/* 设置gd->env_addr和gd->env_valid值，
+				 * gd->env_addr指向环境变量数据部分的首地址
+				 * 根据是否配置了备用环境变量分为两种情况：
+				 * 有备份）指向flash中的地址
+				 * 无备份）指向内存中重定向过的地址
+				 */
+void env_crc_update(void);  	/* 更新env_ptr指向的crc。 */
+int env_complete(*var,maxv,*cmdv[],bufsz,*buf); /* 用于命令自动完成 */
+
+void env_relocate(void);	/* 重定位env_ptr指向的ram中的位置：
+				 * 可能1）嵌入text段，重定位env_ptr位置即可。
+				 * 可能2）非嵌入方式，需要在堆上分配env空间
+				 */
+void env_relocate_spec(void);	/* 将env从flash拷贝到内存中的位置 */
+
+uchar (*env_get_char)(int);	/* 用于获取指定index处env值的函数指针 */
+static uchar env_get_char_init(int);	/* 调用spec或从default位置取env */
+uchar env_get_char_spec(int);	/* 由各种存储介质实现的取env值的函数 */
+uchar env_get_char_memory(int index);	/* 重定位后，用它直接从内存位置返回 */
+uchar *env_get_addr(int index); /* 返回env中index位置的指针 */
+
+static int envmatch(uchar *s1, int i2);
+char *getenv(char *);
+    在环境变量表中查找对应名字的环境变量并返回指向该环境变量字符串的指针
+int getenv_r(char *name, char *buf, unsigned len);
+    按照name查找环境变量，并把查到的结果填入传入的buf中，返回值表示查询到的长度
+int saveenv(void);
+void setenv(char *, char *);
+
+int do_setenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+    设置ENV变量，调用_do_setenv实现
+int _do_setenv(int flag, int argc, char *argv[]);
+    设置ENV变量，只对RAM中的ENV拷贝操作。
+int do_askenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_printenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+
+
+******************************************************************************
+关于jump table来自Wolfgang Denk的回复：
+The "jump table provided by U-Boot exactly for this purpose" is the
+list of functions exported through the "include/_exports.h" header
+file.
+Only these functions are available from standalone programs without
+linking against any of the U-Boot provided libraries. If your program
+links and runs fine using only these functions then you are free to
+license your standalone application whatever you like; if you need to
+link against any of the U-Boot libraries then you must release your
+code under GPL.
+上面的意思就是说：所谓jump table就是在include/_exports.h头文件中导出的函数的列
+表。如果外部的独立软件仅仅调用了这些函数，那么它可以是任意License，如果它内部链
+接了U-Boot的其它库函数，则必须以GPL方式发布。
+
+
+******************************************************************************

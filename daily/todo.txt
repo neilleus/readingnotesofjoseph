@@ -28,9 +28,8 @@
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (6) monitor protect, env embedded, flash protected, env overwrite???
-    (7) 添加CUSTOM_STOP_KEY逻辑
-    (8) 串口kermit下载功能
-    (9) vsc7501/openocd/linux增加mtd驱动patch
+    (7) 添加CUSTOM_STOP_KEY逻辑阿；串口kermit下载功能；命令自动完成
+    (8) vsc7501/openocd/linux增加mtd驱动patch
 
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
