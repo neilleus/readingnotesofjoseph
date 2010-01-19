@@ -1,22 +1,12 @@
 ******************************************************************************
 关于Flash
-一个系统内可以有多个bank的flash，每bank的flash有多个sectors。擦写的单位是sector
-对每个bank的flash都对应一个flash_info数据结构。
-FLASH有哪些属性呢？厂家ID号，设备ID号，大小，块数
-EON EN29LV640T，共有8个8KB块（用于顶端和底端引导，硬件决定，T为顶端引导，B为底
-端引导），127个64KB块。支持单块保护和块组保护，支持单块擦除和整片擦除。时间参考
-值：字写（8us），块擦除（500ms），整块擦除（64s）。
-需要保护的内容：monitor区，环境变量区，冗余备份环境变量区
-Grocx:
-CFG_ENV_ADDR		FLASH_BASE+0x50000
-CFG_ENV_OFFSET		0x50000
-CFG_ENV_SIZE		0x10000
-TEXT_BASE		0x23000000		defined in Makefile
 
-KS8695:
-CFG_ENV_ADDR		FLASH_BASE + 0x00020000
-TEXT_BASE		0x00F00000		defined in Makefile
+一个系统可有多块闪存，每块闪存由多个扇区（sector）构成。扇区是物理擦写单元。
+每bank闪存（即每块闪存芯片）对应一个flash_info数据结构。
+需要保护的内容：monitor区，环境变量区，备份环境变量区
+
 数据结构：
+/* 表示闪存芯片信息的数据结构 */
 typedef struct {} flash_info_t;
 
 flash.c
