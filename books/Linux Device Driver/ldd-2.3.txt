@@ -64,6 +64,40 @@ module_param_array(name, type, num, perm);	/* perm in <linux/stat.h> */
 根本区别：能否随机访问，随意跳转到位置，按块方式还是字符流方式
 字符设备
 
+### 关于设备号
+主设备标识设备对应驱动程序和次设备号用于确定设备文件所指设备
+dev_t用来保存设备号
+MAJOR(dev_t)和MINOR(dev_t)用于取得主次设备号，MKDEV(int major, int minor)用于
+生成dev_t。
+向内和请求分配设备号：
+已知主设备号时：
+int register_chrdev_region(dev_t first, unsingned int count, char *name);
+无法确定所用设备号时：
+int alloc_chrdev_region(dev_t *dev, unsigned int firstminor,
+			unsigned int count, char *name);
+释放设备编号：
+void unregister_chrdev_region(dev_t first, unsigned int count);
+通常会在模块清除函数中调用它。
+
+### 数据结构：
+struct file_operations{};		/* <linux/fs.h> */
+struct file{};				/* <linux/fs.h> */
+struct inode{};				/* */
+
+### 设备注册到系统
+初始化结构：
+void cdev_init(struct cdev *cdev, struct file_operations *fops);
+注册到系统：
+int cdev_add(struct cdev *cdev, dev_t num, unsigned int count);
+int register_chrdev(unsigned int major, const_char *name,
+		    struct file_operations *fops);	/* deprecated */
+从系统中移除：
+void cdev_del(struct cdev *dev);
+int unregister_chrdev(unsigned int major, const char *name); /* deprecated */
+注意：cdev_add可能失败，必须在设备所有操作都就绪可以被调用以后才应该调用它。
+而在设备从系统中移除以后就不应该再访问该设备了。
+
+
 ---------------------------------------
 参考文件:
 Linux Device Driver 3rd edition Chapter 2
