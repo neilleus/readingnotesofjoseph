@@ -14,6 +14,7 @@ $gpg --verify linux-xxx.tar.bz2.sign linux-xxx.tar.bz2
 2. 文件系统支持，一般选EXT3和ISO9660直接编进内核以及VFAT和NTFS编译为模块
 3. USB一般要支持EHCI（usb 2.0）和UHCI支持
 4. 鼠标和键盘支持
+5. 保证关机时能够切断电源，需要配置CONFIG_ACPI
 
 ### 如何制作initrd
 拷贝一个已有的initrd，可以通过一下命令序列解压缩获得其中的文件内容
