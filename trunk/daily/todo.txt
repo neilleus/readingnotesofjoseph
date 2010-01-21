@@ -52,8 +52,6 @@
     (k) 几个cntl函数fcntl, ioctl, shmctl, sysctl, semctl, console_ioctl等
 
 
-
-
 *******************************************************************************
 重要
     (a) bash，（BBG）练习，和C
