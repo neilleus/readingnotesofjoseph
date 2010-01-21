@@ -100,65 +100,63 @@ MAX_FLASH_BANKS_DETECT
 关于mtd
 数据结构:
 struct mtd_info {
-	u_char		type;
-	uint32_t	flags;
-	uint64_t	erasesize;
-	uint32_t	writesize;
-	uint32_t	oobsize;
-	uint32_t	oobavail;
+ *      u_char		type;
+ *      uint32_t	flags;		/* 设备可写，位可写，不需擦除，自动锁 */
+ *      uint64_t	size
+ *      uint32_t	erasesize;
+ *      uint32_t	writesize;
 
-	/* kernel-only stuff */
-	const char	*name;
-	int		index;
+        uint32_t	oobsize;	/* Out-of-Band */
+        uint32_t	oobavail;
 
-	struct nand_ecclayout	*ecclayout;
-	int		numeraseregions;
-	struct mtd_erase_region_info	*eraseregions;
-	int (*erase)(struct mtd_info *mtd, struct erase_info *instr);
-	int (*point)();
-	void (*unpoint)();
-	int (*read)();
-	int (*write)();
-	int (*panic_write)();
-	int (*read_oob)();
-	int (*write_oob)();
-	int (*get_fact_prot_info)();
-	int (*read_fact_prot_reg)();
+        /* kernel-only stuff */
+ *      const char	*name;
+ *      int		index;		/* 多个mtd设备时的索引号 */
+
+        struct nand_ecclayout	*ecclayout;
+ *      int		numeraseregions;
+ *      struct mtd_erase_region_info	*eraseregions;
+
+        /* 闪存操作方法 */
+ *      int (*erase)();
+        int (*point)();		/* 返回指向指定闪存位置的指针并锁定闪存 */
+        void (*unpoint)();	/* 解锁 */
+ *      int (*read)();
+ *      int (*write)();
+        int (*panic_write)();	/* 内核可能panic时采用的写操作 */
+        int (*read_oob)();
+        int (*write_oob)();
+        /* 以下是和闪存保护相关的几个方法 */
+        int (*get_fact_prot_info)();
+        int (*read_fact_prot_reg)();
         int (*get_user_prot_info)();
         int (*read_user_prot_reg)();
         int (*write_user_prot_reg)();
         int (*lock_user_prot_reg)();
-	void (*sync)();
-	int (*lock)();
-	int (*unlock)();
-	/* Power Management */
-	int (*suspend)();
-	void (*resume)();
-	/* Bad block manageme */
-	int (*block_isbad)();
-	int (*block_markbad)(); 
-	/* ECC status information */
-	struct mtd_ecc_stats ecc_stats;
-	/* Subpage shift (NAND) */
-	int subpage_sft;
 
-	void *priv;
+ *      void (*sync)();
+ *      int (*lock)();
+ *      int (*unlock)();
 
-	struct module *owner;
-	int usecount;
-	int (*get_device) (struct mtd_info *mtd);
-	void (*put_device) (struct mtd_info *mtd);
-};
+        /* Power Management */
+        int (*suspend)();
+        void (*resume)();
+        /* Bad block manageme */
+        int (*block_isbad)();
+        int (*block_markbad)(); 
 
-struct mtd_oob_ops {
-	mtd_oob_mode_t	mode;
-	size_t		len;
-	size_t		retlen;
-	size_t		ooblen;
-	size_t		oobretlen;
-	uint32_t	ooboffs;
-	uint8_t		*databuf;
-	uint8_t		*oobbuf;
+        /* ECC status information */
+        struct mtd_ecc_stats ecc_stats;
+        /* Subpage shift (NAND) */
+        int subpage_sft;
+
+ *      void *priv;
+
+        struct module *owner;
+        int usecount;
+
+        int (*get_device) (struct mtd_info *mtd);
+        void (*put_device) (struct mtd_info *mtd);
 };
 
 struct mtd_erase_region_info {
@@ -167,6 +165,14 @@ struct mtd_erase_region_info {
 	uint32_t	numblocks;
 	ungsigned long *lockmap;
 };
+
+ioctls
+int add_mtd_device(struct mtd_info *mtd);
+int del_mtd_device(struct mtd_info *mtd);
+struct mtd_info *get_mtd_device(struct mtd_info *mtd, int num);
+struct mtd_info *get_mtd_device_nm(const char *name);
+put_mtd_device(struct mtd_info *mtd);
+
 
 ******************************************************************************
 关于启动
