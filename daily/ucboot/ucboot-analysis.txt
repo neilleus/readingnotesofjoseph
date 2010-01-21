@@ -96,37 +96,83 @@ MAX_FLASH_BANKS_DETECT
 
 
 
+******************************************************************************
+关于mtd
+数据结构:
+struct mtd_info {
+	u_char		type;
+	uint32_t	flags;
+	uint64_t	erasesize;
+	uint32_t	writesize;
+	uint32_t	oobsize;
+	uint32_t	oobavail;
 
+	/* kernel-only stuff */
+	const char	*name;
+	int		index;
 
+	struct nand_ecclayout	*ecclayout;
+	int		numeraseregions;
+	struct mtd_erase_region_info	*eraseregions;
+	int (*erase)(struct mtd_info *mtd, struct erase_info *instr);
+	int (*point)();
+	void (*unpoint)();
+	int (*read)();
+	int (*write)();
+	int (*panic_write)();
+	int (*read_oob)();
+	int (*write_oob)();
+	int (*get_fact_prot_info)();
+	int (*read_fact_prot_reg)();
+        int (*get_user_prot_info)();
+        int (*read_user_prot_reg)();
+        int (*write_user_prot_reg)();
+        int (*lock_user_prot_reg)();
+	void (*sync)();
+	int (*lock)();
+	int (*unlock)();
+	/* Power Management */
+	int (*suspend)();
+	void (*resume)();
+	/* Bad block manageme */
+	int (*block_isbad)();
+	int (*block_markbad)(); 
+	/* ECC status information */
+	struct mtd_ecc_stats ecc_stats;
+	/* Subpage shift (NAND) */
+	int subpage_sft;
 
+	void *priv;
 
+	struct module *owner;
+	int usecount;
+	int (*get_device) (struct mtd_info *mtd);
+	void (*put_device) (struct mtd_info *mtd);
+};
 
+struct mtd_oob_ops {
+	mtd_oob_mode_t	mode;
+	size_t		len;
+	size_t		retlen;
+	size_t		ooblen;
+	size_t		oobretlen;
+	uint32_t	ooboffs;
+	uint8_t		*databuf;
+	uint8_t		*oobbuf;
+};
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+struct mtd_erase_region_info {
+	uint64_t	offset;
+	uint32_t	erasesize;
+	uint32_t	numblocks;
+	ungsigned long *lockmap;
+};
 
 ******************************************************************************
 关于启动
-
-
-******************************************************************************
+******** **********************************************************************
 关于命令以及命令的自动完成
-
-CONFIG_COMMANDS
-CONFIG_AUTOCOMPLETE	根据环境变量来进行自动补全
-    			删除这个配置，始终支持自动补全功能
-
+        
 typedef struct cmd_tbl_s cmd_tbl_t;
 命令保存在一个（数组）表中，通过链接时段收集作用收集到一起，表的边界为：
 	__u_boot_cmd_start, ..., __u_boot_cmd_end
