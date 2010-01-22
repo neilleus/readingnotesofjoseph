@@ -8,6 +8,8 @@
 u-boot通过flash_info_t数据结构来管理闪存信息。
 
 数据结构：
+struct mtd_info *mtd_table[MAX_MTD_DEVICES];	/* mtd设备指针列表 */
+static struct mtd_info cfi_mtd_info[CFI_MAX_FLASH_bANKS]; /* cfi mtd设备信息 */
 /* 表示闪存芯片信息的数据结构 */
 typedef struct{
 	ulong	size;			/* 单位：字节 */
