@@ -268,3 +268,33 @@ tftpboot
 ping
 dhcp
 
+
+******************************************************************************
+Flash Manufacturer/Device: 0x007f 0x00c9
+#0 : cfi at 0x10000000, size 0x00800000, buswidth 1, chipwidth 1
+cfi information:
+manufacture-id: 0x007f, device-id:0x00c9
+qry: 'QRY'
+pri_id: 0x0002, pri_addr: 0x0040
+alt_id: 0x0000, alt_addr: 0x0000
+Vcc min: 2.7, Vcc max: 3.6
+Vpp min: 0.0, Vpp max: 0.0
+typ. word write timeout: 16
+typ. buf write timeout: 1
+typ. block erase timeout: 1024
+typ. chip erase timeout: 1
+max. word write timeout: 512
+max. buf write timeout: 1
+max. block erase timeout: 16384
+max. chip erase timeout: 1
+size: 0x800000
+interface desc: 2
+max buffer write size: 1
+
+Spansion primary algorithm extend information:
+pri: 'PRI', version: 1.1
+Silicon Rev.: 0x0, Address Sensitive unlock: 0x0
+Erase Suspend: 0x2, Sector Protect: 0x4
+VppMin: 10.5, VppMax: 12.5
+
+
