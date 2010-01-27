@@ -1,5 +1,5 @@
 ******************************************************************************
-关于Flash
+### Flash
 
 一个系统可有多块闪存，每块闪存由多个扇区（sector）构成。扇区是物理擦写单元。
 每bank闪存（即每块闪存芯片）对应一个flash_info数据结构。
@@ -39,6 +39,7 @@ typedef struct{
 	const char *name;
 #endif
 } flash_info_t;
+
 struct cfi_qry{
 	u8	qry[3];			/* 'Q' 'R' 'Y' */
 	u16	p_id;			/* 主算法id */
@@ -58,9 +59,6 @@ struct cfi_qry{
 					 */
 } __attribute__((packed));
 
-struct mtd_info{};
-
-flash.c
 void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
 void flash_perror(int err);
 int flash_write(char *src, ulong addr, ulong cnt);
@@ -87,7 +85,6 @@ int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
     设置指定块或者全部块或者指定地址范围的保护标记。
 
-cfi_flash.c
 portwidth的变化：在执行CFI QUERY命令时portwidth为16bit，在调用flash_get_size时
 会将其该位8bit，这会影响flash_write_cmd()和flash_map()，注意考虑。
 
@@ -96,43 +93,7 @@ MAX_FLASH_BANKS_DETECT
     用来分配足够可能的空间供flash_info使用，确定的flash bank数量在运行时确定。
     运行时通过detect_num_flash_banks()将bank数量存放到一个变量中
 
-
-******************************************************************************
-关于dlmalloc
-参考了Knuth的边界标签来维护可分配内存块，在每个块的头部和尾端都存放块的大小信
-息，这样可以方便的进行碎片整理，并且块头部还有块的状态信息（已分配或空闲），头
-部之后为分配给用户的内存区域，指向这一区域的指针返回给用户。一个块的形状如下：
-       chunk---->+-------------------+
-    		 | sizeof(pre-chunk) |
-                 +-------------------+----------+
-    		 | sizeof(cur-chunk) |prev-inuse|
-       mem------>+-------------------+----------+
-    		 |    user memory    |
-   next_chunk--->+-------------------+
-    		 | sizeof(cur-chunk) |
-                 +-------------------+
-块总是从偶数字地址上开始，所以返回给用户的内存地址也是从偶数字地址开始。即是
-双字对齐的。
-空闲块被保存在双向循环链表中，如下所示：
-        chunk---->+-------------------+
- 		  | sizeof(pre-chunk) |
-                  +-------------------+----------+
- 	head	  | sizeof(cur-chunk) |prev-inuse|
-        mem------>+-------------------+----------+
-		  | ptr->(next-chunk) |
-                  +-------------------+
-		  | ptr->(prev-chunk) |
-                  +-------------------+
- 		  |   unused memory   |
-    next_chunk--->+-------------------+
- 	foot	  | sizeof(cur-chunk) |
-                  +-------------------+
-prev-inuse位用来标记前面的块已被分配，可以方便回收，第一个被分配块的该位总是被
-置位，以防止访问非法内存。
-BIT
-
-******************************************************************************
-关于mtd
+### Memory technology device
 数据结构:
 struct mtd_info {
  *      u_char		type;
@@ -209,10 +170,59 @@ struct mtd_info *get_mtd_device_nm(const char *name);
 put_mtd_device(struct mtd_info *mtd);
 
 
+### dlmalloc
+参考了Knuth的边界标签来维护可分配内存块，在每个块的头部和尾端都存放块的大小信
+息，这样可以方便的进行碎片整理，并且块头部还有块的状态信息（已分配或空闲），头
+部之后为分配给用户的内存区域，指向这一区域的指针返回给用户。一个块的形状如下：
+       chunk---->+-------------------+
+    		 | sizeof(pre-chunk) |
+                 +-------------------+----------+
+    		 | sizeof(cur-chunk) |prev-inuse|
+       mem------>+-------------------+----------+
+    		 |    user memory    |
+   next_chunk--->+-------------------+
+    		 | sizeof(cur-chunk) |
+                 +-------------------+
+块总是从偶数字地址上开始，所以返回给用户的内存地址也是从偶数字地址开始。即是
+双字对齐的。
+空闲块被保存在双向循环链表中，如下所示：
+        chunk---->+-------------------+
+ 		  | sizeof(pre-chunk) |
+                  +-------------------+----------+
+ 	head	  | sizeof(cur-chunk) |prev-inuse|
+        mem------>+-------------------+----------+
+		  | ptr->(next-chunk) |
+                  +-------------------+
+		  | ptr->(prev-chunk) |
+                  +-------------------+
+ 		  |   unused memory   |
+    next_chunk--->+-------------------+
+ 	foot	  | sizeof(cur-chunk) |
+                  +-------------------+
+prev-inuse位用来标记前面的块已被分配，可以方便回收，第一个被分配块的该位总是被
+置位，以防止访问非法内存。
+BIT
+
+
 ******************************************************************************
-关于启动
-******** **********************************************************************
-关于命令以及命令的自动完成
+### 网络
+star_gsw_router
+star_gsw_eth_init:	注册为dev->init，由eth_init调用，它由NetLoop调用
+star_gsw_initialize:	系统复位时调用，初始化硬件并注册设备
+star_gsw_init:		在系统复位时会被initialize调用一次，进行内存和硬件初始
+			化，如果初始化成功就会设置相应的标志位，后续就不会再调
+			用，否则会由eth_init调用。
+
+数据结构
+TX_DESC_T
+RX_DESC_T
+pkt_t
+pkt_t中有一个指针指向接收和发送的数据存放的内存位置。这几个数据结构通过
+star_gsw_mem_init初始化，这个在系统复位的时候完成，不成功的话还会由eth_init调用
+
+
+******************************************************************************
+### 命令及自动完成
         
 typedef struct cmd_tbl_s cmd_tbl_t;
 命令保存在一个（数组）表中，通过链接时段收集作用收集到一起，表的边界为：
@@ -247,8 +257,10 @@ int do_echo(cmd_tbl_t *cmdtp, int flag,
 int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 int do_version(cmd_tbl_t *cmdtp, int flag,
 
-关于命令列表
-已定义
+
+******************************************************************************
+### 资料信息：
+命令列表
 CONFIG_NET_CMDLINE 
 CONFIG_ENV_CMDLINE
 CONFIG_FLASH_CMDLINE
@@ -303,8 +315,7 @@ tftpboot
 ping
 dhcp
 
-
-******************************************************************************
+闪存CFI信息
 Flash Manufacturer/Device: 0x007f 0x00c9
 #0 : cfi at 0x10000000, size 0x00800000, buswidth 1, chipwidth 1
 cfi information:

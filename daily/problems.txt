@@ -3,6 +3,8 @@
 ### 为什么要区分ENV_SECT_SIZE和ENV_SIZE？
 ### Kconfig中ipaddr等默认环境变量会成为字符串，而在uboot中没有双引号。
 ### cfi_mtd_set_erasesize调用后就有checksum error出现
+    由于flash_init的时候调用了malloc，如果不调用就不会出问题。
+    几个调用malloc的地方：flash_init，env_realloc, eth_initialize, jump_init
 
 *******************************************************************************
 关于mtd
