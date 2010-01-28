@@ -16,15 +16,11 @@
 	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，
 	需要识别jffs2文件系统，寻找固件更新方法
 
-    (1) 把u_kernel和u_rootfs制作成jffs2镜像，然后放到板子上启动，可以在uboot中
-        增加mtdram功能，开发期不必烧写flash
-    (2) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
-    	系统中。（U-boot支持两种，参见其文档）
-	(a) 不分区支持mtd驱动
-	(b) 如何分区
-	(c) 开会讨论方案
-    (3) 整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支持yaffs2,
-    	ubifs，并调查cramfs）
+    (1) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
+    	系统中。(b) 如何分区 (c) 开会讨论方案
+    (2) 增加mtdram功能，开发期不必烧写flash
+    (3) 模块化：整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支
+    	持yaffs2, ubifs，并调查cramfs）
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (6) monitor protect, env embedded, flash protected, env overwrite???
