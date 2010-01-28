@@ -1,0 +1,146 @@
+mtdparts - define a Linux compatible MTD partition scheme
+
+U-Boot implements two different approaches to define a MTD partition scheme
+that can be shared easily with the linux kernel.
+
+The first one is to define a single, static partition in your board config file
+for example:
+#undef CONFIG_JFFS2_CMDLINE
+#define CONFIG_JFFS2_DEV               "nor0"
+#define CONFIG_JFFS2_PART_SIZE         0xFFFFFFFF     /* use whole device */
+#define CONFIG_JFFS2_PART_SIZE         0x00100000     /* use 1MB */
+#define CONFIG_JFFS2_PART_OFFSET       0x00000000
+
+The second method uses the Linux kernel's mtdparts command line option and
+dynamic partitioning:
+#define CONFIG_JFFS2_CMDLINE
+#define MTDIDS_DEFAULT      "nor1=zuma-1,nor2=zuma-2"
+#define MTDPARTS_DEFAULT   "mtdparts=zuma-1:-(jffs2),zuma-2:-(user)"
+
+Command line of course produces bigger images, and may be inappropriate for
+some targets, so by default it's off.
+
+The mtdparts command offers an easy to use and powerful interface to define
+the contents of the environment variable of the same name that can be passed
+as boot argument to the Linux kernel:
+=> help mtdparts
+mtdparts 
+    - list partition table
+mtdparts delall
+    - delete all partitions
+mtdparts del part-id
+    - delete partition (e.g. part-id = nand0,1)
+mtdparts add <mtd-dev> <size>[@<offset>] [<name>] [ro]
+    - add partition
+mtdparts default
+    - reset partition table to defaults
+
+this command uses three environment variables:
+'partition' - keeps current partition identifier
+partition  := <part-id>
+<part-id>  := <dev-id>,part_num
+'mtdids' - linux kernel mtd device id <-> u-boot device id mapping
+
+mtdids=<idmap>[,<idmap>,...]
+
+<idmap>    := <dev-id>=<mtd-id>
+<dev-id>   := 'nand'|'nor'<dev-num>
+<dev-num>  := mtd device number, 0...
+<mtd-id>   := unique device tag used by linux kernel to find mtd device (mtd->name)
+
+'mtdparts' - partition list
+
+mtdparts=mtdparts=<mtd-def>[;<mtd-def>...]
+
+<mtd-def>  := <mtd-id>:<part-def>[,<part-def>...]
+<mtd-id>   := unique device tag used by linux kernel to find mtd device (mtd->name)
+<part-def> := <size>[@<offset>][<name>][<ro-flag>]
+<size>     := standard linux memsize OR '-' to denote all remaining space
+<offset>   := partition start offset within the device
+<name>     := '(' NAME ')'
+<ro-flag>  := when set to 'ro' makes partition read-only (not used, passed to kernel)
+
+
+For example, on some target system the mtdparts command might display this information:
+
+=> mtdparts
+
+device nor0 <TQM5200-0>, # parts = 4
+ #: name                        size            offset          mask_flags
+ 0: firmware            0x00100000      0x00000000      1
+ 1: kernel              0x00180000      0x00100000      0
+ 2: small-fs            0x00d80000      0x00280000      0
+ 3: big-fs              0x01000000      0x01000000      0
+
+active partition: nor0,0 - (firmware) 0x00100000 @ 0x00000000
+
+defaults:
+mtdids  : nor0=TQM5200-0
+mtdparts: mtdparts=TQM5200-0:1m(firmware),1536k(kernel),3584k(small-fs),2m(initrd),8m(misc),16m(big-fs)
+
+The partition table printed here obviously differs from the default value for the mtdparts variable printed in the last line. To verify this, we can check the current content of this variable:
+
+=> print mtdparts
+mtdparts=mtdparts=TQM5200-0:1024k(firmware)ro,1536k(kernel),13824k(small-fs),16m(big-fs)
+
+and we can see that it exactly matches the partition table printed above.
+
+Now let's switch back to the default settings:
+
+=> mtdparts default
+=> mtdparts
+
+device nor0 <TQM5200-0>, # parts = 6
+ #: name                        size            offset          mask_flags
+ 0: firmware            0x00100000      0x00000000      0
+ 1: kernel              0x00180000      0x00100000      0
+ 2: small-fs            0x00380000      0x00280000      0
+ 3: initrd              0x00200000      0x00600000      0
+ 4: misc                0x00800000      0x00800000      0
+ 5: big-fs              0x01000000      0x01000000      0
+
+active partition: nor0,0 - (firmware) 0x00100000 @ 0x00000000
+
+defaults:
+mtdids  : nor0=TQM5200-0
+mtdparts: mtdparts=TQM5200-0:1m(firmware),1536k(kernel),3584k(small-fs),2m(initrd),8m(misc),16m(big-fs)
+=> print mtdparts
+mtdparts=mtdparts=TQM5200-0:1m(firmware),1536k(kernel),3584k(small-fs),2m(initrd),8m(misc),16m(big-fs)
+
+Then we delete the last 4 partitions ("small-fs", "initrd", "misc" and "big-fs") ...
+
+=> mtdparts del small-fs
+=> mtdparts del initrd
+=> mtdparts del misc  
+=> mtdparts del big-fs  
+=> mtdparts
+
+device nor0 <TQM5200-0>, # parts = 2
+ #: name                        size            offset          mask_flags
+ 0: firmware            0x00100000      0x00000000      0
+ 1: kernel              0x00180000      0x00100000      0
+
+active partition: nor0,0 - (firmware) 0x00100000 @ 0x00000000
+
+defaults:
+mtdids  : nor0=TQM5200-0
+mtdparts: mtdparts=TQM5200-0:1m(firmware),1536k(kernel),3584k(small-fs),2m(initrd),8m(misc),16m(big-fs)
+
+... and combine the free space into a singe big partition:
+
+=> mtdparts add nor0 - new-part
+=> mtdparts
+
+device nor0 <TQM5200-0>, # parts = 3
+ #: name                        size            offset          mask_flags
+ 0: firmware            0x00100000      0x00000000      0
+ 1: kernel              0x00180000      0x00100000      0
+ 2: new-part            0x01d80000      0x00280000      0
+
+active partition: nor0,0 - (firmware) 0x00100000 @ 0x00000000
+
+defaults:
+mtdids  : nor0=TQM5200-0
+mtdparts: mtdparts=TQM5200-0:1m(firmware),1536k(kernel),3584k(small-fs),2m(initrd),8m(misc),16m(big-fs)
+=> print mtdparts
+mtdparts=mtdparts=TQM5200-0:1m(firmware),1536k(kernel),30208k(new-part)
