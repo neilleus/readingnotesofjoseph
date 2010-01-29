@@ -102,8 +102,8 @@ set noexpandtab
 
 if has("autocmd")
 	"set syntax color and show line number
+	"autocmd FileType java,perl,shell,bash,cpp,vim, set number
 	autocmd FileType c,java,perl,shell,bash,cpp,vim,make syntax on
-	autocmd FileType java,perl,shell,bash,cpp,vim, set number
 	
 	"set tab width
 	autocmd FileType c,cpp,perl,bash,java,vim, set tabstop=8
