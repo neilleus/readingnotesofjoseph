@@ -1,6 +1,5 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
-@author
 
 
 ---------------------------------------
