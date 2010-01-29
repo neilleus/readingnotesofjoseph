@@ -16,6 +16,7 @@
 	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，
 	需要识别jffs2文件系统，寻找固件更新方法
 
+    (0) mtd和jffs2给用户态的接口。
     (1) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
     	系统中。(b) 如何分区 (c) 开会讨论方案
     (2) 增加mtdram功能，开发期不必烧写flash
@@ -24,7 +25,7 @@
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (6) monitor protect, env embedded, flash protected, env overwrite???
-    (7) 添加CUSTOM_STOP_KEY逻辑阿；串口kermit下载功能；命令自动完成
+    (7) 添加CUSTOM_STOP_KEY逻辑；串口kermit下载功能；命令自动完成
     (8) vsc7501/openocd/linux增加mtd驱动patch
 
 #   flash_base->bd_info
