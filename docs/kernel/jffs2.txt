@@ -1,6 +1,16 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+增强了损耗均衡，压缩，支持硬链接，仅可以在MTD设备上使用。
+可选支持：写缓冲区，用来支持NAND，NOR-with-ECC，DataFlash时必选。
+加快挂载速度的概要信息
+扩展属性键值对支持，用来支持POSIX访问控制列表和安全标签
+支持的压缩算法：ZLIB，LZO，RTIME，RUBIN，
+
+jffs2_ioctl
+lsattr.jffs2, chattr.jffs2 for compression support
+
 
 ---------------------------------------
-参考文件:
+References:
+

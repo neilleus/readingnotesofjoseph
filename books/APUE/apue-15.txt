@@ -2,3 +2,7 @@ Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
 进程间通信
+
+---------------------------------------
+References:
+Chapter 15

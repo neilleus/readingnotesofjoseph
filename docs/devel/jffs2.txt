@@ -187,7 +187,7 @@ mkfs.jffs2组件需要ACL和zlib库。Fedora下安装libacl-devel和zlib-devel�
 安装libacl1-dev和zlib1g-dev包。
 
 ---------------------------------------
-参考文件:
+References:
 http://www.linux-mtd.infradead.org/doc/jffs2.html
 http://www.linux-mtd.infradead.org/faq/jffs2.html
 http://www.linux-mtd.infradead.org/faq/nand.html

@@ -52,4 +52,5 @@ Makefile为什么要这么写？
 怎样安装modules？直接拷贝到/lib/modules/$(shell uname -r)
 
 ---------------------------------------
-参考文件:
+References:
+

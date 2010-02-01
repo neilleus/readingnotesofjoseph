@@ -2,3 +2,8 @@ Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
 守护进程
+
+---------------------------------------
+References:
+Chapter 13
+

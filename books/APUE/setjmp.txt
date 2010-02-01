@@ -41,3 +41,7 @@ void siglongjmp(sigjmp_buf env, int val);
 用于信号处理程序的非本地跳转函数的一个特点是增加了一个额外的参数savemask。如果
 savemask非零，则sigsetjmp同时会将进程的当前信号掩码保存到env中，当调用siglongjmp
 时，保存的信号掩码就可以恢复。
+
+---------------------------------------
+References:
+

@@ -191,3 +191,7 @@ pthread_attr_t隐藏了细节，是不透明的，需要通过特定函数来访
 几个属性detachstate（已分离线程的属性），guardsize（线程栈末尾要保证的大小），
 stackaddr（线程栈的最低地址），stacksize（线程栈的大小）。
 （以下略从12.3节开始）
+
+---------------------------------------
+References:
+APUE Chapter 11, 12

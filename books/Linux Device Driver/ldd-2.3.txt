@@ -104,6 +104,7 @@ copy_to_user()
 copy_from_user()
 
 ---------------------------------------
-参考文件:
+References:
 Linux Device Driver 3rd edition Chapter 2
 Linux Device Driver 3rd edition Chapter 3
+

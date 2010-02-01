@@ -178,3 +178,8 @@ size_t strftime(char *restrict buf, size_t maxsize,
 daylight saving time大于0表示起作用，0表示不起作用，小于0表示不可用
 
 TZ环境变量
+
+---------------------------------------
+References:
+Chapter 6
+

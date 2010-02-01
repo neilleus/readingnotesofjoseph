@@ -469,3 +469,8 @@ void psignal(int signo, const char *msg);
 #include <string.h>
 char *strsignal(int signao);
 返回描述该信号的字符串指针。
+
+---------------------------------------
+References:
+Chapter 8, Chapter 9, Chapter 10
+
