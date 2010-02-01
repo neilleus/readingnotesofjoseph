@@ -80,7 +80,7 @@ u-boot通过bootargs环境变量来传递
 ### 
 
 ---------------------------------------
-参考文件:
+References:
 http://www.denx.de/wiki/U-Boot/Documentation
 http://www.columbia.edu/kermit/
 

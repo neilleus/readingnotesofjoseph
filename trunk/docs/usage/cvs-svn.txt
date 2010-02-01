@@ -259,3 +259,7 @@ Subversion建立在一个叫做APR - the Apache Portable Runtime库的可移植�
 04. SVN支持二进制文件的差异化存储，即每次只需提交差异部分，CVS则不支持。
 05. SVN支持为元数据（metadata）管理机制，可对任意文件和目录附加任意属性。
 
+
+---------------------------------------
+References:
+

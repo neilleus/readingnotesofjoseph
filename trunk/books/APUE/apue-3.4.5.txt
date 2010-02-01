@@ -634,3 +634,7 @@ tmpfile通常是调用tmpnam生成一个路径名，然后创建一个文件，�
 标准IO的不足主要在于效率低，存在大量的数据复制。
 替代库有快速IO库fio，sfio，ASI等
 用于嵌入式的uClibc和newlibc等。
+
+---------------------------------------
+References:
+Chapter 3, Chapter 4, Chapter 5

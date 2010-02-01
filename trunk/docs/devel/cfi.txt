@@ -35,6 +35,7 @@ keywords:
 	
 
 ---------------------------------------
-参考文件:
+References:
 JEDEC standard: Common Flash Interface (CFI) JESD68.01 September 2003
 Common Flash Memory Interface Specification Release 2.0 December 1,2001 - AMD
+

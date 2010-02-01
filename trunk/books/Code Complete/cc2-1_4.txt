@@ -80,5 +80,5 @@ E-Mail: fdlixiaojun@gmail.com
     工具箱
     
 --------------------------------------
-参考文件:
-《Code Complete》 2nd Edition Chapter 1 to Chapter 4
+References:
+Chapter 1 to Chapter 4

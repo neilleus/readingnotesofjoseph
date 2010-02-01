@@ -397,3 +397,7 @@ UDP则不支持。TCP将带外数据称为紧急数据，TCP仅支持1字节紧�
 当收到紧急数据时，假如为该套接字安排了信号生成则发送SIGURG。
 int sockatmakr(int sockfd);
 非阻塞和异步IO（略）
+
+---------------------------------------
+References:
+Chapter 16

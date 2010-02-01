@@ -88,7 +88,8 @@ JFFS2需要和MTD驱动一起使用
 参见：
        mkfs(8), mkfs.jffs(1), fakeroot(1)
 
+
 ---------------------------------------
-参考文件:
+References:
 mkfs.jffs2 manpage
 

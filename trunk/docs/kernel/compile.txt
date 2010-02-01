@@ -80,5 +80,6 @@ realfs：用户最终使用的文件系统
 $qemu -kernel bzImage -initrd initrd.img -hda ./linux-0.2.img -append "root=/dev/sda"
 
 ---------------------------------------
-参考文件:
+References:
 http://www.ibm.com/developerworks/cn/linux/l-k26initrd/index.html
+

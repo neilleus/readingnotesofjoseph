@@ -271,7 +271,7 @@ RAM中执行。不过一般NAND用来存储数据，而不是用于执行代码�
 读设置可以保证当闪存其它可编程部分被不小心弄坏后仍然能够启动。
 
 ---------------------------------------
-参考文件:
+References:
 http://www.linux-mtd.infradead.org/doc/general.html
 http://www.linux-mtd.infradead.org/faq/general.html
 http://www.ssiembedded.com/embedded_linux_managing_memory.html

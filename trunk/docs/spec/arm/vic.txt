@@ -203,3 +203,7 @@ PL192和PL190:
 		它被enable了，VICINTENABLE
 		被设置为IRQ方式，VICINTSELECT
 		中断优先级没有被软件优先级掩码寄存器屏蔽，VICSWPRIORITYMASK。
+
+---------------------------------------
+References:
+
