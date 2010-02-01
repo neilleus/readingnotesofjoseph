@@ -43,6 +43,11 @@ struct file_operations mtd_fops = {
 	.get_unmapped_area = mtd_get_unmapped_are,
 };
 
+mtd的超级块管理, mtdsuper.c
+get_sb_mtd();			/* 建立超级块 */
+jffs2_get_sb();			/* 调用get_sb_mtd() */
+
+
 ---------------------------------------
 References:
 
