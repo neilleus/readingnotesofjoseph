@@ -1,0 +1,67 @@
+linux剖析系列
+
+*******************************************************************************
+模块机制
+Anatomy of Linux loadable kernel modules
+http://www.ibm.com/developerworks/linux/library/l-lkm/index.html
+
+同步机制
+Anatomy of Linux synchronization methods
+http://www.ibm.com/developerworks/linux/library/l-linux-synchronization.html
+
+进程管理机制
+Anatomy of Linux process management
+http://www.ibm.com/developerworks/linux/library/l-linux-process-management/index.html
+
+slab分配器机制
+Anatomy of the Linux slab allocator
+http://www.ibm.com/developerworks/linux/library/l-linux-slab-allocator/index.html
+
+动态链接库机制
+Anatomy of Linux dynamic libraries
+http://www.ibm.com/developerworks/linux/library/l-dynamic-libraries/index.html
+
+*******************************************************************************
+关于文件系统
+Anatomy of Linux file systems
+http://www.ibm.com/developerworks/linux/library/l-linux-filesystem/index.html
+
+Anatomy of the Linux virtual file system switch
+http://www.ibm.com/developerworks/linux/library/l-virtual-filesystem-switch/index.html
+
+Anatomy of Linux journaling file systems
+http://www.ibm.com/developerworks/linux/library/l-journaling-filesystems/index.html
+
+Anatomy of ext4
+http://www.ibm.com/developerworks/linux/library/l-anatomy-ext4/index.html
+
+Anatomyof Linux flash file systems（阅）
+http://www.ibm.com/developerworks/linux/library/l-flash-filesystems/index.html
+
+*******************************************************************************
+关于虚拟化
+Anatomy of the libvirt virtualization library
+http://www.ibm.com/developerworks/linux/library/l-libvirt/index.html
+
+Anatomy of a Linux hypervisor
+http://www.ibm.com/developerworks/linux/library/l-hypervisor/index.html
+
+*******************************************************************************
+实时Linux架构
+Anatomy of real-time Linux architectures
+http://www.ibm.com/developerworks/linux/library/l-real-time-linux/index.html
+
+SELinux机制
+Anatomy of Security-Enhanced Linux (SELinux)
+http://www.ibm.com/developerworks/linux/library/l-selinux/index.html
+
+*******************************************************************************
+SCSI子系统
+Anatomy of the Linux SCSI subsystem
+http://www.ibm.com/developerworks/linux/library/l-scsi-subsystem/index.html
+
+网络子系统
+Anatomy of the Linux networking stack
+http://www.ibm.com/developerworks/linux/library/l-linux-networking-stack/index.html
+*******************************************************************************
+
