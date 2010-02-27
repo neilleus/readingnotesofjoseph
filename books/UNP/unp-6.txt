@@ -1,0 +1,74 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+UNIX下可用的五种IO模型
+    阻塞IO
+    非阻塞IO
+    IO复用（select和poll）
+    信号驱动IO（SIGIO）
+    异步IO（POSIX的aio_系列函数）
+
+一个输入操作一般有两个不同阶段：
+    等待数据准备好（到达内核）
+    从内核到进程拷贝数据
+
+非阻塞IO模型，当我们把一个套接口设置成非阻塞方式时，即通知内核；当请求的IO操作
+非得让进程睡眠不能完成时，不要让进程睡眠，而应返回一个错误。这样可以通过轮询来
+判断何时IO准备好。。
+
+IO复用模型，我们就可以调用select或poll，在这两个系统调用中的某一个上阻塞，而不
+是阻塞于真正的IO系统调用。好处在于可以同时处理多个描述字。
+
+信号驱动IO模型：让内核在描述字准备好时用信号SIGIO发出通知。
+
+异步IO：让内核来启动操作，并在整个操作完成后通知我们。
+
+select函数，允许进程指示内核等待多个事件中的任一个发生，并仅在一个或多个事件
+发生或经过某指定的时间后才唤醒进程。即通知内核我们对哪些描述字感兴趣（读、写、
+或异常条件）以及等待多长时间，这里的描述字指任意的文件描述符或者套接口。
+
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+	   fd_set *execptfds, struct timeval *timeout);
+
+int FD_ISSET(int fd, fd_set *set);	/* 测试一个描述符是否属于该描述符集 */
+void FD_SET(int fd, fd_set *set);	/* 增加描述符到描述符集 */
+void FD_CLR(int fd, fd_set *set); 	/* 从描述符集中删除描述符 */
+void FD_ZERO(fd_set *set);		/* 清空描述符集 */
+
+#include <sys/select.h>
+int pselect(int nfds, fd_set *readfds, fd_set *writefds,
+	    fd_set *exceptfds, const struct timespec *timeout,
+	    const sigset_t *sigmask);
+注意：这里的nfds是注册的最大的"描述符+1"，而不是数量。出于效率的考虑，因为文件
+描述符集很可能是用位掩码来表示的。
+这里timeout指定select最多等待多少时间，如果为NULL表示永远等待，如果为全0，表示
+不阻塞。这里如果三个fds参数都设为NULL可以得到一个精度为us级的睡眠定时器，比
+sleep()秒级精度要高。
+当select返回时，会设置描述符集，通过FD_ISSET可以判断是哪个描述符从而做出处理。
+而任何与没有准备好的描述字相对应的位则被清零。
+select返回值表示已经就绪的描述符数量，如果同一个描述符在读和写中均注册且都准备
+好，则计数两次。返回0是超时时仍没有描述符准备好，返回-1表示出错，比如被一个捕
+获的信号中断。
+
+套接口读就绪的情况：
+    1. 套接口接收缓冲区中的数据字节数大于等于套接口接收缓冲区低水位
+    （low water-mark）值。可以通过套接口选项SO_RCVLOWAT来设置，TCP/UDP缺省为1。
+    2. 连接的读这一端关闭（即接收了FIN的TCP连接）。返回0（文件结束符）
+    3. 套接口是一个监听口且已完成的连接数为非零。
+    4. 有一个套接口错误等待处理，返回错误-1。
+套接口写就绪的情况
+    1. 套接口发送缓冲区的可用字节数大于等于套接口发送缓冲去的低水位限制。且套
+    接口已连接或不需要连接。可以通过套接口选项SO_SNDLOWAT设置限制，TCP和UDP套
+    接口缺省为2048。返回正值
+    2. 连接的写这一端关闭，对这样的套接口写将产生SIGPIPE信号。
+    3. 有一个套接口错误待处理。
+如果一个套接口存在带外数据或者仍处于带外标记，那么它有异常条件待处理。
+注意一个套接口出错时，它由套接口标记为既可读又可写。
+
+---------------------------------------
+References:
+UNP Chapter 6 IO复用: select和poll函数
