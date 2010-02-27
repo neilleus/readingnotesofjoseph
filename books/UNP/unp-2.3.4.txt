@@ -41,6 +41,42 @@ ANSI C有通用指针类型void *，但套接口函数是在ANSI C之前定义�
 对于IPv4，IPv6，UNIX域，前两者的地址长度是固定的，而后两者的地址长度
 是可变的，所以需要显示传递。
 
+地址族AF_xxx和协议族PF_xxx的由来，历史上曾想单个协议族可以支持多个地址族，PF_
+值用来创建套接口，而AF_值用于套接口的地址结构。但实际上，这种协议从未被实现过。
+
+每当调用函数connect失败时，都必须关闭套接口描述字，这样才能再次调用connect。
+connect失败的几种情况：
+    SYN握手没有响应，超时出错，重试
+    SYN握手响应RST，指定服务器的端口上没有进程等待与之连接，连接被拒绝错误
+    SYN握手出现了目标不可达错误，重试。
+
+bind函数为套接口分配一个本地协议地址。服务器一般主动调用bind函数绑定已知端口。
+一个例外是RPC调用，它们一般让内核来为它们的监听套接口选择一个临时端口，因为这
+个端口紧接着会通过RPC端口映射器注册，客户与服务器连接前，先要与端口映射器取得
+联系获取服务器的临时端口。
+如果TCP服务器不把IP地址捆绑到套接口上，内核就把客户所发SYN所在分组的目的IP地址
+作为服务器的源IP地址。
+为了获得bind绑定的临时端口值，必须调用函数getsockname来返回协议地址才行。
+
+fork后exec新程序，由于可执行代码被新程序覆盖，与父进程共享的资源也丢失了访问途径，这时假如要有一个套接口需要在新生成的程序中访问，有两种方法可以这样做。一是格
+式化成字符串后以命令行参数方式传递给新程序；一是确定调用exec前把某个描述符总是
+设定为已连接套接口的约定。inet采用这第二种方法。
+
+
+socket api 列表
+#include <sys/types.h>
+#include <sys/socket.h>
+int socket(int domain, int type, int protocol);		/* 返回套接字或-1 */
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen);
+int listen(int sockfd, int backlog);	/* 这三个返回0或-1 */
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen); /* 返回套接字或-1 */
+
+地址查询相关
+获取套接字关联的本地和对端地址结构。
+int getsockname(int sockfd, struct sockaddr *localaddr, socklen_t *addrlen);
+int getpeername(int sockfd, struct sockaddr *peeraddr, socklen_t *addrlen);
+
 
 ---------------------------------------
 References:
