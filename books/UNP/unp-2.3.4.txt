@@ -1,6 +1,7 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+
 建立TCP连接的三步握手
 01) 服务器被动打开
 02) 客户调用connect。发送SYN(J)
@@ -77,6 +78,10 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen); /* 返回套�
 int getsockname(int sockfd, struct sockaddr *localaddr, socklen_t *addrlen);
 int getpeername(int sockfd, struct sockaddr *peeraddr, socklen_t *addrlen);
 
+
+注意！！！
+accept, getsockname, getpeername这三个函数的addrlen参数必须初始化为前面地址缓
+冲区的大小。
 
 ---------------------------------------
 References:
