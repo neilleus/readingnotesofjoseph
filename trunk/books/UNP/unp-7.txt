@@ -1,0 +1,116 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+获取和设置套接口选项的方法：
+    getsockopt
+    setsockopt
+    fcntl：用于设置套接口为非阻塞IO和信号驱动IO以及设置套接口属主
+    ioctl
+套接口选项类型：
+    基本
+    IPv4
+    IPv6
+    TCP
+
+#include <sys/socket.h>
+int getsockopt(int sockfd, int level, int optname,
+	       void *optval, socklen_t *optlen);
+int setsockopt(int sockfd, int level, int optname,
+	       const void *optval, socklen_t *optlen);
+sockfd必须指向一个打开的套接口描述字
+level指定系统中解释选项的代码：普通套接口代码或特定于协议的代码（IPv4、IPv6或TCP）
+optval是一个指向变量的指针，通过它，或由setsockopt取得选项的新值，或由getsockopt
+存储选项的当前值。
+optlen指定optval的大小。
+
+套接口选项SO_DEBUG, SO_DONTROUTE, SO_KEEPALIVE, SO_LINGER, SO_OOBINLINE, 
+	SO_RCVBUF, SO_SNDBUF这些选项是由已连接套接口从监听套接口继承来的，所以
+	要给监听套接口设置这些选项以便给已连接套接口设置这些选项。 
+
+协议无关的基本套接口选项（即由内核中的协议无关代码处理，而不是由诸如IPv4这样的
+一类特殊的协议模块处理，level为SOL_SOCKET）：
+SO_BROADCAST	使能和禁止进程发送广播消息
+SO_DEBUG	仅TCP支持，内核会跟踪此套接口所发送和接收的所有分组的详细信息
+SO_DONTROUTE	用来规定发出的分组旁路底层协议的正常路由机制
+SO_ERROR
+SO_KEEPALIVE	对TCP套接口，2小时内任一方向没有数据交换，TCP会自动给对方发保活
+SO_LINGER	指定close对面向连接的协议如何操作，缺省为历届返回，但如果有数
+		据残留在套接口的发送缓冲区，系统将试着将这些数据发送给对方。
+SO_OOBINLINE	打开此选项，带外数据会被留在正常的输入队列中，即在线存放。此时，
+		接收函数的MSG_OOB标志不能用来读带外数据。
+SO_RCVBUF
+SO_SNDBUF	每个套接口有一个发送缓冲区和一个接收缓冲区，接收缓冲区被TCP和
+		UDP用来将接收到的数据一直保存到应用进程来读。对于TCP来说，套接
+		口接收缓冲区中可用空间的大小就是TCP通告另一端的窗口大小。TCP套
+		接口接收缓冲区不可能溢出，因为对方不允许发出超过所通告窗口大小
+		的数据，这就是TCP的流量控制，如果对方发过来，则会被丢弃。对于
+		UDP来说，当接收到的数据报放不进接收缓冲区时，数据报就被丢弃，
+		所以对于UDP快的发送者很容易淹没慢的接收者。
+		TCP的窗口规模选项是在建立连接时用SYN与对方互换得到的。对于一个
+		客户，这意味着SO_RCVBUF选项必须在connect之前设置，对于服务器则
+		在listen之前必须给监听套接口设置这个选项。
+		TCP套接口缓冲区的大小至少必须是连接的MSS的三倍。TCP套接口缓冲
+		区大小还必须是连接的MSS的偶数倍。
+SO_RCVLOWAT
+SO_SNDLOWAT	这两个选项是由select函数使用的，表示套接口何时可读和可写。
+SO_RCVTIMEO
+SO_SNDTIMEO	设置接收和发送超时，接收超时影响五个函数read, readv, recv, 
+		recvfrom和recvmsg。发送超时影响五个函数write, writev, send,
+		sendto和sendmsg。
+SO_REUSEADDR
+SO_REUSEPORT	1. SO_REUSEADDR允许启动一个监听服务器并捆绑其众所周知端口，即
+		使以前建立的将此端口用作它们的本地端口的连接仍存在。例如在不
+		断开已建立的连接的情况下重启监听服务器。
+		2. SO_REUSEADDR允许在同一端口上启动同一服务器的多个实例，只要
+		每个实例捆绑一个不同的本地IP地址即可。但是对于TCP，我们不能启
+		动捆绑相同IP地址和相同端口号的多个服务器。
+		3. SO_REUSEADDR允许单个进程捆绑同一端口到多个套接口上，只要每
+		个捆绑指定不同的本地IP地址即可。
+		4. SO_REUSEADDR允许完全重复的捆绑，一般来说这个特性仅在支持多
+		播的系统上才有，而且仅对UDP套接口而言（TCP不进行多播）。
+		SO_REUSEPORT，此选项允许完全重复的捆绑，但仅在所有捆绑相同IP地
+		址和端口的套接口都指定次选项。
+		SO_REUSEPORT，如果被捆绑的IP地址是一个多播地址，则SO_REUSEADDR
+		和SO_REUSEPORT等效。
+		SO_REUSEPORT，并非所有系统都支持。
+SO_TYPE		这个选项返回套接口的类型
+SO_USELOOPBACK	此选项仅用于路由域（AF_ROUTE）的套接口。
+
+IPv4套接口选项（level为IPPROTO_IP）
+IP_HDRINCL	如果为一个原始IP套接口设置了此选项，我们必须为所有发送到此原始
+		套接口上的数据报构造自己的IP头部，一般情况下，内核会为发送到原
+		始套接口上的数据包构造IP头部，但有些应用程序（traceroute）要构
+		造自己的IP头部以取代IP可能放到其头部的某些字段的值。
+IP_OPTIONS	此选项允许我们在IPv4头部中设置IP选项。
+IP_RECVDSTADDR	此选项导致所接收的UDP数据报的目的IP地址由函数recvmsg作为辅助数
+		据返回。
+IP_RECVIF	此选项导致所接收到的UDP数据报的接口索引由函数recvmsg作为辅助数
+		据返回。
+IP_TOS		此选项使我们可以给TCP或UDP套接口在IP头部中设置服务类型字段。包
+		括：
+		    IPTOS_LOWDELAY		最小延迟
+		    IPTOS_THROUGHPUT		最大吞吐量
+		    TPTOS_RELIABILITY		最大可靠性
+		    IPTOS_LOWCOST		最小成本
+IP_TTL		此选项我们可以设置和获取系统用于某个给定套接口的缺省TTL值。
+
+TCP套接口选项
+TCP_KEEPALIVE
+TCP_MAXRT
+TCP_MAXSEG
+TCP_NODELAY
+TCP_STDURG
+
+fcntl函数
+可用来设置套接口描述字为非阻塞IO（F_SETFL）和信号型IO（F_SETFL）以及设置套接口
+属主（F_SETOWN）和获取套接口属主（F_GETOWN）。
+
+#include <fcntl.h>
+int fcntl(int fd, int cmd, ... /* int arg */);
+返回依赖于参数
+
+
+
+---------------------------------------
+References:
+UNP Chapter 7 套接口选项
