@@ -1,0 +1,13 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+本书描述的4种IPC：
+    1. 消息传递（管道、FIFO、消息队列）
+    2. 同步（互斥锁、条件变量、读写锁、文件与记录锁、信号灯）
+    3. 共享内存区（匿名共享内存区、命名共享内存区）
+    4. 远程过程调用RPC
+本书不涉及通过计算机网络通信的程序的编写，那是socket的内容。
+
+---------------------------------------
+References:
+UNP Volume 2 Chapter 1

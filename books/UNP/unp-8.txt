@@ -1,0 +1,18 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+使用UDP实现的典型应用程序：DNS，NFS，SNMP
+
+api
+#include <sys/socket.h>
+ssize_t recvfrom(int sockfd, void *buff, size_t nbytes, int flags,
+		 struct sockaddr *from, socklen_t *addrlen);
+ssize_t sendto(int sockfd, const void *buff, size_t nbytes, int flags,
+	       const void sockaddr *to, socklen_t addrlen);
+函数recvfrom用数据发送者的协议地址装填由from所指的套接口地址结构，存储在此套接
+口地址结构中的字节数也以addrlen所指的整数返回给调用者。
+这两个函数也可用于TCP，但没这个必要。
+
+---------------------------------------
+References:
+UNP Volume 1 Chapter 8 基本UDP套接口编程
