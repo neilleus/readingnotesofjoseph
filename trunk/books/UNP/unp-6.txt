@@ -69,6 +69,20 @@ select返回值表示已经就绪的描述符数量，如果同一个描述符在读和写中均注册且都准备
 如果一个套接口存在带外数据或者仍处于带外标记，那么它有异常条件待处理。
 注意一个套接口出错时，它由套接口标记为既可读又可写。
 
+
+#include <poll.h>
+int poll(struct pollfd *fdarray, unsigned long nfds, int timeout);
+sruct pollfd {
+	int fd;		/* 要检查的描述字 */
+	short events;	/* 在fd上感兴趣的事件 */
+	short revents;	/* 在fd上发生的事件 */
+};
+events规定要测试的条件，而函数在revents成员中返回描述字的状态。规定了一些事件，
+具体查找手册。
+结构数组中元素的个数由参数nfds来指定。
+参数timeout指定函数返回前等待多长时间。其中值INFTIM表示永远等待，0表示立即返回，
+大于零表示指定的毫秒数。
+
 ---------------------------------------
 References:
 UNP Chapter 6 IO复用: select和poll函数
