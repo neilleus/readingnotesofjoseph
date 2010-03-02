@@ -3,6 +3,9 @@ E-Mail: fdlixiaojun@gmail.com
 
 Netlink用来在内核模块和用户空间进程之间传递信息，它提供了内核-用户空间的双向通
 信链路，它为用户空间进程提供了一套标准的套接字接口，为内核模块提供了一套内核API
+Netlink是面向数据报的协议
+
+每个netlink套接口功能都在内核头文件include/linux/netlink.h中定义了其协议类型。
 
 创建一个用户空间netlink套接口的方法：
 	sockfd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
@@ -10,6 +13,7 @@ Netlink用来在内核模块和用户空间进程之间传递信息，它提供�
 Netlink_family选择与之通信的内核模块或netlink group，当前已经分配的netlink族有：
     NETLINK_ROUTE：接收路由表更新和更改IPv4路由表，ip地址，链路参数等
     NETLINK_FIREWALL：接收IPv4防火墙发送的报文
+    NETLINK_NFLOG：用户空间iptable管理工具和内核空间netfilter模块的通信信道
     NETLINK_ARPD：用户空间管理arp表的接口
     NETLINK_ROUTE6：接收和发送IPv6路由表更新
     NETLINK_IP6_FW：接收IPv6防火墙校验失败的包
@@ -79,6 +83,43 @@ NETLINK_ROUTE
 又调用netlink_create创建netlink socket，并在nl_table中分配一个表项，由于这个套
 接口是系统启动时创建的，所以它会成为nl_table中的第一个项，这里的pid为0。
 
+为什么使用netlink套接口而不是用系统调用、ioctl或者proc文件系统这些方式呢？
+首先：内核中轻易不会增加系统调用，因为这可能影响内核和系统的稳定性。而netlink
+套接口则很简单，只需要在netlink.h增加一个协议类型即可，然后内核模块就可以和应
+用程序通过socket api进行通信。其次，netlink是异步的，和其它socket API一样，它
+提供了套接口队列来平缓突发的消息。而系统调用要求同步处理，这样可能会打乱内核调
+度。其三，系统调用是在编译时静态链接到内核的，所以不可能在一个模块中实现系统调
+用，而netlink无此要求。第四，netlink套接口支持多播，这是相对于系统调用，ioctl和
+proc文件系统的又一优点。一个进程可以向一个netlink group地址多播一条消息，而多
+个其它进程可以监听那个组地址。这提供了一个从内核向用户空间分发事件的近乎完美的
+实现机制。第五，系统调用和ioctl是简单的IPC，必须从用户空间进程主动发起，但是当
+一个内核模块有一个紧急消息要发给用户空间程序时怎么办呢，这种IPC机制只能通过轮询
+内核来获取状态变化，而轮询开销很大。Netlink则优雅的解决了这个问题，允许内核可以
+采取主动，即netlink套接口是全双工特性的。第六，netlink提供了socket格式的API，容
+易理解和使用，节省培训时间。
+
+Netlink套接口和BSD路由套接口有什么关系？
+在BSD TCP/IP协议栈实现中，由一类特殊的socket称作路由套接口，其地址族为AF_ROUTE，
+协议族为PF_ROUTE，套接口类型为SOCK_RAW。在BSD实现中路由套接口由进程用来添加和
+删除内核路由表项。
+在Linux中，netlink套接口协议NETLINK_ROUTE提供了相同的功能，是BSD路由套接口的超
+集。
+
+每个netlink协议类型可以至多定义32个多播组，每个多播组由一位位掩码表示1<<i表示，
+0<=i<=31，使用多播可以减少系统调用次数。这在一组进程和内核进程协同实现同一功能
+时特别有用，发送多播的netlink消息可以有效地减少系统调用次数和减轻用户进程维护
+多播组成员的负担。
+
+多播：一个netlink socket可以从多个目标协议接收或者向多个目标协议发送消息，多播
+的目标由地址结构中的nl_groups来控制。如果应用程序想要接收那些为多播组设计的协议
+的netlink消息，则需要将感兴趣的multicast groups以或地方式组合起来填充到netlink
+地址sockaddr_nl的nl_groups字段，否则，nl_groups应该为0，则应用程序仅接收单播
+netlink消息。在填好nladdr以后，可以执行bind绑定地址到socket。
+
+在单个线程中也可能创建多个同协议的netlink套接口，但是bind会失败。
+
+
 ---------------------------------------
 参考文档:
 http://qos.ittc.ku.edu/netlink/html/node1.html
+http://www.linuxjournal.com/article/7356?page=0,4
