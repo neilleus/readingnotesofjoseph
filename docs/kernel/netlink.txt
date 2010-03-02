@@ -1,0 +1,84 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+Netlink用来在内核模块和用户空间进程之间传递信息，它提供了内核-用户空间的双向通
+信链路，它为用户空间进程提供了一套标准的套接字接口，为内核模块提供了一套内核API
+
+创建一个用户空间netlink套接口的方法：
+	sockfd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+	/* domain为AF_NETLINK，type为SOCK_RAW或SOCK_DGRAM但netlink协议不区分 */
+Netlink_family选择与之通信的内核模块或netlink group，当前已经分配的netlink族有：
+    NETLINK_ROUTE：接收路由表更新和更改IPv4路由表，ip地址，链路参数等
+    NETLINK_FIREWALL：接收IPv4防火墙发送的报文
+    NETLINK_ARPD：用户空间管理arp表的接口
+    NETLINK_ROUTE6：接收和发送IPv6路由表更新
+    NETLINK_IP6_FW：接收IPv6防火墙校验失败的包
+    NETLINK_TAPBASE...NETLINK_TAPBASE+15：ehtertap设备的实例，ethertap是伪网络
+    隧道设备，允许从用户空间模拟以太网驱动
+    NETLINK_SKIP
+
+协议注册
+内核启动时，在init/main.c的函数__init do_basic_setup()中会调用位于net/socket.c
+中的sock_init()，这个函数会调用proto_init()，在这里会启动所有配置的协议。这些
+协议的由net/protocols.c中的一张表格（net_proto数据结构数组）来维护，它会遍历调
+用所有配置协议的init_func完成各个协议的初始化工作。
+这里还有一个数据结构需要关注 struct net_proto_family{};用于将协议号和ops绑定。
+在协议的init函数中会调用sock_register(&netlink_family_ops)，这个会将协议的地址
+族通告并链接到socket模块，它会在net_families中为这个协议创建一个表项。
+    net_families包含了协议列表，所有协议都在此注册。
+小结：do_basic_setup()->sock_init()->proto_init()->sock_register()
+	/* 将协议注册到socket模块 */
+
+所有的与socket有关的调用都由net/socket.c中的系统调用sys_socketcall()处理，根据
+请求的操作是SYS_SOCKET, SYS_BIND还是SYS_CONNECT等来调用对应的函数。
+
+调用sys_socket时会调用sock_create会创建一个数据结构，并分配一个socket描述符用
+来引用该数据结构。这个数据结构调用sock_alloc()来创建，并调用协议的create函数
+进行ops等数据结构的关联。对于netlink socket就调用netlink_create();
+当创建了netlink套接口后，下一步就是bind该套接口，当bind由用户空间发出时，内核
+会调用sys_bind()，这会最终调用到netlink_bind()，在netlink_bind()中，会调用
+netlink_insert()来为这个netlink在nl_table中创建一个表项，nl_table是一个sock数
+据结构的链表。
+所以用户空间的创建和绑定代码如下，忽略了错误检测：
+    struct sockaddr_nl nl_addr;
+    sockfd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+    bind(sockfd, (struct sockaddr *)&nl_addr, sizeof(nl_addr));
+sockaddr_nl在include/linux/netlink.h中定义。
+    struct sockaddr_nl {
+	    sa_family_t nl_family;
+	    unsigned short nl_pad;
+	    __u32 nl_pid;
+	    __u32 nl_groups;
+    };
+协议族AF_NETLINK, nl_groups用于多播选项，nl_pid用于表示进程号，如果给出0，则内
+核会通过task数据结构的current->pid来填充。在内核里会检查pid，如果为0，会调用
+netlink_autobind()。
+
+一旦套接口被创建并绑定，我们就可以使用recvmsg()和sendmsg()函数来读写该套接口。
+    sendmsg(sockfd, &msg, 0);
+    struct msghdr {
+	    void *msg_name;		/* 套接口名字 */
+	    int msg_namelen;		/* 名字长度 */
+	    struct iovec *msg_iov;	/* 数据块 */
+	    __kernel_size_t msg_iovlen;	/* 数据块数量 */
+	    void *msg_control;		/* 协议特定数据 */
+	    __kernel_size_t msg_controllen;	/* 协议特定数据长度 */
+	    unsigned msg_flags;
+    };
+    struct iovec {
+	    void *iov_base;
+	    __kernel_size_t iov_len;
+    };
+iovec数据结构会用传递给内核的数据指针和数据长度来填充。
+在netlink_sendmsg()中数据从iovec拷贝到内核空间会调用
+    memccpy_fromiovec(skb_put(skb, len), msg->msg_iov, len);
+
+NETLINK_ROUTE
+初始化：在net/core/rtnetlink.c中rtnetlink_init函数中会创建一个内核中的socket，
+用于处理来自用户的请求。它会调用netlink_kernel_create()来创建内核socket，而它
+又调用netlink_create创建netlink socket，并在nl_table中分配一个表项，由于这个套
+接口是系统启动时创建的，所以它会成为nl_table中的第一个项，这里的pid为0。
+
+---------------------------------------
+参考文档:
+http://qos.ittc.ku.edu/netlink/html/node1.html
