@@ -1,0 +1,68 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+内容：为IO函数设置超时，recv和send函数；readv和writev函数；recvmsg和sendmsg函数
+
+给套接口上的IO函数设置超时有三种方法：
+    1.  调用alarm，在指定时间产生SIGALARM信号
+    2.  调用select阻塞在等待IO上，select可以设置超时
+    3.  使用套接口选项SO_RCVTIMEO和SO_SNDTIMEO，但并不是所有实现都支持。
+以上前两种可用于任意描述字，而第三种仅适用于套接口描述字。
+以上可用于套接口IO操作，但connect的超时需要另外的方法，只有在设置套接口为非阻塞
+方式时，才可以用select为connect设置超时时间。
+
+recv和send
+#include <sys/socket.h>
+ssize_t recv(int sockfd, void *buff, size_t nbytes, int flags);
+ssize_t send(int sockfd, const void *buff, size_t nbytes, int flags);
+参数flags有：
+    flags		描述			recv		send
+    MSG_DONTROUTE:	不查路由表				 o
+    MSG_DONTWAIT:	本操作不阻塞		 o		 o
+    MSG_OOB:		发送或接收的是带外数据	 o		 o
+    MSG_PEEK:		查看外来消息		 o		 o
+    MSG_WAITALL:	等待所有数据		 o		 o
+
+#include <sys/uio.h>
+sszie_t readv(int fd, const struct iovec *iov, int iovcnt);
+sszie_t writev(int fd, const struct iovec *iov, int iovcnt);
+允许在一个函数调用中读写多个缓冲区，称作分散读和集中写。
+struct iovec {
+	void *iov_base;		/* 缓冲区开始地址 */
+	size_t iov_len;		/* 缓冲区大小 */
+};
+
+#include <sys/socket.h>
+ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags);
+ssize_t sendmsg(int sockfd, struct msghdr *msg, int flags);
+struct msghdr {
+	void *msg_name;		/* 协议地址 */
+	sockelen_t msg_namelen;	/* 协议地址长度 */
+	struct iovec *msg_iov;	/* */
+	size_t msg_iovlen;	/* msg_iov的个数 */
+	void *msg_control;	/* 控制信息 */
+	socklen_t msg_controllen;
+	int msg_flags;		/* recvmsg返回的标志 */
+};
+
+msg_hdr中的控制信息，控制信息由一个或多个控制信息对象组成，每个对象由一个
+cmsghdr结构开头，该结构的格式在sys/socket.h中定义如下：
+struct cmsghdr {
+	socklen_t cmsg_len;
+	int cmsg_level;
+	int cmsg_type;
+	/* followed by unsigned char cmsg_data[]; */
+};
+以上控制信息结构涉及对齐问题，为此提供了几个宏进行相关处理，此处略。
+
+在不读出数据的情况下，如何知道一个套接口的接收队列中有多少可读数据？
+    方法一：为了不阻塞可使用非阻塞IO
+    方法二：为了检查一下数据而使数据仍留在接收队列中可使用MSG_PEEK标志，同时为
+    了不阻塞可结合MSG_DONTWAIT标志。对于SOCK_STREAM套接口，连续两次带MSG_PEEK
+    标志的调用可能返回到内容不同，而对于SOCK_DGRAM套接口则返回相同数据，这是因
+    为一个是流式IO，一个是数据报方式的区别。
+    方法三：ioctl的FIONREAD命令。
+
+---------------------------------------
+References:
+UNP Chapter 13 高级IO函数
