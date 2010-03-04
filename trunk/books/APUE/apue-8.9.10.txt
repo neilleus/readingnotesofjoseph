@@ -256,29 +256,22 @@ struct tms {
 };
 
 =====第九章======
-终端登录
-init进程读取/etc/inittab，为每个终端调用一次fork，生成的子进程执行exec(getty)
-各个进程的实际用户ID和有效用户ID都是0。init以空环境（变量）执行getty程序。
-getty为终端设备调用open函数，以读写方式把终端打开，一旦设备被打开，则文件描述
-符0、1、2被设置到该设备。然后getty输出"login"之类的信息。等待用户键入用户名，
-当用户键入用户名之后，getty的工作完成，然后它exec(login)程序，login能执行多项
-工作，因为它得到了用户名，所以可以调用getpwname取得用户的口令文件登录项，然后
-调用getepass提示Password，接着读用户的口令，调用crypt将键入口令加密，并与
-shadow文件中储存的密文比对。如果比对失败，login调用exit退出，父进程init得到子
-进程的情况后，再次fork，getty，login，如此重复。如果登录成功，login将会初始化
-起始工作目录，调用chown改变终端的所有权，改变终端的访问权限，调用setgid和
-initgroups设置进程的组ID。用login得到的信息初始化环境变量。login进程改变为登录
-用户的用户ID，并调用用户的登录shell。
+** 终端登录过程
+   1. init进程读取/etc/inittab，为每个终端调用一次fork，生成的exec(getty)，这时
+   每个子进程的实际用户号和有效用户号都为一，环境为空。
+   2. getty函数调用open以读写方式打开终端设备，设置文件描述符0、1、2到该设备。
+   然后getty输出"login"之类的信息
+   3. 当用户键入用户名后，getty就exec(login)，login调用getpwname得到用户口令文
+   件登录项，然后调用getpass提示输入密码，接着读用户口令，并调用crypt加密比较，
+   比对成功，login初始化工作目录，并改变终端所有权和访问权限，设置进程的组ID和
+   用户ID，初始化环境变量，并调用用户的登录shell。
 
-网络登录
-通过串行终端登录和网络登录的主要（物理上的）区别是通过网络登录时，终端和计算机
-之间的连接不是点对点的。终端登录时，init知道有那些终端设备可以用来登录，并为每
-个设备生成一个getty进程但是在网络登录情况下，所有的登录都经由内核的网络设备驱
-动程序，事先并不清楚有多少这样的登录。我们不是使一个进程等待每个可能的登录，而
-是等到一个网络连接请求的到达。为了使同一个软件既能处理终端登录又能处理网络登
-录，系统使用了一种叫做伪终端（pseudo terminal）的软件驱动程序，它可以仿真串行
-终端的运行行为，并将终端操作映射为网络操作。
-BSD网络登录过程
+** 网络登录
+   与终端登录的区别在于网络登录事先不清楚有多少这样的登录，因而不能使进程等待
+   可能的登录，而是等待网络连接请求。系统使用了一种叫做伪终端的软件驱动程序来
+   既处理网络登录又可处理终端登录。
+
+** BSD网络登录过程
 inetd守护进程，等待大多数网络链接。当一个网络连接请求到达时，它执行一次fork，然
 后生成的子进程执行适当程序。以telnet连接为例。客户请求telnet链接之后，服务进程
 telnetd会打开一个伪终端设备，并用fork分成两个进程，父进程处理通过网络的通信，子
@@ -286,22 +279,22 @@ telnetd会打开一个伪终端设备，并用fork分成两个进程，父进程
 述符的0、1、2与伪终端相连，登录正确，则按照终端登录之后的步骤进行。
 Linux使用xinetd网络守护进程而不是inetd守护进程。
 
-进程组
-每个进程除了有一个进程ID，还属于一个进程组。进程组是一个或多个进程的集合。通常
-它们与同一作业相关联，可以接收来自同一终端的信号。每个进程组有一个进程组ID，类
-型为pid_t。
+** 进程组
+每个进程除了有一个进程号，还属于一个进程组。进程组是一个或多个进程的集合。
+通常进程组内的进程与同一作业相关联，可以接收来自同一终端的信号。
+每个进程组有一个进程组ID，类型为pid_t。
 #include <unistd.h>
 pid_t getpgrp(void);		/* 返回调用进程的进程组ID */
 pid_t getpgid(pid_t pid);	/* 返回pid所属的进程组ID，pid为0表示当前进程 */
 int setpgid(pid_t pid, pid_t pgid);	/* 创建或加入进程组；*/
-组长进程：每进程组可以（不是必须）有一个，其进程ID等于进程组ID。它可以创建进程
-组，创建该组的进程。
+进程组首进程：每进程组可以（不是必须）有一个，其进程ID等于进程组ID。
+进程组首进程可以创建进程组，创建该组的进程。
 进程组生存期：进程组创建开始到最后一个进程离开。与组长进程生存期无关，最后一个
 进程可以是终止，可以是转移到其他进程组。
 一个进程只能为它自己或者是它的子进程设置进程组ID。当它的子进程调用了exec之后它
 就不能改变子进程的进程组ID了。
 
-会话session
+** 会话
 会话是一个或多个进程组的集合，会话首进程指创建该会话的进程。
 一个不是组长的进程创建一个会话则：它变为会话首进程；它变为新进程组的组长。该进
 程没有控制终端（有则断开关联）。如果该进程已经是组长，则创建会话会失败。为避免
@@ -311,122 +304,152 @@ int setpgid(pid_t pid, pid_t pgid);	/* 创建或加入进程组；*/
 pid_t setsid(void);		/* 创建新会话，返回进程组ID */
 pid_t getsid(pid_t pid);	/* 返回会话首进程的进程组ID */
 
-控制终端
-一个会话可以有一个控制终端，这通常是登录到其上的终端设备或者伪终端设备。
-控制进程：建立与控制终端连接的会话首进程
-前台进程组
-后台进程组
+** 控制终端
+会话特性：
+    一个可以有一个控制终端，这通常是登录到其上的终端设备或者伪终端设备。
+    控制进程：建立与控制终端连接的会话首进程
+    一个会话中的进程组可被分成一个前台进程组和一个或多个后台进程组
+    如果一个会话有一个控制终端，则它有一个前台进程组
+    在终端上键入中断键和退出键都会把相应信号发给前台进程组的所有进程
+    如果终端检测到连接断开，则将挂断信号发送给会话首进程
+需要一种方法同志内核哪一个进程组是前台进程组，这样终端设备驱动程序就能了解将终
+端输入和终端产生的信号送往何处。
 #include <unistd.h>
-pid_t tcgetpgrp(int fd);
-成功返回前台进程组的进程组ID，出错返回-1
-int tcsetpgrp(int fd, pid_t pgrpid);
-成功返回0，出错返回-1
-在fd上打开的终端与前台进程组相连。
+pid_t tcgetpgrp(int fd);		/* 返回前台进程组ID */
+int tcsetpgrp(int fd, pid_t pgrpid);	/* 设置前台进程组为pgrpid */
 #include <termios.h>
-pid_t tcgetsid(int fd);
-成功则返回会话首进程的进程组ID，出错返回-1。
+pid_t tcgetsid(int fd);			/* 返回会话首进程的进程组ID */
+在fd上打开的终端与前台进程组相连。
 
-作业控制（略）
-孤儿进程组（略）
+** 作业控制（略）
+** 孤儿进程组（略）
 
-信号
-信号是软件中断，信号提供了一种处理异步实践的方法，每个信号都有一个名字，名字都
-以SIG开头。在头文件<signal.h>中，信号们被定义为整数。不存在编号为0的信号。
-信号产生条件：特定终端组合按键；硬件异常（除0，段错误）；使用kill命令；使用kill
-函数；满足软件条件时通知相关进程可以发信号。
-信号处理手段：忽略信号；捕捉信号；执行系统默认动作。
-信号们（略）
-core文件（略）
+** 信号基本概念
+信号是软件中断，信号提供了一种处理异步事件的方法，每个信号都有一个以SIG开头的
+名字。在头文件<signal.h>中，信号们被定义为整数。不存在编号为0的信号。
 
-signal函数
+TIPS: 内核包含对用户级应用程序有意义的头文件被认为是一种糟糕的设计，所以如果应
+用程序和内核两者都需要同一定义，那么就将有关信息包含在内核头文件中，然后用户头
+文件再包含该内核头文件。
+
+** 信号产生方法：
+    特定终端组合按键；
+    硬件异常，通知内核，内核将其转化为适当的信号发给当前进程（0，段错误）；
+    进程调用使用kill函数可将信号发给另一个进程或进程组；出于安全，对此有所限
+    制，接收信号进程和发送信号进程的所有者必须相同。或者发送者是超级用户。
+    使用kill命令可以发信号到其他进程，该命令是kill函数的接口。
+    软件条件达成，并应将其通知有关进程时也产生信号，典型比如SIGURG（在网络连接
+    上传来带外数据时产生），SIGPIPE（在管道的读进程已经终止后，一个进程写此管
+    道时产生），SIGALRM（闹钟超时）
+
+** 信号处理手段：
+    忽略信号，SIGKILL和SIGSTOP不可忽略。
+    捕捉信号，SIGKILL和SIGSTOP不可捕捉。
+    执行系统默认动作。
+
+** core文件：某些信号默认处理会产生core文件，这种情况下core文件不会产生的条件：
+    1. 进程是设置用户号或者设置组号，且当前用户并非程序文件的所有者。
+    2. 用户没有写当前目录的权限
+    3. 该文件已经存在，且用户对该文件无写权限
+    4. 该文件太大（超过了RLIMIT_CORE）。
+
+信号描述（略）
+
+** signal函数
 #include <signal.h>
 void (*signal(int signo, void (*func)(int)))(int);
-成功则返回信号以前的处理配置，出错返回SIG_ERR
-signal函数由ISO C规定。
-signo参数表示信号名。func的值是常量SIG_IGN（忽略信号）、SIG_DFL（执行缺省操作）
-或者信号处理程序的地址（捕捉信号）。
-signal函数的返回值是一个函数地址。该函数地址指向之前的信号处理程序地址。
+signal函数与系统实现有关，最好使用sigaction函数代替signal函数。 signal函数由
+ISO C规定，由于不涉及多进程，进程组和终端IO，所以对UNIX系统基本没有用处。
+signal函数有两个参数：
+    signo表示感兴趣的信号名
+    func可以使SIG_IGN、SIG_DFL或者指向信号处理程序的函数指针（捕捉信号）。
+signal函数的返回值是一个无返回值的函数指针。指向调用前的信号处理程序地址。
+出错时返回SIG_ERR。
+可以用以下typedef简化signal函数
+    typedef void Sigfunc(int);
+    Sigfunc *signal(int, Sigfunc *);
 
-不可靠信号（略）早期Unix系统的特性
+signal函数定义C语言语法剖析：
+    signal是函数名，返回值类型是void (*)(int)，所以最外层的void (*)(int)表示返
+    回类型，两个参数一个参数是int，另一个参数类型是void (*)(int)
 
-被中断的系统调用（略）
+** 被中断的系统调用
+    进程正阻塞在某些低速系统调用当中时接收到了某种信号，则被阻塞的系统调用会返
+    回出错，并将errno设置为EINTR。这种情况下，应用程序需要处理这样的错误，比如
+    说判断错误后重新调用该系统调用。
 
-可重入函数，为什么要要求可重入？（以malloc为例解答）（略）
-不可重入的函数：使用静态数据结构；调用了malloc和free；是标准IO函数。
-一般在信号处理程序中，要保存errno值，退出时恢复。
+** 可重入函数，为什么要要求可重入？
+不可重入的函数：使用了静态数据结构或者全局数据而又没有采用适当的保护；典型的比
+如调用了malloc和free的函数，以及大多数标准IO库函数。这里重入理解为重复进入要比
+重新进入更容易理解。
 
-SIGCLD信号，注意与SIGCHLD不同，有特殊性（略）
+一般在信号处理程序中如果调用了系统函数，那么要保存errno值，退出时恢复。
 
-可靠信号
-产生信号（generation），发送信号，意义类似
-递送信号（delivery），对信号采取某种动作
-在信号产生和递送之间的时间间隔，称信号是未决的。
-进程可以调用sigpending函数查看有哪些信号被阻塞。
-进程可以阻塞一个信号的递送。则该信号保持为未决状态直到解除阻塞或者忽略。在此期
-间进程可以改变对此信号的处理方式。
-同一信号多次阻塞是否保持多个信号取决于实现，大部分只保留一个。
-多个信号同时递送的顺序未作规定，一般优先递送与进程相关的信号。
-每个进程都有进程屏蔽字，类型sigset_t，它规定了当前被阻塞递送到该进程的信号集。
-进程可以调用sigprocmask来检测和更改当前信号屏蔽字。
+** 可靠信号
+信号有几个生存阶段，generation->pending->delivery
+可靠的信号指可以选择阻塞信号，即产生信号后延后到接触对该信号的阻塞时递送，信号
+阻塞期间产生的多个信号可以根据实现递送一次或多次，多个信号同时递送时，优先递送
+与进程当前状态相关的信号。
+每个进程有一个类型为sigset_t的信号屏蔽字，，它规定了当前要阻塞递送到该进程的信
+号，采用位掩码方式。
 
-kill和raise函数
+** 信号处理相关的API
+
+发送信号
 #include <signal.h>
-int kill(pid_t pid, int signo);
-int raise(int signo);
-成功返回0，出错返回-1
-kill函数将信号发送给进程或进程组，raise则允许进程向自身发送信号。
-kill的pid参数有4种情况：大于0发送给进程号为pid的进程；等于0发送给调用进程所在的
-进程组；等于-1发送给所有系统进程（受权限约束）；小于0发送给指定进程组。
+int kill(pid_t pid, int signo);	/* 发送信号到进程或进程组 */
+int raise(int signo);		/* 向自身发送信号 */
+unsigned int alarm(unsigned int seconds);	/* 闹钟 */
+int pause(void);		/* 是调用进程挂起直至捕捉到一个信号时返回-1 */
+pid参数有4种情况：
+    < 0, 发送给指定绝对值的进程组。
+    =-1, 发送给所有系统进程（受权限约束）
+    = 0, 发送给调用进程所在的进程组
+    > 0, 发送给指定进程号的进程
+
 权限：超级用户进程可以将信号发送给所有进程，其他则要求发送者的实际或有效用户ID
 等于接收者的实际或有效用户ID。
-signo等于0表示空信号，此时kill仍然执行错误检查，但不发送信号，这常被用来确定一
-个进程是否存在。如果进程不存在，返回-1，且设置errno为ESRCH。由于存在时间差和进
-程号重用，这个应答并不那么有精确。
 
-alarm和pause函数
-#include <unistd.h>
-unsigned int alarm(unsigned int seconds);
-返回0或以前设置的闹钟剩余秒数；
-此函数用于在超时后产生SIGALRM信号，此信号默认终止调用alarm的进程。
+signo等于0表示空信号，此时kill仍然执行错误检查，但不发送信号，这常被用来确定一
+个进程是否存在。如果进程不存在，返回-1，且设置errno为ESRCH。由于存在进程号重用
+应答并不精确。
+
+alarm()函数用于在超时后产生SIGALRM信号，此信号默认终止调用alarm的进程。
 每个进程只能有一个闹钟时间，如果之前登记过闹钟且没有超时，再次调用将返回还剩余
 描述并重新设置闹钟。如果再次调用的参数是0，则取消前次闹钟。
-#include <unistd.h>
-int pause(void);
-返回-1且errno设为EINTR
 
-信号集
-用于表示多个信号的数据类型，数据类型sigset_t表示信号集。
+alarm()和pause()结合使用可以使进程休眠指定时间。
+
+** 信号集
+数据类型sigset_t表示信号集，用于表示多个信号的数据类型。
 信号集处理函数
 #include <signal.h>
-int sigemptyset(sigset_t *set);
-int sigfillset(sigset_t *set);
+int sigemptyset(sigset_t *set);		/* 初始化信号集并清空 */
+int sigfillset(sigset_t *set);		/* 初始化信号集并使其包含所有信号 */
 int sigaddset(sigset_t *set, int signo);
 int sigdelset(sigset_t *set, int signo);
-成功返回0，出错返回-1
 int sigismember(const sigset_t *set, int sino);
-真返回1，假返回0，出错返回-1。
-#include <signal.h>
 int sigprocmask(int how, const sigset_t *restrict set,
-		sigset_t *restrict oset);
-此函数用来检测或更改进程的信号屏蔽字
-成功返回0，出错返回-1
-
-#include <signal.h>
-int sigpending(sigset_t *set);
-此函数返回当前未决的信号集
-成功返回0，出错返回-1
+		sigset_t *restrict oset);/* 检测或更改当前进程的信号屏蔽字 */
+参数how可选值SIG_BLOCK, SIG_UNBLOCK, SIG_SETMASK。
+调用sigprocmask()后如果有任何未决的，不再阻塞的信号则在sigprocmask返回前，至少
+会将其中一个信号递送给该进程。
+int sigpending(sigset_t *set);		/* 此函数返回当前未决的信号集 */
 
 #include <signal.h>
 int sigaction(int signo, const struct sigaction *restrict act,
 	      struct sigaction *restrict oact);
-此函数检查修改与指定信号的信号处理程序
-成功返回0，出错返回-1。
+检查修改指定信号的信号处理程序
 	struct sigaction {
-		void (*sa_handler)(int);
-		sigset_t sa_mask;
-		int sa_flags;
-		void (*sa_sigaction)(int, siginfo_t *, void *);
+		void (*sa_handler)(int);/* 信号处理程序地址 */
+		sigset_t sa_mask;	/* 信号处理时要额外屏蔽的信号 */
+		int sa_flags;		/* 信号选项 */
+		/* 备用信号处理程序，使用SIG_INFO标志时使用 */
+		void (*sa_sigaction)(int, siginfo_t *, void *); 
 	};
+设置SIG_INFO标志时，使用备用信号处理程序，并以如下方式调用信号处理函数
+	void handler(int signo, siginfo_t *info, void *context);
+siginfo结构包含了信号产生原因的有关信息，context用于传递进程的上下文信息。
 	struct sig_info {
 		int si_signo;	/* 信号名 */
 		int si_errno;	/* 错误号 */
@@ -437,17 +460,17 @@ int sigaction(int signo, const struct sigaction *restrict act,
 		int si_status;	/* 退出值或信号名 */
 		long si_band;	/* SIGPOLL的band号 */
 	};
+除非显式指定SA_RESTART标志，否则sigaction函数不重启被中断的系统调用。
 
 #include <setjmp.h>
 int sigsetjmp(sigjmp_buf env, int savemask);
-直接调用则返回0，从siglongjmp调用返回非0值。
 void siglongjmp(sigjmp_buf env, int val);
-用于信号处理程序中的非局部跳转。 
+用于信号处理程序中的非局部跳转，可以抵消对信号屏蔽字的副作用。
 
 #include <signal.h>
 int sigsuspend(consgt sigset_t *sigmask);
-返回-1，并将errno设置为EINTR。
-用于等待信号捕捉和处理的原子操作。
+总是返回-1，并将errno设置为EINTR。
+阻塞等待信号捕捉和处理的原子操作。
 
 #include <stdlib.h>
 void abort(void);
@@ -473,5 +496,7 @@ char *strsignal(int signao);
 
 ---------------------------------------
 References:
-Chapter 8, Chapter 9, Chapter 10
+Chapter 8 进程控制
+Chapter 9 进程关系
+Chapter 10 信号
 
