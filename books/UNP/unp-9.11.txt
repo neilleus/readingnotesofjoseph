@@ -79,6 +79,52 @@ struct servent {
 };
 一般同一端口号TCP和UDP用于同一服务，但也有例外，所以不能以此作为定理。
 
+
+可为应用程序提供协议独立性的getaddrinfo函数
+#include <netdb.h>
+int getaddrinfo(const char *hostname, const char *service,
+		const struct addrinfo *hints, struct addrinfo **result);
+char *gai_strerror(int error);
+void freeaddrinfo(struct addrinfo *ai);
+int getnameinfo(const struct sockaddr *sockaddr, socklen_t addrlen, char *host,
+		size_t hostlen, char *serv, size_t servlen, int flags);
+函数通过result指针返回一个指向addrinfo结构链表的指针，该结构在<netdb.h>中定义
+参数hostname是主机名或地址串（IPv4点分十进制地址或IPv6十六进制数串），service是
+服务名或十进制的端口号字符串。hints是一个控指针或指向一个addrinfo结构的指针，由
+调用者填写它想返回的信息类型的线索，其实可以看作是个返回结果的过滤器，调用者可
+以设置的hints结构的成员有ai_flags, ai_family, ai_socktype, ai_protocol。
+AI_PASSIVE标志表示该套接口是用作被动的打开，AI_CANONNAME标志则通知getaddrinfo
+函数返回主机的名字，如果hints中这个标志被设置，则返回的第一个结构的ai_canonname
+成员指向相应主机的名字。如果hints为NULL，则ai_flags, ai_socktype和ai_protocol
+会被置为0，ai_family设置为AF_UNSPEC。
+在addrinfo中返回的信息可用于调用socket，然后调用connect，sendto或bind等函数。
+
+struct addrinfo {
+	int ai_flags;		/* AI_PASSIVE, AI_CANONNAME */
+	int ai_family;		/* AF_xxx */
+	int ai_socktype;	/* SOCK_xxx */
+	int ai_protocol;	/* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+	size_t ai_addrlen;	/* ai_addr的长度 */
+	char *ai_canonname;	/* 指向主机权威名字的指针 */
+	struct sockaddr *ai_addr;
+	struct addrinfo	*ai_next;
+};
+
+由getaddrinfo()返回的存储空间，包括addrinfo结构，ai_addr结构和ai_canonname字符
+串都是malloc动态分配的，这些空间需要调用freeaddrinfo函数来释放。
+要复制addrinfo结构应该执行深拷贝（deep copy），浅拷贝（shallow copy）会导致指针
+指向的内容未进行拷贝的错误。
+
+getaddrinfo()解决了主机名和服务名转换成套接口地址结构的问题，与其功能相反的函
+数getnameinfo在把套接口地址结构转换成主机名或服务名。
+
+可重入问题：由于gethostbyname, gethostbyaddr, getservbyname, getservbyport等函
+数使用了静态的变量，是不可重入的。
+inet_pton和inet_ntop总是可重入的。
+
+getaddrinfo的实现（略）
+
 ---------------------------------------
 References:
 UNP Chapter 9 基本名字与地址转换
+UNP Chapter 11 高级名字与地址转换
