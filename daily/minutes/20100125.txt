@@ -12,7 +12,7 @@
 	|  kernel/net/fs  |
 	+-----------------+
 
-buffers中之区分family，具体的协议到上层的应用中。
+buffers中只区分family，具体的协议到上层的应用中。
 
 要实现的API
 sock_create/sock_create_active
