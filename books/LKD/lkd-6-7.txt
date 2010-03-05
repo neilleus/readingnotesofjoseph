@@ -62,4 +62,6 @@ E-Mail: fdlixiaojun@gmail.com
 
 ---------------------------------------
 References:
+Linux Kernel Development Chapter 6 中断和中断处理程序
+Linux Kernel Development Chapter 7 下半部和推后执行的工作
 
