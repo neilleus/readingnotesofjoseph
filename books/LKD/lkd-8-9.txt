@@ -1,0 +1,8 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+---------------------------------------
+References:
+Linux Kernel Development Chapter 8 内核同步介绍
+Linux Kernel Development Chapter 9 内核同步方法
+

@@ -14,4 +14,6 @@ Linux块设备
 
 ---------------------------------------
 References:
+Linux Kernel Development Chapter 12 虚拟文件系统
+Linux Kernel Development Chapter 13 块I/O层
 

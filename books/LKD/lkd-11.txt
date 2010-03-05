@@ -67,4 +67,5 @@ slab分配器
 
 ---------------------------------------
 References:
+Linux Kernel Development Chapter 11 内存管理
 
