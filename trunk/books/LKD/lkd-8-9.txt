@@ -1,6 +1,140 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+*** 为什么要有同步机制，为什么要加锁？
+有一些操作需要原子的执行，不可被打断，处理器提供了许多基本操作的原子执行指令。
+复杂的共享数据结构不可能由处理器提供指令来同步，需要通过锁机制来加以保护。
+由于异步事件（中断、下半部）的存在，SMP和抢占的存在，共享数据可能在处于被访问
+状态下再次被另外的访问者所访问，这样共享数据就可能产生不一致的状态，导致出现竞
+争条件，因而需要进行同步。
+同步的关键在于辨认出真正需要共享的数据和相应的临界区，而要保护的是数据，是资源
+而不是代码。
+哪类数据需要保护，几乎所有的内核全局变量和共享数据都需要某种形式的同步方法。
+测试和获取锁实现为原子操作，一般体系结构会提供测试并置位的指令，可以利用它。
+
+*** 死锁，怎么预防死锁？
+    1.  注意加锁的顺序，每个需要获取同一组嵌套锁的代码必须保证以相同的顺序获取
+    锁，给这样类型的代码最好加上注释，指明获取锁的顺序。
+    2.  防止发生饿死，就是这个（持有锁）代码的执行是否一定会结束。
+    3.  不要重复请求同一个锁。
+    4.  设计方案要力求简单。
+尽管释放锁的顺序与死锁无关，最好还是按顺序释放。
+
+*** 可扩展性和锁粒度
+一般来说，加锁粒度细化有利于提高SMP的性能，但是UP系统由于增加
+了大量的获取锁的处理，性能会下降，所以需要在其中采取折衷方案。
+
+*******************************************************************************
+内核的同步方法
+*** 原子操作
+内核提供了两组原子操作接口，一组对整数进行操作，一组对位进行操作。
+对整数操作的原子操作操作类型为atomic_t类型的整数，采用这种类型优点如下:
+    确保原子操作操作特定的类型，确保该特定类型只有原子操作操作
+    确保编译器不对相应的值进行访问优化
+    可以屏蔽不同体系结构的差异
+原子整数操作涉及的头文件<asm/atomic.h>
+基本API：
+    ATOMIC_INIT();
+    atomic_set(&dst, val);
+    atomic_add(val, &dst);
+    atomic_inc(&dst);
+    atomic_read(&dst);
+原子性和顺序性，前者通过原子操作来实现，后者通过内存屏障来实现，之所以会有顺序
+性问题是因为编译器会对代码进行优化，CACHE缓存中的内容和内存中的内容可能存在不
+一致。
+
+原子位操作涉及的头文件位于<asm/bitops.h>
+这里没有特殊的数据类型，参数是一个指针和位号，对位号并不作限制，多数情况为一
+个字长。
+
+基本API：
+    set_bit(int nr, void *addr);
+    clear_bit(int nr, void *addr);
+    change_bit(int nr, void *addr);
+    test_bit(int nr, void *addr);
+    test_and_set_bit(int nr, void *addr);
+    test_and_clear_bit(int nr, void *addr);
+    test_and_change_bit(int nr, void *addr);
+    find_first_bit(unsigned long *addr, unsigned int size);
+    find_first_zero_bit(unsigned long *addr, unsigned int size);
+    __ffs(unsigned long *addr);	/* 限于一个字长 */
+    __ffz(unsigned long *addr);	/* 限于一个字长 */
+
+*** 自旋锁
+自旋锁被争用会进入忙循环，所以自旋锁不应长时间持有。互斥锁（信号量）的话会导致
+睡眠，这则会带来两次上下文切换（被阻塞的线程换出和换入），上下文切换比较耗时，
+所以这里应该做出权衡。
+自旋锁同一时刻只可能被一个内核线程持有，所以在单处理器上没有抢占的话根本就没有
+自旋锁。
+
+自旋锁可以用在中断处理程序中，而信号量则不可以（它会导致睡眠）。在中断处理程序
+中获取锁时一定要先禁止当前处理器上的中断。
+
+自旋锁API：
+    spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
+    spin_lock_irqrestore(spinlock_t *lock, unsigned long flags);
+    spin_lock_init();
+    spin_try_lock();
+    spin_is_locked();
+    spin_lock();
+    spin_unlock();
+
+在下半部中获取和中断共用的锁自旋锁，要禁止中断，在进城上下文获取和下半部或中断
+共用的自旋锁，要禁止中断和下半部。
+
+持有自旋锁时不可以睡眠。
+
+*** 信号量
+信号量在争用锁时会睡眠，直到该信号量可用时，内核会唤醒处于等待队列中的执行线程
+信号量无须自旋，但是会有上下文切换和唤醒的开销，适合于锁被长期持有的情况。
+只能在进程上下文中使用信号量锁，中断上下文由于不可调度，所以不可以使用。
+在占用信号量的时候不能占有自旋锁，因为它会导致睡眠，而自旋锁不可睡眠。
+信号量可以同时允许任意数量的持有者，通常只允许一个时就是互斥锁。
+往往要和用户空间同步时，你的代码需要睡眠，此时使用信号量是唯一选择。
+
+信号量的两种操作，P(测试操作)和V(增加操作)，也叫down(获取)和up(释放)
+
+实现代码位于<asm/semaphore.h>
+基本操作API：
+    DECLARE_SEMAPHROE_GENERIC(name, count);
+    DECLARE_MUTEX(name);
+    sema_init(sem, count);	/* sem是指针 */
+    init_MUTEX(sem);		/**/
+    down_interruptible();	/* 获取或以TASK_INTERRUPTIBLE进入睡眠 */
+    down_trylock();		/* 不会睡眠，持有或返回错误 */
+    up(struct semaphore *);
+
+读写信号量和读写自旋锁，rwsem和rwlock
+读写信号量都是互斥信号量，读写信号量有特有操作downgrade_writer()，可以把写锁
+变为读锁，但读写自旋锁则不可以。
+
+*** 完成变量（另一种同步方式）
+如果内核中一个任务需要发出通知另一任务发生了某个特定事件，可以利用完成变量。
+思想上其实类似信号量。
+完成变量由结构completion表示，定义在<linux/completion.h>中
+基本方法API：
+    DECLARE_COMPLETION(mr_comp);
+    init_completion(struct completion *);
+    wait_for_completion(struct completon *);	/* 等待事件的任务调用 */
+    complete(struct completion *);		/* 产生事件的任务调用 */
+
+*** 大内核锁BKL
+全局自旋锁，持有者可以睡眠，目前已不提倡使用。
+
+*** Seq锁，序列锁
+
+*** RCU锁，读完成更新锁
+
+*** 禁止抢占
+为了防止任务与被抢占任务在同一临界区内运行，内核抢占代码使用自旋锁作为非抢占区
+域的标记，即持有自旋锁时不可被抢占。
+preempt_disable()禁止抢占
+preempt_enable()开启抢占
+以上两个函数可以嵌套调用，也需嵌套开启。
+
+*** 顺序和屏障
+读写顺序性，这里涉及编译器优化。
+
 ---------------------------------------
 References:
 Linux Kernel Development Chapter 8 内核同步介绍
