@@ -47,4 +47,5 @@ git，patch
 
 ---------------------------------------
 References:
-
+Linux Kernel Development Chapter 1 Linux内核简介
+Linux Kernel Development Chapter 2 从内核出发
