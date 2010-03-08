@@ -322,3 +322,26 @@ code under GPL.
 
 
 ******************************************************************************
+MTD分区
+U-Boot实现了两种不同的方法来定义一个易于和linux内核共享的MTD分区模式
+第一种是在你的板子config文件中定义一个单一的，静态的分区，比如
+    #undef CONFIG_JFFS2_CMDLINE
+    #define CONFIG_JFFS2_DEV		"nor0"
+    #define CONFIG_JFFS2_PART_SIZE	0xFFFFFFFF	/* 使用整块闪存 */
+    #define CONFIG_JFFS2_PART_SIZE	0x00100000	/* 使用1MB闪存 */
+    #define CONFIG_JFFS2_PART_OFFSET	0x00000000	/* 分区偏移为0 */
+第二种方法是使用Linux内核的mtdparts命令行选项和动态分区，比如
+    #define CONFIG_JFFS2_CMDLINE
+    #define MTDIDS_DEFAULT	"nor1=zuma-1,nor2=zuma-2"
+    #define MTDPARTS_DEFAULT	"mtdparts=zuma-1:-(jffs2),zuma-2:-(user)"
+命令行过程会产生较大的映像，并且可能对某些目标会不适合，所以缺省是关闭的。
+
+mtdparts命令提供了一个强大易用的接口通过环境变量表来定义给内核传递的参数。
+此命令使用三个环境变量：
+    partition：保存当前分区标识，分区ID
+    part-id：设备ID，分区号
+    mtdid：内核MTD设备ID <-> u-boot设备ID映射
+    mtdparts：mtdparts=???
+
+
+******************************************************************************

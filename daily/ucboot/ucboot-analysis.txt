@@ -1,11 +1,12 @@
-******************************************************************************
-### Flash
+*** Flash
 
-一个系统可有多块闪存，每块闪存由多个扇区（sector）构成。扇区是物理擦写单元。
-每bank闪存（即每块闪存芯片）对应一个flash_info数据结构。
+硬件层：chips（我们用CFI）
+MTD原始设备：mtd_info, mtd_part
+MTD设备，有主次设备号
+
+
+即每块闪存芯片对应一个flash_info数据结构，u-boot通过该结构来管理闪存信息。
 需要保护的内容：monitor区，环境变量区，备份环境变量区
-
-u-boot通过flash_info_t数据结构来管理闪存信息。
 
 数据结构：
 /* 表示闪存芯片信息的数据结构 */
@@ -145,7 +146,7 @@ struct mtd_info {
         /* Subpage shift (NAND) */
         int subpage_sft;
 
- *      void *priv;
+ *      void *priv;		/* 指向map_info类型的对象 */
 
         struct module *owner;
         int usecount;
