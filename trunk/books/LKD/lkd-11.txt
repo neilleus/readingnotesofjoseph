@@ -54,7 +54,7 @@ E-Mail: fdlixiaojun@gmail.com
     永久映射，数量有限，使用kmap和kunmap建立和解除
     临时映射，使用kmap_atomic建立。
 
-关于每CPU数据
+*** 关于每CPU数据
 
 *** 如何选择分配函数
     通常使用kmalloc()来获得连续的物理内存，当然虚拟地址也是连续的。
