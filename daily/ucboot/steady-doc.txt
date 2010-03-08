@@ -1,114 +1,50 @@
+??? 为疑问点
 ******************************************************************************
 关于初始化
-U-boot ARM926EJS relocate和设置栈的过程
-relocate:				/* relocate U-Boot to RAM */
-	adr	r0, _start		/* r0 <- current position of code */
-	ldr	r1, _TEXT_BASE		/* test if we run from flash or RAM */
-	cmp	r0, r1			/* do't relocate during debug */
-	beq	stack_setup
 
-	ldr	r2, _armboot_start
-	ldr	r3, _bss_start
-	sub	r2, r3, r2		/* r2 <- size of armboot */
-	add	r2, r0, r2		/* r2 <- source end address */
-
-copy_loop:
-	ldmia	r0!, (r3-r10)		/* copy from source address [r0] */
-	stmia	r1!, (r3-r10)		/* copy to target address [r1] */
-	cmp	r0, r2			/* until source end address [r2] */
-	ble	copy_loop
-
-stack_setup:				/* setup the stack */
-	ldr	r0, _TEXT_BASE		/* upper 128 KB: relocated uboot */
-	sub	r0, r0, #MALLOC_LEN	/* malloc area */
-	sub	r0, r0, #GBL_DATA_SIZE	/* gd_t */
-#ifdef CONFIG_USE_IRQ
-	sub	r0, r0, #(BOOT_STACKSIZE_IRQ + BOOT_STACKSIZE_FIQ)
-#endif
-	sub	sp, r0, #12		/* leave 3 words for abort-stack */
-
-clear_bss:
-	ldr	r0, _bss_start		/* find start of bss segment */
-	ldr	r1, _bss_end		/* stop here */
-	mov	r2, #0x00000000		/* clear */
-
-clbss_l:
-	str	r2, [r0]		/* clear loop */
-	add	r0, r0, #4
-	cmp	r0, r1
-	ble	clbss_l
-
-	ldr	pc, _start_armboot
-
-_start_armboot:
-	.word	start_armboot
-
-首先说明这几个值的含义：
+几个值的含义：
 _start: 	代码段的起始位置，入口位置。
 _TEXT_BASE:	在Makefile中指定的代码段起始位置。
 _bss_start:	在ucboot.bin的最末尾的一个段
 _bss_end:	就是ucboot.bin的_end
 _armboot_start:	代码段的起始位置
 
-首先，系统复位以后是从地址0x00000000开始执行的，上电复位后的FLASH中_start例程位
-于这个位置，也就是复位以后执行的第一条代码的位置。
-relocate的第一段过程，比较_start和_TEXT_BASE，如果相等，表示直接在FLASH上执行，
-不需要拷贝到内存，这时直接跳转到设置栈的代码，不需要执行重定位操作。
-relocate的第二段过程，设置r2的值为(_start + _bss_start - _armboot_start)，这个
-值代表整个u-boot文件镜像的大小（BSS段在镜像中不占空间）。
-relocate的第三段过程，通过一组寄存器(r3~r10)，把r0所指向的位置的内容拷贝到r1所
-指向的位置。拷贝的内容的大小为(r2-r0)即(_bss_start-_armboot_start)。
-下面开始设置栈的过程，首先定位代码段基地址，然后向下减去动态分配区堆的大小，然
-后再减去全局数据变量的大小，这两个大小都是预先配置的值。如果配置了中断的话再减
-去中断栈的大小，然后再空出12个字节的位置作栈保护。这里可以看出uboot的栈是向下增
-长的。
-然后是初始化BSS过程，从_bss_start到_bss_end这片数据区初始化为0，这片区域位于
-ucboot镜像的顶部。
+重定位（relocate）代码映像和设置栈指针及初始化BSS过程:
+    1. 首先取得当前代码位置并测试当前处于闪存还是RAM中
+    2. 当前位置如果位于RAM中则不做重定位，否则进行拷贝重定位U-Boot到RAM中
+    3. 设置栈指针
+    4. 清空BSS段
+    5. 启动start_armboot
+说明：一般bootloader中不必使用中断，但U-Boot支持中断处理
 
-函数start_armboot分析
-首先初始化全局数据变量gd，使其指向一个gd_t结构，这个结构位于堆以下，栈以上。这
-个空间是在relocate之后，设置栈的时候预留出来的，大小为CONFIG_GBL_DATA_SIZE。
-然后初始化gd->bd指向一个bdinfo数据结构，并初始化之。计算到ucboot镜像的大小为
-(_bss_start-_armboot_start)。
-依次调用init_sequence[]数组内的初始化函数，包括cpu，板子，环境变量，中断，串口，
-终端，DRAM等。
-然后初始化闪存并打印闪存大小信息。
-初始化堆（内存动态分配区，位于ucboot代码段以下MALLOC_LEN的位置）
-重定位环境变量，如果环境变量是嵌入在代码段的那么让指针指向代码段对应的偏移位置
-即可。否则的话，需要在堆空间给环境变量分配空间。如果env设置为无效或者缺省env大
-小大于配置的ENV大小则会出错。如果正常则将缺省环境变量拷贝到目的位置。设置有效
-位并设置gd->env_addr为env-ptr->data
-然后配置IP地址，MAC地址
-初始化设备（主要是串口），初始化跳转表，初始化终端（根据是否在环境变量中设置了
-终端有两种实现）
-然后打开中断
-初始化以太网
-初始化vtss相关参数
-通过do_initcalls()调用（通过module_init()）注册的initcall类型初始化函数
-然后进入主循环
+start_armboot()几个重要过程
+    1.  初始化全局数据变量gd，使其指向一个gd_t结构，它位于堆栈之间，静态预留。
+	CONFIG_GBL_DATA_SIZE。
+    2.  初始化gd->bd指向一个bdinfo数据结构，并初始化之。
+    3.  调用init_sequence[]数组内的板子初始化函数
+    4.  初始化内存动态分配区，闪存，定位环境变量位置，配置网络信息，设备信息，
+        开中断等。
+    5.  调用do_initcalls()，调用各个模块的初始化函数（initcall类型）
+    c.  调用main_loop()
 
 __init和__initcall
 __init会把代码放到init.text段，这些代码的内存在调用后会被释放。这个是gcc的扩展。
 __initcall用来收集某些init函数，以便按照顺序调用这些函数。这个是链接器脚本确定
 的，这个是Linux的设计。
 
+??? 为什么要重定位到DRAM中，为什么只要做些堆栈初始化和BSS初始化过程即可？
+为什么bootloader可以不用启用中断？
+
 
 ******************************************************************************
 关于console
 
-CFG_CONSOLE_OVERWRITE_ROUTINE	是否定义了overwrite_console函数，如果定义了就使
-用串口，如果没有定义就使用环境变量值。
+可配置项（提供配置项静态编译和环境变量动态指定两种方式，某些仅支持一种）
+    终端设备
+    标准输入输出设备
+    安静模式（通过启动Linux前设置终端为nulldev实现）
+    启动图片
 
-CFG_CONSOLE_IS_IN_ENV	如果定义了表示，环境变量中定义了stdin, stdout, stderr
-三个环境变量
-
-CFG_CONSOLE_INFO_QUIET	是否在启动U-Boot的时候打印终端的配置信息，无用，删除
-CONFIG_SPLASH_SCREEN	
-	压缩显示内容为一张预先准备好的bmp图片，终端设备配置为nulldev。
-CONFIG_SILENT_CONSOLE
-	禁止自动启动时终端的输出，调用console_init_f()设置全局gd的flag，然后根
-	据它，通过将std_devices[]设为nulldev,	如果自动启动过程被终止，终端会
-	被重新设置为串口。
 
 数据结构
 static int ctrlc_disabled = 0;
@@ -117,96 +53,23 @@ chardev_t stdio_devices[] = {NULL, NULL, NULL};
 char* stdio_names[] = {"stdin", "stdout", "stderr"};
 char console_buffer[MAX_CBSIZE];
 
-操作方法
-以下函数用来设置终端
-int console_assign(int file, char *devname);
-    通过设备名字为某个文件描述符设置关联的设备，成功返回0，出错返回-1，调用
-    console_setfile()，是供外部的接口函数。
-int console_init_f(void);
-    在init_sequence中调用的初始化函数，设计全局数据中关于终端的标志，返回0。
-int console_init_r(void);
-    在设备初始化后调用的终端后期初始化函数，会设置标准输入输出与设备的关联关系。
-    返回0。这个函数根据CFG_CONSOLE_IS_IN_ENV分成两种。
-static int console_setfile(int file, chardev_t *dev);
-    通过设备数据结构为某个文件描述符设置关联的设备，成功返回0，出错返回-1。
-    内部使用，设置stdio_devices[]数组。
+终端控制API：
+int console_assign(int file, char *devname);	/* 关联文件描述符和设备 */
+int console_init_f(void);			/* 第一阶段初始化 */
+int console_init_r(void);			/* 第二阶段初始化 */
 
-以下五个函数操作串口设备，通过stdio_devices
-int fgetc(int file);
-void fprintf(int file, const char *fmt, ...);
+输入输出API:
+int fgetc(int file);				/* 读入字符 */
+void fprintf(int file, const char *fmt, ...);	/* 输出字符到file */
 void fputc(int file, const char c);
 void fputs(int file, const char *s);
-int ftstc(int file);
-以下通过调用f族的函数实现
+int ftstc(int file);				/* 测试是否有字符可接收 */
 int getc(void);
 int tstc(void);
 void putc(const char c);
 void puts(const char *s);
-void printf(const char *fmt, ...); 	最后调用puts
-void vprintf(const char *fmt, va_list args); 最后调用puts
-void serial_printf(const char *fmt, ...); 直接调用串口驱动的方法。
-
-static uint64_t endtime = 0;
-static char erase_seq[] = "\b \b";
-static char tab_seq[] = "        ";
-static int menuey = 0;
-static int retry_time = -1;
-
-static __inline__ abort_boot(int bootdelay);
-static char *delete_char(char *buffer, char *p, int *colp, int *np, int plen);
-int do_run(cmd_tbl_t *cmdtp, nt flag, int argc, char *argv[] );
-void main_loop(void);
-int parse_line(char *line, char *argv[]);
-int process_macros(const char *input, char *output);
-int readline(const char *const prompt);
-void reset_cmd_timeout(void);
-int run_command(const char *cmd, int flag);
-
-关于AUTOBOOT的配置
-两个功能：可以停止进入U-BOOT命令行，可以自定义超时重试功能和超时时间，可以自定
-义停止自动启动字符串和提示信息，可以自定义重试方式（是否重启）
-
-为什么autoboot要用特殊的字符串？
-因为如果使用任意键停止的话，可能在启动的时候，串口由于电平扰动，发送乱码，然后
-导致U-boot停止，系统无法启动，在嵌入式设备上这毫无征兆。
-参考文档README.autoboot
-
-有关的CONFIG
-    CONFIG_BOOT_RETRY_TIME
-    CONFIG_BOOT_RETRY_MIN
-    在U-Boot命令行无输入一定时间之后自动重试AUTOBOOT，如果CONFIG值为负，表示不
-    重试，要支持重试，第一个CONFIG必须定义。参见bootretry
-    CONFIG_AUTOBOOT_KEYED
-    CONFIG_AUTOBOOT_PROMPT
-    CONFIG_AUTOBOOT_DELAY_STR
-    CONFIG_AUTOBOOT_STOP_STR
-    CONFIG_AUTOBOOT_DELAY_STR2
-    CONFIG_AUTOBOOT_STOP_STR2
-	用来停止AUTOBOOT的相关配置项，可以指定特定字符或者字符串。
-	CONFIG_AUTOBOOT_KEYED用来启用自定义停止符号这组配置，这时必须指定
-	CONFIG_AUTOBOOT_DELAY_STR和CONFIG_AUTOBOOT_STOP_STR否则无法停止自动启动
-	CONFIG_AUTOBOOT_PROMPT用来提示正在自动启动，不定义则没有提示。
-	如果用DELAY_STR停止自动启动，则命令行超时后会重试自动启动
-	如果用STOP_STR停止自动启动，则不会再进行重试，即使超时。
-	STR2表示需要输入第二个字符串，主要用在输入密码这种应用中。
-    CONFIG_ZERO_BOOTDELAY_CHECK
-	设置这个选项，即使bootdelay设为0，也可以通过按键来停止自动启动
-    CONFIG_RESET_TO_RETRY
-	自动启动重试会采取重启系统的方式
-有关的环境变量
-    bootdelay
-    bootretry
-    bootdelaykey
-    bootdelaykey2
-    bootstopkey
-    bootstopkey2
-
-更改情况：
-    删除 CONFIG_AUTOBOOT_XXX
-    删除 CONFIG_BOOT_RETRY_MIN
-    删除 CONFIG_ZERO_BOOTDELAY_CHECK
-    删除 CONFIG_RESET_TO_RETRY
-    更改 CONFIG_BOOT_RETRY_TIME为始终配置，负数表示不重试
+void printf(const char *fmt, ...);
+void vprintf(const char *fmt, va_list args);
 
 
 ******************************************************************************
@@ -216,22 +79,17 @@ int run_command(const char *cmd, int flag);
 LIST_HEAD(char_devices);
 LIST_HEAD(block_devices);
 
-操作方法
-chardev_t *device_new(void);
-    分配一个字符设备数据结构并将所有域初始化为0。
-void device_free(chardev_t *dev);
-    空
-int device_register(chardev_t *dev);
-    将dev链到字符设备链表中
-struct list_head *devices_get_list(void);
-    返回&char_devices
-int devices_init(void);
-static void drv_system_init(void);
-    生成一个字符设备，设置该字符设备结构的各个字段。
-chardev_t *search_device(int flags, char *name);
-    返回指定flag和指定名字的设备
-chardev_t *search_device_flags(int flags);
-    返回满足指定flag的第一个设备
+API:
+int chrdev_init(void);				/* 初始化设备管理器 	  */
+
+struct chrdev *alloc_chrdev(int size);		/* 创建一个新设备   	  */
+void free_chrdev(struct chrdev *dev);		/* 销毁一个设备 	  */
+
+int register_chrdev(struct chardev_t *dev);	/* 注册新设备到管理器中   */
+void unregister_chrdev(struct chrdev *dev);	/* 从管理器中删除设备     */
+
+struct chrdev *search_chrdev(int flags, char *name);	/* 精确查找设备   */
+struct chrdev *search_device_flags(int flags);	/* 根据flag查找符合的设备 */
 
 
 ******************************************************************************
