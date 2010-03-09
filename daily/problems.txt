@@ -9,11 +9,8 @@ netlink发给内核的目的地址的nl_groups为什么是0？只有内核可以
 ### cfi_mtd_set_erasesize调用后就有checksum error出现
     由于flash_init的时候调用了malloc，如果不调用就不会出问题。
     几个调用malloc的地方：flash_init，env_realloc, eth_initialize, jump_init
-### 闪存的设备映射是做什么用的？
-### mtd device如何管理如何组织，mtd partition 如何管理如何组织
 
 *******************************************************************************
-关于其他    
 ### frame buffer什么作用？
 
 为什么要这样拐弯抹角？
