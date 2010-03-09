@@ -1,0 +1,14 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+----------------------------------MTD-------------------------------------
+一组闪存操作命令:
+#erase [addr] +[size]		擦除指定地址addr起大小为size字节的区域
+#tftp [addr] [fname]		下载指定文件fname存到地址addr起的那块内存区域
+#cp.b [dst] [src] [size]	在存储空间内从src地址拷贝大小为size字节的内容
+				到dst，这里dst可以是内存或者闪存，.b表示按字节
+#md.b [addr] [size]		按字节显示地址addr起size字节的存储区域的内容
+
+#mkfs.jffs2 -r dir -o fn.jffs2	主机命令，用mtd-utils工具制作jffs2映像该命令把
+				目录dir下的内容放到一个jffs2映像中。
+
