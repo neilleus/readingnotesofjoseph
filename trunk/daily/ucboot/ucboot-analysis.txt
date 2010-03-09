@@ -1,62 +1,31 @@
-*** Flash
+*** MTD
 
 硬件层：chips（我们用CFI）
 MTD原始设备：mtd_info, mtd_part
 MTD设备，有主次设备号
 
 
-即每块闪存芯片对应一个flash_info数据结构，u-boot通过该结构来管理闪存信息。
-需要保护的内容：monitor区，环境变量区，备份环境变量区
+需要保护的区域：monitor区，环境变量区，备份环境变量区
 
 数据结构：
 /* 表示闪存芯片信息的数据结构 */
-typedef struct{
-	ulong	size;			/* 单位：字节 */
-	ushort	sector_count;
-	ulong	flash_id;		/* device id和manufacture id的组合 */
-	ulong	start[MAX_FLASH_SECT];
-	uchar	protect[MAX_FLASH_SECT];
-#ifdef CONFIG_MTD_CFI
-	uchar	portwidth;
-	uchar	chipwidth;		/* 闪存实际已连接的数据总线宽度 */
-	ushort	buffer_size;
-	ulong	erase_blk_tout;
-	ulong	write_tout;
-	ulong	buffer_write_tout;
-	ushort	vendor;			/* 主算法id */
-	ushort	cmd_reset;		/* 复位命令码 */
-	ushort	interface;		/* QUERY中给出的闪存数据总线宽度 */
-	ushort	legacy_unlock;
-	uchar	manufacture_id;
-	ushort	device_id;
-	ushort	device_id2;		/* 扩展设备id */
-	ushort	ext_addr;		/* 扩展查询表地址 */
-	ushort	cfi_version;
-	ushort	cfi_offset;		/* cfi QEERY的偏移地址 */
-	ulong	addr_unlock1;
-	ulong	addr_unlock2;
-	const char *name;
-#endif
-} flash_info_t;
+struct flash_info_t;		/* 描述每BANK闪存 */
+struct cfi_qry;			/* 描述CFI QRY查询表结构信息 */
+struct mtd_info;		/* 描述每个mtd设备 */
 
-struct cfi_qry{
-	u8	qry[3];			/* 'Q' 'R' 'Y' */
-	u16	p_id;			/* 主算法id */
-	u16	p_adr;			/* 主算法表地址 */
-	u16	a_id;
-	u16	a_adr;
-	...	;			/* 电气时序信息 */
-	u8	dev_size;		/* 闪存大小为：2**dev_size字节 */
-	u16	interface_desc;		/* x8-only, x8/x16, x16-only... */
-	u16	max_buf_write_size;
-	u8	num_erase_regions;	/* 擦除区种类数（分隔的同大小擦除块组
-					   也算不同擦除区） */
-	u32	erase_region_info[NUM_ERASE_REGIONS];
-					/* 32字节分为两部分：
-					 * 高16位z：擦除块大小为256*z字节
-					 * 低16为y：同大小擦除块数量（y+1）
-					 */
-} __attribute__((packed));
+
+编程接口:
+void flash_init(void);		/* 初始化闪存 */
+void flash_set_verbose(v);
+int flash_real_protect(flash_info_t *info, long sector, int port);
+int flash_write_buff(flash_info_t *info, uchar *src, ulong addr, ulong cnt);
+void flash_print_info(flash_info_t *info);
+int flash_erase(flash_info_t *info, int s_first, int s_last);
+unsigned long flash_sector_size(flash_info_t *info, flash_sect_t sect);
+void flash_read_factory_serial(flash_info_t *info, void *buffer,
+			       int offset, int len);
+void flash_read_user_serial(flash_info_t *info, void *buffer,
+			    int ofset, int len);
 
 void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
 void flash_perror(int err);
@@ -355,73 +324,3 @@ CONFIG_ASKENV_CMDLINE
 CONFIG_NAND_CMDLINE
 CONFIG_MII_CMDLINE
 CONFIG_LOADB_CMDLINE
-
-dcache
-icache
-bdinfo
-flinfo
-iminfo
-coninfo
-imls
-
-bmp		?
-echo
-help/?
-
-loadb
-loads		?
-go
-run
-cmp
-cp		可否从dram到flash？
-md
-mw
-protect
-erase
-
-reset
-version
-
-printenv
-saveenv
-setenv
-
-boot
-bootm
-bootp
-diskboot	?
-
-rarpboot
-tftpboot
-ping
-dhcp
-
-闪存CFI信息
-Flash Manufacturer/Device: 0x007f 0x00c9
-#0 : cfi at 0x10000000, size 0x00800000, buswidth 1, chipwidth 1
-cfi information:
-manufacture-id: 0x007f, device-id:0x00c9
-qry: 'QRY'
-pri_id: 0x0002, pri_addr: 0x0040
-alt_id: 0x0000, alt_addr: 0x0000
-Vcc min: 2.7, Vcc max: 3.6
-Vpp min: 0.0, Vpp max: 0.0
-typ. word write timeout: 16
-typ. buf write timeout: 1
-typ. block erase timeout: 1024
-typ. chip erase timeout: 1
-max. word write timeout: 512
-max. buf write timeout: 1
-max. block erase timeout: 16384
-max. chip erase timeout: 1
-size: 0x800000
-interface desc: 2
-max buffer write size: 1
-
-Spansion primary algorithm extend information:
-pri: 'PRI', version: 1.1
-Silicon Rev.: 0x0, Address Sensitive unlock: 0x0
-Erase Suspend: 0x2, Sector Protect: 0x4
-VppMin: 10.5, VppMax: 12.5
-
-
