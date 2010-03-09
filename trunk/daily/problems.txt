@@ -16,9 +16,6 @@ netlink发给内核的目的地址的nl_groups为什么是0？只有内核可以
 关于其他    
 ### frame buffer什么作用？
 
-### 为什么SOCK_STREAM可能发和收到的数量不同？
-
-
 为什么要这样拐弯抹角？
 #define XMK_STR(x)	#x
 #define MK_STR(x)	XMK_STR(x)
