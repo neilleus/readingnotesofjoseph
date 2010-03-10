@@ -12,9 +12,16 @@ MTD设备，有主次设备号
 struct flash_info_t;		/* 描述每BANK闪存 */
 struct cfi_qry;			/* 描述CFI QRY查询表结构信息 */
 struct mtd_info;		/* 描述每个mtd设备 */
+struct mtd_erase_region_info;
+struct mtd_partitions;
+struct mtd_part;
 
+管理器
+struct mtd_info *mtd_table[MAX_MTD_DEVICES];	/* mtd设备管理指针数组 */
+struct mtd_info cfi_mtd_info[CFI_MAX_FLASH_bANKS]; 	/* cfi mtd设备信息 */
+flash_info_t flash_info[NR_FLASH_BANKS];
 
-编程接口:
+CFI编程接口:
 void flash_init(void);		/* 初始化闪存 */
 void flash_set_verbose(v);
 int flash_real_protect(flash_info_t *info, long sector, int port);
@@ -27,130 +34,15 @@ void flash_read_factory_serial(flash_info_t *info, void *buffer,
 void flash_read_user_serial(flash_info_t *info, void *buffer,
 			    int ofset, int len);
 
-void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
-void flash_perror(int err);
-int flash_write(char *src, ulong addr, ulong cnt);
-    将内存的内容拷贝到Flash中，注意这里写的区域必须落在flash内，并且不能有写保
-    护的区域。实现判断传入的地址是否合法，是否落在了写保护区域内。然后擦除要写
-    的块，然后从addr所在块的起始写入，知道end所在块。擦除是按块擦除的。
-flash_info_t *addr2info(ulong addr);
-    遍历flash_info数组，查找addr是否位于某个flash_info指向的地址范围内，如果有
-    返回该flash_info的地址。
-
-/* cmd_flash.c */
-static int abbrev_spec(char *str, flash_info_t **pinfo,
-		       int *psf, int *psl);
-static int addr_spec(char *arg1, char *arg2
-		     ulong *addr_first, ulong *addr_last);
-static int flash_fill_sect_ranges(ulong addr_first, ulong addr_last,
-				  int *s_first, int *s_last, int *s_count);
+FLASH编程接口：
 int flash_sect_erase(ulong addr_first, ulong addr_last);
 int flash_sect_protect(int p, ulong addr_first, ulong addr_last);
-int do_flerase(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-    打印指定或者全部bank的flash的信息，包括厂商型号，大小，块数信息以及每块的
-    起始地址和保护位的设置情况。
-int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-    设置指定块或者全部块或者指定地址范围的保护标记。
+void flash_protect(int flag, ulong from, ulong to, flash_info_t *info);
+flash_info_t *flash_addr2info(ulong addr);
+int flash_write(char *src, ulong addr, ulong cnt);
+void flash_perror(int err);
 
-portwidth的变化：在执行CFI QUERY命令时portwidth为16bit，在调用flash_get_size时
-会将其该位8bit，这会影响flash_write_cmd()和flash_map()，注意考虑。
-
-MAX_FLASH_BANKS_DETECT
-    动态配置
-    用来分配足够可能的空间供flash_info使用，确定的flash bank数量在运行时确定。
-    运行时通过detect_num_flash_banks()将bank数量存放到一个变量中
-
-### Memory technology device
-数据结构:
-struct mtd_info {
- *      u_char		type;
- *      uint32_t	flags;		/* 设备可写，位可写，不需擦除，自动锁 */
- *      uint64_t	size
- *      uint32_t	erasesize;
- *      uint32_t	writesize;
-
-        uint32_t	oobsize;	/* Out-of-Band */
-        uint32_t	oobavail;
-
-        /* kernel-only stuff */
- *      const char	*name;
- *      int		index;		/* 多个mtd设备时的索引号 */
-
-        struct nand_ecclayout	*ecclayout;
- *      int		numeraseregions;
- *      struct mtd_erase_region_info	*eraseregions;
-
-        /* 闪存操作方法 */
- *      int (*erase)();
-        int (*point)();		/* 返回指向指定闪存位置的指针并锁定闪存 */
-        void (*unpoint)();	/* 解锁 */
- *      int (*read)();
- *      int (*write)();
-        int (*panic_write)();	/* 内核可能panic时采用的写操作 */
-        int (*read_oob)();
-        int (*write_oob)();
-
-        /* 以下是和闪存保护相关的几个方法 */
-        int (*get_fact_prot_info)();
-        int (*read_fact_prot_reg)();
-        int (*get_user_prot_info)();
-        int (*read_user_prot_reg)();
-        int (*write_user_prot_reg)();
-        int (*lock_user_prot_reg)();
-
- *      void (*sync)();
- *      int (*lock)();
- *      int (*unlock)();
-
-        /* Power Management */
-        int (*suspend)();
-        void (*resume)();
-        /* Bad block manageme */
-        int (*block_isbad)();
-        int (*block_markbad)(); 
-
-        /* ECC status information */
-        struct mtd_ecc_stats ecc_stats;
-        /* Subpage shift (NAND) */
-        int subpage_sft;
-
- *      void *priv;		/* 指向map_info类型的对象 */
-
-        struct module *owner;
-        int usecount;
-
-        int (*get_device) (struct mtd_info *mtd);
-        void (*put_device) (struct mtd_info *mtd);
-};
-
-struct mtd_erase_region_info {
-	uint64_t	offset;
-	uint32_t	erasesize;
-	uint32_t	numblocks;
-	ungsigned long *lockmap;
-};
-
-struct mtd_partitions {
-	char		*name;
-	uint32_t	size;
-	uint32_t	offset;
-	uint32_t	mask_flags;
-
-	struct nand_ecclayout	*ecclayout;
-	struct mtd_info	**mtdp;
-};
-
-struct mtd_part {
-	struct mtd_info	mtd;
-	struct mtd_info *master;
-	uint64_t	offset;
-	int		index;
-	struct list_head list;
-	int		registered;
-};
-
-ioctls
+MTD编程接口：
 int add_mtd_device(struct mtd_info *mtd);
 int del_mtd_device(struct mtd_info *mtd);
 struct mtd_info *get_mtd_device(struct mtd_info *mtd, int num);
@@ -159,12 +51,17 @@ put_mtd_device(struct mtd_info *mtd);
 
 int add_mtd_partitions(struct mtd_info *, const struct mtd_partition *, int);
 int del_mtd_partitions(struct mtd_info *);
+void mtd_erase_callback(struct erase_info *instr);
 
-管理组织mtd device和mtd partition
-struct mtd_info *mtd_table[MAX_MTD_DEVICES];	/* mtd设备管理指针数组 */
-static struct mtd_info cfi_mtd_info[CFI_MAX_FLASH_bANKS]; /* cfi mtd设备信息 */
-mtd设备管理指针指向这里的cfi mtd设备信息数组
-cfi_mtd_init();	/* 初始化cfi_mtd_info内容 */
+/* cmd_flash.c */
+portwidth的变化：在执行CFI QUERY命令时portwidth为16bit，在调用flash_get_size时
+会将其该位8bit，这会影响flash_write_cmd()和flash_map()，注意考虑。
+
+MAX_FLASH_BANKS_DETECT
+    动态配置
+    用来分配足够可能的空间供flash_info使用，确定的flash bank数量在运行时确定。
+    运行时通过detect_num_flash_banks()将bank数量存放到一个变量中
+
 
 ### jffs2
 数据结构
