@@ -1,31 +1,25 @@
 *******************************************************************************
-不急
-    (a) 总结ARM中的伪指令，访存指令
-    (b) 总结内核启动参数的传递，arm启动参数的tag结构的使用
-    (c) 搞一下Kbuild系统的实现
-    (d) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
-    (e) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
-    (f) 编码系统，内码，外码，utf8，gbk，字体等
-    (g) xinetd
-    (h) 能够拷贝空洞但不用0填充的cp; 多项式加减乘除;平衡符号;中缀变后缀;队列
-    (i) 排序：基数排序,卡式排序,桶式排序
-    (j) 进程、进程组、会话、守护进程
-    (k) 几个cntl函数fcntl, ioctl, shmctl, sysctl, semctl, console_ioctl等
+    编码类：
+    (-) 搞一下Kbuild系统的实现
+    (-) 能够拷贝空洞但不用0填充的cp; 多项式加减乘除;平衡符号;中缀变后缀;队列
+    (-) 排序：基数排序,卡式排序,桶式排序
+
+    知识类：
+    (*) 散列表
+    (-) 总结ARM中的伪指令，访存指令
+    (-) 总结内核启动参数的传递，arm启动参数的tag结构的使用
+    (-) 编码系统，内码，外码，utf8，gbk，字体等
+    (-) 几个cntl函数fcntl, ioctl, shmctl, sysctl, semctl, console_ioctl等
+
+    文档类：
+    (-) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
+    (-) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
 
 *******************************************************************************
-当前：
-    PN512，PN531数据手册阅读，设计指南阅读，形成文档
-    NFC标准阅读
-    ISO14443标准阅读
-
-    proposal: background (cpu card, nfc card, mifare, felica...)
-	做什么：USB CCID Contactless Reader
-	选型表格
-	需要阅读的文档列表
-	电路设计问题和开发问题
-	已有可利用经验和资源
-	主机端需求
-
+RFID Reader
+    文档阅读：
+        PN512，PN531数据手册，设计指南
+        NFC标准，ISO14443标准
 *******************************************************************************
     ucboot
         jffs2文件系统
@@ -40,25 +34,25 @@
 	    |   unused    |
 	    |             |
 	    +-------------+
-	在主机端制作jffs2的文件目录/boot，存放在闪存上，寻找从闪存启动方法，
-	需要识别jffs2文件系统，寻找固件更新方法
+    (0) 文档（命令，终端，环境，闪存，malloc等问题）mtd和jffs2给用户态的接口。
     (0) flash保护，各个操作过程。
+
     (0) mtd设备管理
-    (0) 总结文档（命令，终端，环境，闪存，问题，malloc的问题）
-    (0) mtd和jffs2给用户态的接口。
-    (1) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
-    	系统中。(b) 如何分区 (c) 开会讨论方案
+    (0) 调查现有那些mtd partition驱动，是否标准，怎样把它移植到ucboot中和我们的
+    	系统中。
+    (0) 模块化：整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支
+    (0) vsc7501/openocd/linux增加mtd驱动patch
+
+    (0) 寻找固件更新方法
     (2) 增加mtdram功能，开发期不必烧写flash
-    (3) 模块化：整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支
     	持yaffs2（内核不支持，最于大page的NAND比较好）, ubifs，并调查cramfs）
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
     (6) monitor protect, env embedded, flash protected, env overwrite???
     (7) 添加CUSTOM_STOP_KEY逻辑；串口kermit下载功能；命令自动完成
-    (8) vsc7501/openocd/linux增加mtd驱动patch
 
 #   flash_base->bd_info
 #   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
 #   (*) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
 #   (*) 编译内核，非模块方式和模块方式
-
+#   (*) mtd设备如何分区，成功运行。
