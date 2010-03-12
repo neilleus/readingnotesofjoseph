@@ -1,0 +1,29 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+编程中常用的位操作总结
+
+计算海明重量的方法
+方法一：分别判断每一位
+	int bit_count(int n)
+	{
+		int count;
+		for (count = 0; n ;n >>= 1)
+			count += n & 1;
+		return count;
+	}
+方法二：只判断为一的位，利用二进制减法借位变一的特点，跳过为0的位。
+        n & n-1的结果中最低位永远为零，这适用于0和1的比例很大或极小的时候计算
+	很快。
+	int bit_count(int n)
+	{
+		int count;
+		for (count = 0; n; n &= n-1)
+			count++;
+		return count;
+	}
+方法三：并行方法进行向量运算计算，这是最坏情况下的最好办法。另外由于不需要循
+	环，所以可以高效利用处理器的流水线技术。
+
+---------------------------------------
+References:
