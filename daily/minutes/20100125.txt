@@ -25,10 +25,10 @@ sock_ioctl
 数据结构
 struct socket;
 struct sock;
-struct skbuff;
+struct sk_buff;
 
 TODO
-1). 整理skbuff的用法
+1). 整理sk_buff的用法
 2). 调查skc_hash
 3). 调查sk_rmem_alloc等方法，data_ready, write_space, error_report
 4). 调查send_msg/recv_msg中queue的应用
