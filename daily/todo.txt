@@ -48,6 +48,7 @@ RFID Reader
     	持yaffs2（内核不支持，最于大page的NAND比较好）, ubifs，并调查cramfs）
     (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
     (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
+    (x) MTD partitioning support(Redboot..., bootloader中装载)
     (6) monitor protect, env embedded, flash protected, env overwrite???
     (7) 添加CUSTOM_STOP_KEY逻辑；串口kermit下载功能；命令自动完成
 
