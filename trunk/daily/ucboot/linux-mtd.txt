@@ -1,35 +1,75 @@
-register an MTD device
-int add_mtd_device(struct mtd_info *mtd);
-int del_mtd_device (struct mtd_info *mtd);
+********************
+设备管理
+DEFINE_MUTEX(mtd_table_mutex);			管理数组访问锁
+struct mtd_info *mtd_table[MAX_MTD_DEVICES];	设备管理数组
+struct mtd_info{};				MTD设备信息
+LIST_HEAD(mtd_notifiers);
+struct mtd_notifier{};				通知结构
+add_mtd_device();				注册一个MTD设备
+del_mtd_device();				删除一个MTD设备
+register_mtd_user();				注册一个用户（回调）
+unregister_mtd_user();				删除一个用户（回调）
+get_mtd_device();				引用一个mtd设备
+get_mtd_device_nm();
+put_mtd_device();
 
-register a pair of callbacks to be called upon addition or removal of MTD devices.
-void register_mtd_user (struct mtd_notifier *new);
-int unregister_mtd_user (struct mtd_notifier *old);
+分区管理
+LIST_HEAD(mtd_partitions);			分区管理链表
+struct mtd_part{};				分区节点
+add_mtd_partitions();				注册所有分区
+del_mtd_partitions();				删除所有分区
 
-obtain a validated handle for an MTD device
-struct mtd_info *get_mtd_device(struct mtd_info *mtd, int num);
-struct mtd_info *get_mtd_device_nm(const char *name);
-void put_mtd_device(struct mtd_info *mtd);
-
-int default_mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
-		       unsigned long count, loff_t to, size_t *retlen);
-
-void mtd_erase_callback(struct erase_info *instr);
-
-
-int add_mtd_partitions(struct mtd_info *master,
-		       const struct mtd_partition *parts, int nbparts);
-int del_mtd_partitions(struct mtd_info *master);
-
-int register_mtd_parser(struct mtd_part_parser *p);
-int deregister_mtd_parser(struct mtd_part_parser *p);
-int parse_mtd_partitions(struct mtd_info *master, const char **types,
-			 struct mtd_partition **pparts, unsigned long origin);
+分区解析器管理
+LIST_HEAD(part_parsers);			分区解析器管理链表
+struct mtd_part_parser{};			分区解析器节点
+register_mtd_parser();				注册解析器
+deregister_mtd_parser();			删除解析器
+parse_mtd_partitions();				调用注册的解析器解析分区
 
 
-CONFIG_MTD_REDBOT_PARTS		readboot.c
-CONFIG_MTD_CMDLINE_PARTS	cmdlinepart.c
+********************
+分区解析器
+CONFIG_MTD_REDBOT_PARTS		redboot.c	Parse redboot-style flash iamge
+						system (FIS) tables and produce
+						a linux partition array to match
+CONFIG_MTD_CMDLINE_PARTS	cmdlinepart.c	Read flash partition table
+						from command line
 CONFIG_MTD_AFS_PARTS		afs.c		ARM flash layout/partitioning
-CONFIG_MTD_AR7_PARTS		ar7part.c
-CONFIG_MTD_OF_PARTS		ofpart.c
+CONFIG_MTD_AR7_PARTS		ar7part.c	TI AR7 flash partition table
+CONFIG_MTD_OF_PARTS		ofpart.c	flash partitions described by
+						the OF or flattened device tree
+将分区信息（固化或通过引导加载器传递）转化为分区结构
+REDBOOT分区解析器	name="RedBoot"
+命令行分区解析器	name="cmdlinepart"
+ARM闪存分区解析器	name="afs"
+TI AR7分区解析器	name="ar7part"
+OF分区解析器		与前面不同
 
+ucboot采用命令行分区解析器方案
+需要三个环境变量：
+	当前分区：partition
+	u-boot分区和内核分区映射：mtdids
+	分区表：mtdparts
+
+创建超级块
+jffs2_get_mtd();->get_sb_mtd();->get_sb_mtd_aux();->sget();
+
+struct file_operations jffs2_file_operations;		file.c
+struct inode_operations jffs2_file_inode_operations;	file.c
+struct file_operations jffs2_dir_operations;		dir.c
+struct inode_operations jffs2_dir_inode_operations;	dir.c
+
+struct jffs2_inode_info{};				jffs2_fs_i.h
+struct jffs2_sb_info{};					jffs2_fs_sb.h
+
+jffs2_get_sb();->jffs2_fill_super();->jffs2_do_fill_super();->jffs2_do_mount_fs();
+
+do_new_mount();
+	do_kern_mount();
+		vfs_kern_mount();
+			alloc_vfsmnt();
+	do_add_mount();
+
+
+sys_mount();
+sys_oldumount();
