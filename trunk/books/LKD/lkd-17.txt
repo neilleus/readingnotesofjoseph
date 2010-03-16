@@ -1,0 +1,7 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+
+---------------------------------------
+References:
+Linux Kernel Development Chapter 17 kobject和sysfs
