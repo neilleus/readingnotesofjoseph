@@ -100,3 +100,22 @@ do_new_mount();
 
 sys_mount();
 sys_oldumount();
+
+
+********************
+文件系统接口
+fs info -- Print filesystem information
+fs mount -- Mount a filesystem
+fs umount -- Unmount filesystem
+fs cd -- Change filesystem directory
+fs mkdir -- Create filesystem directory
+fs deldir -- Delete filesystem directory
+fs del -- Delete file
+fs move -- Move file
+fs list -- List filesystem directory
+fs write -- Write to filesystem
+
+map driver
+
+
+
