@@ -13,6 +13,12 @@ get_mtd_device();				引用一个mtd设备
 get_mtd_device_nm();
 put_mtd_device();
 
+LIST_HEAD(chip_drvs_list);
+register_mtd_chip_driver();
+unregister_mtd_chip_driver();
+do_map_probe()->get_mtd_chip_driver();
+struct mtd_chip_driver{};
+
 分区管理
 LIST_HEAD(mtd_partitions);			分区管理链表
 struct mtd_part{};				分区节点
@@ -51,6 +57,27 @@ ucboot采用命令行分区解析器方案
 	u-boot分区和内核分区映射：mtdids
 	分区表：mtdparts
 
+OF：主要用于PPC系统维护了一个设备树，描述系统中所有硬件以及它们的连接信息。在
+启动时，启动内存管理之前，内核调用OF提供的例程扫描设备树并将其转化为内部结构。
+设备树包含表示设备和总线的节点，每个节点有属性、名值对。嵌入式系统的引导加载器
+一般只维护关键设备的少量信息，没有设备树。假如内核将各类信息硬编码的话会很难移
+植。
+
+REDBOOT: CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK指明那个闪存块存放了REDBOOT分区表信
+息，是CYGNUM_REDBOOT_FIS_DIRECTORY_BLOCK的副本
+该分区表会给出闪存内镜像的偏移、长度、名字信息。
+需要有自己的解析函数由此驱动调用。
+
+命令行：通过命令行参数mtdparts给内核传递mtd分区信息，格式为
+    mtdparts:devname:partsize(partname)flag,partsize(partname)flag,-(name)flag
+    也需要特定的解析函数（通过map driver调用来解析）
+
+AFS适用于基于ARM Firmware Suit的分区结构信息
+具体可查阅文档ARM Firmware Suite User Guide
+
+AR7PART是用于TI的AR7 SoC的闪存分区表
+
+********************
 创建超级块
 jffs2_get_mtd();->get_sb_mtd();->get_sb_mtd_aux();->sget();
 
