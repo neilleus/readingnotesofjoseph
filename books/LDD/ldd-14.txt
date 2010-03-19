@@ -1,5 +1,8 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
 内核设备树：总线树、设备树、类树
 
 ---------------------------------------
 References:
-
+第十四章：Linux设备模型
