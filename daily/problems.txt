@@ -4,3 +4,4 @@
 *** Kconfig中ipaddr等默认环境变量会成为字符串，而在uboot中没有双引号。
 *** cfi_mtd_set_erasesize()中malloc()出错的问题
 
+*** 是不是只有NAND上可以使用FTL
