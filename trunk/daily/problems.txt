@@ -1,18 +1,6 @@
 *******************************************************************************
 关于UCBOOT
-### 为什么要区分ENV_SECT_SIZE和ENV_SIZE？
-### Kconfig中ipaddr等默认环境变量会成为字符串，而在uboot中没有双引号。
+*** 为什么要区分ENV_SECT_SIZE和ENV_SIZE？
+*** Kconfig中ipaddr等默认环境变量会成为字符串，而在uboot中没有双引号。
+*** cfi_mtd_set_erasesize()中malloc()出错的问题
 
-
-*******************************************************************************
-*** 待解决
-
-*** 为什么要这样拐弯抹角？
-#define XMK_STR(x)	#x
-#define MK_STR(x)	XMK_STR(x)
-
-*** 为什么第一个malloc调用malloc()会造成checksum error出错？
-    由于flash_init的时候调用了malloc，如果不调用就不会出问题。
-    几个调用malloc的地方：flash_init，env_realloc, eth_initialize, jump_init
-
-*******************************************************************************

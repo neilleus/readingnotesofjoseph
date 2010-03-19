@@ -1,26 +1,26 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
-### 关于CPU的操作模式和对计算机资源的保护
+*** 关于CPU的操作模式和对计算机资源的保护
 操作系统为应用程序提供对计算机硬件的一致视图，通过CPU提供的不同操作模式，操作
 系统可以实现程序的独立操作和保护资源不受非法访问。CPU在不同操作模式下只可以执
 行相应范围的指令集，这样可以实现对硬件等资源的保护。
 
-### 当前进程
+*** 当前进程
 current宏，包含头文件<linux/sched.h>
 当前实现是将task_struct结构的指针隐藏在内核栈中，这种结构不依赖于特定架构的具体
 实现，快速，而且可以方便的支持SMP系统。（不理解）
 
-### 内核栈很小（1~2页），谨慎使用，需要大的自动变量应该动态分配和释放。
+*** 内核栈很小（1~2页），谨慎使用，需要大的自动变量应该动态分配和释放。
 函数、变量需要导出才能被内核别的部分（模块）使用，到处方法为：
 EXPORT_SYMBOL(name);
 模块编程时常用的内核头文件包括：init.h, module.h, moduleparam.h等
 
-### 模块名为modulename.ko，由源文件file1.c和file2.c生成，Makfile写法如下：
+*** 模块名为modulename.ko，由源文件file1.c和file2.c生成，Makfile写法如下：
 	obj-m	:= modulename.o
 	modulename-objs	:= file1.o file2.o
 
-### insmod和modprobe工作机理
+*** insmod和modprobe工作机理
 它依赖于kernel/module.c中的一个系统调用sys_init_module，通过它给模块分配内存
 （函数vmalloc负责内存分配）以便加载模块，然后，它将模块正文复制到分配好的内存
 区域，并通过内核符号表解析模块中的内核引用，最后调用模块的初始化函数。
@@ -30,13 +30,13 @@ modprobe与insmod类似，但是它会检查装载的模块是否引用了一些
 这种情况下使用insmod会失败并记录日志。
 /proc/modules文件和/sys/module目录
 
-### module_init(func_init)和module_exit(func_exit)
+*** module_init(func_init)和module_exit(func_exit)
 这里的func_init和func_exit原形如下
 static int __init func_init(void);	/* 返回错误状态 */
 static void __init func_init(void);
 初始化失败时要注意释放初始化过程中已经占有的资源。释放前要检查这些资源的状态。
 
-### 模块参数
+*** 模块参数
 insmod和modprobe命令行指定，modprobe还可以从模块的配置文件/etc/modprob.conf中
 读取参数值。
 模块参数用module_param宏声明，该宏定义与<linux/moduleparam.h>文件中。该宏包含
@@ -47,12 +47,12 @@ module_param_array(name, type, num, perm);	/* perm in <linux/stat.h> */
 用于声明数组参数。
 所有参数都应该有默认值，自定义类型的参数可以用模块代码中的hook设置。
 
-### 内核版本信息以及vermagic.o，该文件包含了许多内核信息，可用来检查模块兼容性
+*** 内核版本信息以及vermagic.o，该文件包含了许多内核信息，可用来检查模块兼容性
 <linux/version.h>头文件
 一般而言，依赖于特定版本或平台的代码应该位于低层宏或者函数之后。
 
 
-### 用户空间驱动，可链接C库，可杀死，内存可换出，可调试；无法使用中断，无法直接
+*** 用户空间驱动，可链接C库，可杀死，内存可换出，可调试；无法使用中断，无法直接
 #访问内存（需要经过mmap映射），无法直接访问IO端口（需要使用ioperm或iopl），响
 #应慢。
 例子：libusb，Xserver（指不是基于framebuffer的那种）
@@ -64,7 +64,7 @@ module_param_array(name, type, num, perm);	/* perm in <linux/stat.h> */
 根本区别：能否随机访问，随意跳转到位置，按块方式还是字符流方式
 字符设备
 
-### 关于设备号
+*** 关于设备号
 主设备标识设备对应驱动程序和次设备号用于确定设备文件所指设备
 dev_t用来保存设备号
 MAJOR(dev_t)和MINOR(dev_t)用于取得主次设备号，MKDEV(int major, int minor)用于
@@ -79,12 +79,12 @@ int alloc_chrdev_region(dev_t *dev, unsigned int firstminor,
 void unregister_chrdev_region(dev_t first, unsigned int count);
 通常会在模块清除函数中调用它。
 
-### 数据结构：
+*** 数据结构：
 struct file_operations{};		/* <linux/fs.h> */
 struct file{};				/* <linux/fs.h> */
 struct inode{};				/* */
 
-### 设备注册到系统
+*** 设备注册到系统
 初始化结构：
 void cdev_init(struct cdev *cdev, struct file_operations *fops);
 注册到系统：
@@ -97,7 +97,7 @@ int unregister_chrdev(unsigned int major, const char *name); /* deprecated */
 注意：cdev_add可能失败，必须在设备所有操作都就绪可以被调用以后才应该调用它。
 而在设备从系统中移除以后就不应该再访问该设备了。
 
-### 用户空间指针，出于安全考量，在不能确定安全的情况下，不应该相信用户空间传入
+*** 用户空间指针，出于安全考量，在不能确定安全的情况下，不应该相信用户空间传入
 的指针，应该使用如下系统调用来把数据从用户空间传入到内核空间或者从内核空间传出
 给用户空间。
 copy_to_user()
@@ -105,6 +105,6 @@ copy_from_user()
 
 ---------------------------------------
 References:
-Linux Device Driver 3rd edition Chapter 2
-Linux Device Driver 3rd edition Chapter 3
+第二章：构造和运行模块
+第三章：字符设备驱动程序
 
