@@ -1,0 +1,34 @@
+01. mtd_ucboot.patch		增加一个基于arm tag的parser
+
+02. grocx_mtd.patch		增加一个grocx的map driver
+
+03. sdware->mtd module		参照VLAN的实现
+    mtd_priv.h
+    mtd_core.c			实现mtd_log，由于依赖于udev，注册为service。
+    mtd_dev.c			提供通知机制，实现dump方法，管理mtd device
+    mtd_char.c			封装IOCTL
+
+    sdware内对象机制（gc_list, ref_cnt, closing标志，user_xxx标志）
+    mtd_create_device_user	可以通过用户界面配置
+    mtd_create_device_kern	
+
+04. mtd document
+    数据结构：mtd模块内各个驱动之间的关系（chip driver, map driver...）
+    配置项分属哪个子模块
+    udev消息和含义
+    jffs2 mount参数，jffs2_mount的实现，uclibc对jffs2_mount的支持
+    用户态jffs2工具: mkfs.jffs2，以及和内核的接口
+    各个模块的模块参数
+    mtd用户态工具
+
+    配置分区的情况下怎么获取mtd设备的名字
+    GETMTDINFO返回哪些内容
+    MTD_FILEMODE是什么作用
+
+05. ISAKMP
+    提供一个用来协商信息的框架，可协商的信息有压缩算法，密钥信息等
+    SA，DOI，Payload
+    DH，RSA-BASE，OAKLEY
+    payload 类型，处理
+    exchange的类型：base exchange, identity protection, aggressive...
+
