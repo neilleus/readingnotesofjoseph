@@ -1,7 +1,8 @@
 *******************************************************************************
 关于UCBOOT
+*** 怎么设计parse_ucboot_partitions，给定了参数列表和返回值形式?
+
 *** 为什么要区分ENV_SECT_SIZE和ENV_SIZE？
 *** Kconfig中ipaddr等默认环境变量会成为字符串，而在uboot中没有双引号。
 *** cfi_mtd_set_erasesize()中malloc()出错的问题
-
 *** 是不是只有NAND上可以使用FTL
