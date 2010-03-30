@@ -1,0 +1,23 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+ARM启动参数TAG相关内容在此：
+
+关键数据结构：
+
+struct tagtable;	tag节点和解析函数构成
+struct tag_header;	用来标识tag链表节点类型和大小
+struct tag;		需要传递的tag链表节点
+
+tag节点保存实际的tag信息，用tag_header来标识tag，用tagtable来组织tag和解析函数
+
+#define __tag __attribute_used__ __attribute__((__section__ (".taglist.init")))
+#define __tagble(tag,fn) static struct tagtable __tagtable_##fn __tag={tag, fn}
+
+增加一个自定义的tag需要定义自己的tag结构和实现对应的解析函数，然后增加一个tag
+标识号码，增加一个或多个tagtable数据结构。
+
+
+---------------------------------------
+References:
+
