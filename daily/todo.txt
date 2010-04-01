@@ -1,8 +1,8 @@
 *******************************************************************************
 1. PPT(硬件交接，uboot，mtd, atag和cmdline传启动参数列表（xls））
+1. PPT(ucboot env配置，embedded env怎么实现)
 1. RCU，文件系统中应用（API，file_free, d_free里使用rcu的动机, rcu对我们系统的
 作用） 
-2. 两个patch，怎么设计解析器？
 3. sdware实现，参考vlan
 4. 文档完善
 6. 跑起USBKEY来
