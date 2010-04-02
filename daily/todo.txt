@@ -1,17 +1,13 @@
 *******************************************************************************
-1. PPT(硬件交接，uboot，mtd）
-1. RCU，文件系统中应用（API，file_free, d_free里使用rcu的动机, rcu对我们系统的
-作用） 
-3. sdware实现，参考vlan
-6. 跑起USBKEY来
+1. PPT(硬件交接)
+2. RCU，文件系统中应用（API，file_free, d_free里使用rcu的动机, rcu对我们系统
+   的作用） 
+3. sdware实现，参考vlan 根据usb_dev.c中的udev过滤器来过滤得到需要的udev消息注
+   册两个函数来取得mtd设备和mtd分区。
+4. 跑起USBKEY来
 
-根据usb_dev.c中的udev过滤器来过滤得到需要的udev消息注册两个函数来取得mtd设备和
-mtd分区。
 
-    ucboot
     (0) 文档（命令，终端，环境，闪存，malloc等问题）mtd和jffs2给用户态的接口。
-    (0) flash保护，各个操作过程。
-    (0) point unpoint
 
     (0) 模块化：整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支
     (0) vsc7501/openocd/linux增加mtd驱动patch
