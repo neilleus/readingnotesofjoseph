@@ -1,26 +1,4 @@
 *******************************************************************************
-1. PPT(硬件交接)
-2. RCU，文件系统中应用（API，file_free, d_free里使用rcu的动机, rcu对我们系统
-   的作用） 
-3. sdware实现，参考vlan 根据usb_dev.c中的udev过滤器来过滤得到需要的udev消息注
-   册两个函数来取得mtd设备和mtd分区。
-4. 跑起USBKEY来
-
-
-    (0) 文档（命令，终端，环境，闪存，malloc等问题）mtd和jffs2给用户态的接口。
-
-    (0) 模块化：整理ucboot内的fs，把它们模块化（至少ext2/vfat, jffs2, 最好支
-    (0) vsc7501/openocd/linux增加mtd驱动patch
-
-    (2) 增加mtdram功能，开发期不必烧写flash
-    	持yaffs2（内核不支持，最于大page的NAND比较好）, ubifs，并调查cramfs）
-    (4) 能否通过udev获得mtd name，通过udev monitor截取udev事件
-    (5) 能否支持ubifs，如何实现，它可以支持断电保护功能。
-    (6) monitor protect, env embedded, flash protected, env overwrite???
-    (7) 添加CUSTOM_STOP_KEY逻辑；串口kermit下载功能；命令自动完成
-
-
-*******************************************************************************
     编码类：
     (-) 搞一下Kbuild系统的实现
     (-) 能够拷贝空洞但不用0填充的cp; 多项式加减乘除;平衡符号;中缀变后缀;队列
@@ -36,15 +14,3 @@
     文档类：
     (-) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
     (-) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark
-
-*******************************************************************************
-RFID Reader
-    文档阅读：
-        PN512，PN531数据手册，设计指南
-        NFC标准，ISO14443标准
-*******************************************************************************
-#   flash_base->bd_info
-#   (*) ucboot中分析grocx_flash和cfi_flash，尽量使兼容，然后在上面跑mtd device
-#   (*) linux中跑mtdram，在上面跑jffs2，用mkfs.jffs2做image
-#   (*) 编译内核，非模块方式和模块方式
-#   (*) mtd设备如何分区，成功运行。
