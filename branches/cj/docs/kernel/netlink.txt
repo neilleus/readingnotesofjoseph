@@ -1,0 +1,428 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+Netlink用来在内核模块和用户空间进程之间传递信息，它提供了内核-用户空间的双向通
+信链路，它为用户空间进程提供了一套标准的套接字接口，为内核模块提供了一套内核API
+Netlink是面向数据报的协议
+
+每个netlink套接口功能都在内核头文件include/linux/netlink.h中定义了其协议类型。
+
+创建一个用户空间netlink套接口的方法：
+	sockfd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+	/* domain为AF_NETLINK，type为SOCK_RAW或SOCK_DGRAM但netlink协议不区分 */
+Netlink_family选择与之通信的内核模块或netlink group，当前已经分配的netlink族有：
+    NETLINK_ROUTE：接收路由表更新和更改IPv4路由表，ip地址，链路参数等
+    NETLINK_FIREWALL：接收IPv4防火墙发送的报文
+    NETLINK_NFLOG：用户空间iptable管理工具和内核空间netfilter模块的通信信道
+    NETLINK_ARPD：用户空间管理arp表的接口
+    NETLINK_ROUTE6：接收和发送IPv6路由表更新
+    NETLINK_IP6_FW：接收IPv6防火墙校验失败的包
+    NETLINK_TAPBASE...NETLINK_TAPBASE+15：ehtertap设备的实例，ethertap是伪网络
+    隧道设备，允许从用户空间模拟以太网驱动
+    NETLINK_SKIP
+
+协议注册
+内核启动时，在init/main.c的函数__init do_basic_setup()中会调用位于net/socket.c
+中的sock_init()，这个函数会调用proto_init()，在这里会启动所有配置的协议。这些
+协议的由net/protocols.c中的一张表格（net_proto数据结构数组）来维护，它会遍历调
+用所有配置协议的init_func完成各个协议的初始化工作。
+这里还有一个数据结构需要关注 struct net_proto_family{};用于将协议号和ops绑定。
+在协议的init函数中会调用sock_register(&netlink_family_ops)，这个会将协议的地址
+族通告并链接到socket模块，它会在net_families中为这个协议创建一个表项。
+    net_families包含了协议列表，所有协议都在此注册。
+小结：do_basic_setup()->sock_init()->proto_init()->sock_register()
+	/* 将协议注册到socket模块 */
+
+所有的与socket有关的调用都由net/socket.c中的系统调用sys_socketcall()处理，根据
+请求的操作是SYS_SOCKET, SYS_BIND还是SYS_CONNECT等来调用对应的函数。
+
+调用sys_socket时会调用sock_create会创建一个数据结构，并分配一个socket描述符用
+来引用该数据结构。这个数据结构调用sock_alloc()来创建，并调用协议的create函数
+进行ops等数据结构的关联。对于netlink socket就调用netlink_create();
+当创建了netlink套接口后，下一步就是bind该套接口，当bind由用户空间发出时，内核
+会调用sys_bind()，这会最终调用到netlink_bind()，在netlink_bind()中，会调用
+netlink_insert()来为这个netlink在nl_table中创建一个表项，nl_table是一个sock数
+据结构的链表。
+所以用户空间的创建和绑定代码如下，忽略了错误检测：
+    struct sockaddr_nl nl_addr;
+    sockfd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+    bind(sockfd, (struct sockaddr *)&nl_addr, sizeof(nl_addr));
+sockaddr_nl在include/linux/netlink.h中定义。
+    struct sockaddr_nl {
+	    sa_family_t nl_family;
+	    unsigned short nl_pad;
+	    __u32 nl_pid;
+	    __u32 nl_groups;
+    };
+协议族AF_NETLINK, nl_groups用于多播选项，nl_pid用于表示进程号，如果给出0，则内
+核会通过task数据结构的current->pid来填充。在内核里会检查pid，如果为0，会调用
+netlink_autobind()。
+
+一旦套接口被创建并绑定，我们就可以使用recvmsg()和sendmsg()函数来读写该套接口。
+    sendmsg(sockfd, &msg, 0);
+    struct msghdr {
+	    void *msg_name;		/* 套接口名字 */
+	    int msg_namelen;		/* 名字长度 */
+	    struct iovec *msg_iov;	/* 数据块 */
+	    __kernel_size_t msg_iovlen;	/* 数据块数量 */
+	    void *msg_control;		/* 协议特定数据 */
+	    __kernel_size_t msg_controllen;	/* 协议特定数据长度 */
+	    unsigned msg_flags;
+    };
+    struct iovec {
+	    void *iov_base;
+	    __kernel_size_t iov_len;
+    };
+iovec数据结构会用传递给内核的数据指针和数据长度来填充。
+在netlink_sendmsg()中数据从iovec拷贝到内核空间会调用
+    memccpy_fromiovec(skb_put(skb, len), msg->msg_iov, len);
+
+NETLINK_ROUTE
+初始化：在net/core/rtnetlink.c中rtnetlink_init函数中会创建一个内核中的socket，
+用于处理来自用户的请求。它会调用netlink_kernel_create()来创建内核socket，而它
+又调用netlink_create创建netlink socket，并在nl_table中分配一个表项，由于这个套
+接口是系统启动时创建的，所以它会成为nl_table中的第一个项，这里的pid为0。
+
+为什么使用netlink套接口而不是用系统调用、ioctl或者proc文件系统这些方式呢？
+首先：内核中轻易不会增加系统调用，因为这可能影响内核和系统的稳定性。而netlink
+套接口则很简单，只需要在netlink.h增加一个协议类型即可，然后内核模块就可以和应
+用程序通过socket api进行通信。其次，netlink是异步的，和其它socket API一样，它
+提供了套接口队列来平缓突发的消息。而系统调用要求同步处理，这样可能会打乱内核调
+度。其三，系统调用是在编译时静态链接到内核的，所以不可能在一个模块中实现系统调
+用，而netlink无此要求。第四，netlink套接口支持多播，这是相对于系统调用，ioctl和
+proc文件系统的又一优点。一个进程可以向一个netlink group地址多播一条消息，而多
+个其它进程可以监听那个组地址。这提供了一个从内核向用户空间分发事件的近乎完美的
+实现机制。第五，系统调用和ioctl是简单的IPC，必须从用户空间进程主动发起，但是当
+一个内核模块有一个紧急消息要发给用户空间程序时怎么办呢，这种IPC机制只能通过轮询
+内核来获取状态变化，而轮询开销很大。Netlink则优雅的解决了这个问题，允许内核可以
+采取主动，即netlink套接口是全双工特性的。第六，netlink提供了socket格式的API，容
+易理解和使用，节省培训时间。
+
+Netlink套接口和BSD路由套接口有什么关系？
+在BSD TCP/IP协议栈实现中，由一类特殊的socket称作路由套接口，其地址族为AF_ROUTE，
+协议族为PF_ROUTE，套接口类型为SOCK_RAW。在BSD实现中路由套接口由进程用来添加和
+删除内核路由表项。
+在Linux中，netlink套接口协议NETLINK_ROUTE提供了相同的功能，是BSD路由套接口的超
+集。
+
+每个netlink协议类型可以至多定义32个多播组，每个多播组由一位位掩码表示1<<i表示，
+0<=i<=31，使用多播可以减少系统调用次数。这在一组进程和内核进程协同实现同一功能
+时特别有用，发送多播的netlink消息可以有效地减少系统调用次数和减轻用户进程维护
+多播组成员的负担。
+
+多播：一个netlink socket可以从多个目标协议接收或者向多个目标协议发送消息，多播
+的目标由地址结构中的nl_groups来控制。如果应用程序想要接收那些为多播组设计的协议
+的netlink消息，则需要将感兴趣的multicast groups以或地方式组合起来填充到netlink
+地址sockaddr_nl的nl_groups字段，否则，nl_groups应该为0，则应用程序仅接收单播
+netlink消息。在填好nladdr以后，可以执行bind绑定地址到socket。
+    bind(fd, (struct sockaddr *)&nladdr, sizeof(nladdr));
+在单个线程中也可能创建多个同协议的netlink套接口，但是bind会失败。
+为了给内核或其它用户进程发送netlink消息，需要另外一个sockaddr_nl结构作为目的地
+址，类似发送UDP报文的sendmsg()，如果目标是内核，那么目标地址的nl_pid和nl_groups
+都应该是0。如果消息是单播到另一个进程的，则nl_pid应该是另外一个进程的pid，而
+nl_groups是0。如果消息是到一个或多个多播组的多播消息，则nl_groups应该是所有的
+目的多播组位掩码的或运算。
+struct msghdr msg
+    msg.msg_name = (void *)&(nladdr);
+    msg.msg_namelen = sizeof(nladdr);
+netlink套接口也需要自己的消息头，nlmsghdr结构定义了该消息头，应用程序必须在它
+发送的每个消息中包含这个头部。
+    struct nlmsghdr {
+	    __u32 nlmsg_len;	/* 消息长度，包括头部，netlink core需要 */
+	    __u16 nlmsg_type;	/* 消息类型 */
+	    __u16 nlmsg_flags;	/* 额外标志，netlink core读取并更新 */
+	    __u32 nlmsg_seq;	/* 序列号 */
+	    __u32 nlmsg_pid;	/* 发送进程的PID */
+    };
+一个netlink消息包含nlmsghdr和消息载荷，一旦一个消息进入，就会进入到nlh（netlink
+头）指针指向的缓冲区，我们也可把该消息发送到结构msghdr。
+struct iovec iov;
+    iov.iov_base = (void *)nlh;
+    iov.iov_len = nlh->nlmsg_len;
+
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+
+做好以上准备，调用sendmsg就可以把准备好的消息发出去了。
+    senmsg(fd, &msg, 0);
+
+接收netlink消息
+接收程序需要一个分配足够大的缓冲区来保存netlink消息头和载荷。然后填好msghdr并
+调用recvmsg()就可以接收netlink消息，假定缓冲区由nlh指针指向。
+struct sockaddr_nl nladdr;
+struct msghdr msg;
+struct iovec iov;
+
+    iov.iov_base = (void *)nlh;
+    iov.iov_len = MAX_NL_MSG_LEN;
+
+    msg.msg_name = (void *)&nladdr;
+    msg.msg_namelen = sizeof(nladdr);
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+
+recvmsg(fd, &msg, 0);
+当消息正确接收后，nlh就会指向该接收到得netlink消息的头部，nladdr会保存目的地址
+信息，定义于include/linux/netlink.h中的宏NLMSG_DATA(nlh)返回指向载荷的指针。
+
+内核中的netlink编程接口
+由内核netlink core提供支持，位于net/core/af_netlink.c中。内核态的编程接口与应
+用态不同。通过在netlink.h中增加协议号的方式来增加自己模块的netlink支持，此后就
+可在内核的任何部分引用该协议类型。
+创建套接口，内核中的接口与用户太程序不同，使用如下API
+    struct sock *netlink_kernel_create(int unit,
+				       void (*input)(struct sock *sk, int len);
+其中参数unit实际上是你要创建的netlink的协议类型，比如NETLINK_ROUTE等（当然这个
+已经不需要你创建了）。函数指针input指向一个消息回调函数，即收到这种netlink套接
+口消息时的回调函数。
+input()函数是在sendmsg()系统调用中被调用的，假如能很快处理消息时，可以在input
+中直接处理，否则为了防止阻塞其他系统调用进入内核，应该将其在别处处理，比如分配
+一个专用的内核线程来进行长时间的处理。使用skb = skb_recv_datagram(nl_sk)，从内
+核通过netlink_kernel_create()返回的nl_sk中获得要处理的消息skb->data，然后进行
+处理。该专用内核线程在没netlink消息处理时会进入休眠状态，在input()中我们需要唤
+醒它，wake_up_interruptible(sk->sleeep);
+
+从内核中发送netlink消息，与用户空间相同，也需要设置源和目的netlink地址。假定保
+存待发送netlink消息的套接口缓冲区为struct sk_buff *skb，则源地址应该设置为：
+    NETLINK_CB(skb).groups = local_groups;
+    NETLINK_CB(skb).pid = 0;
+目的地址应该设置为：
+    NETLINK_CB(skb).dst_groups = dst_groups;
+    NETLINK_CB(skb).dst_pid = dst_pid;
+这类（地址）信息并不存放在skb->data中，而是存放在socket缓冲区的控制块中，发送
+一个单播消息，可以调用：
+    int netlink_unicast(struct sock *ssk, struct sk_buff *skb,
+			u32 pid, int nonblock);
+参数ssk是netlink_kernel_create返回的netlink套接口，skb->data指向要发送的netlink
+消息，pid是接收进程的PID，nonblock指出在接收缓冲不可用时是阻塞该API还是立即返回
+一个错误。
+通过以下调用可以发送多播消息，该消息可以发向由pid指定的进程和group制定的多播组：
+    void netlink_broadcast(struct sock *ssk, struct sk_buff *skb,
+			   u32 pid, u32 group, int allocation);
+参数group是所有接收多播组的位掩码的或运算。allocation是内核的内存分配类型，典
+型的，在中断上下文中使用GFP_ATOMIC，其它使用GFP_KERNEL。这是因为这个API可能需要
+分配一个或多个socket buffer来clone此多播消息。
+关闭一个内核netlink socket的API:
+    sock_release(nl_sk->socket);
+
+示例代码，单播回射用户空间端：
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
+#define MAX_PAYLOAD 1024  /* maximum payload size*/
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+int sock_fd;
+
+void main() {
+ sock_fd = socket(PF_NETLINK, SOCK_RAW,NETLINK_TEST);
+
+ memset(&src_addr, 0, sizeof(src_addr));
+ src__addr.nl_family = AF_NETLINK;
+ src_addr.nl_pid = getpid();  /* self pid */
+ src_addr.nl_groups = 0;  /* not in mcast groups */
+ bind(sock_fd, (struct sockaddr*)&src_addr,
+      sizeof(src_addr));
+
+ memset(&dest_addr, 0, sizeof(dest_addr));
+ dest_addr.nl_family = AF_NETLINK;
+ dest_addr.nl_pid = 0;   /* For Linux Kernel */
+ dest_addr.nl_groups = 0; /* unicast */
+
+ nlh=(struct nlmsghdr *)malloc(
+		         NLMSG_SPACE(MAX_PAYLOAD));
+ /* Fill the netlink message header */
+ nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+ nlh->nlmsg_pid = getpid();  /* self pid */
+ nlh->nlmsg_flags = 0;
+ /* Fill in the netlink message payload */
+ strcpy(NLMSG_DATA(nlh), "Hello you!");
+
+ iov.iov_base = (void *)nlh;
+ iov.iov_len = nlh->nlmsg_len;
+ msg.msg_name = (void *)&dest_addr;
+ msg.msg_namelen = sizeof(dest_addr);
+ msg.msg_iov = &iov;
+ msg.msg_iovlen = 1;
+
+ sendmsg(fd, &msg, 0);
+
+ /* Read message from kernel */
+ memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+ recvmsg(fd, &msg, 0);
+ printf(" Received message payload: %s\n",
+	NLMSG_DATA(nlh));
+
+ /* Close Netlink Socket */
+ close(sock_fd);
+}
+
+示例代码，单播回射，内核端
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
+#define MAX_PAYLOAD 1024  /* maximum payload size*/
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+int sock_fd;
+
+void main() {
+ sock_fd = socket(PF_NETLINK, SOCK_RAW,NETLINK_TEST);
+
+ memset(&src_addr, 0, sizeof(src_addr));
+ src__addr.nl_family = AF_NETLINK;
+ src_addr.nl_pid = getpid();  /* self pid */
+ src_addr.nl_groups = 0;  /* not in mcast groups */
+ bind(sock_fd, (struct sockaddr*)&src_addr,
+      sizeof(src_addr));
+
+ memset(&dest_addr, 0, sizeof(dest_addr));
+ dest_addr.nl_family = AF_NETLINK;
+ dest_addr.nl_pid = 0;   /* For Linux Kernel */
+ dest_addr.nl_groups = 0; /* unicast */
+
+ nlh=(struct nlmsghdr *)malloc(
+		         NLMSG_SPACE(MAX_PAYLOAD));
+ /* Fill the netlink message header */
+ nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+ nlh->nlmsg_pid = getpid();  /* self pid */
+ nlh->nlmsg_flags = 0;
+ /* Fill in the netlink message payload */
+ strcpy(NLMSG_DATA(nlh), "Hello you!");
+
+ iov.iov_base = (void *)nlh;
+ iov.iov_len = nlh->nlmsg_len;
+ msg.msg_name = (void *)&dest_addr;
+ msg.msg_namelen = sizeof(dest_addr);
+ msg.msg_iov = &iov;
+ msg.msg_iovlen = 1;
+
+ sendmsg(fd, &msg, 0);
+
+ /* Read message from kernel */
+ memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+ recvmsg(fd, &msg, 0);
+ printf(" Received message payload: %s\n",
+	NLMSG_DATA(nlh));
+
+ /* Close Netlink Socket */
+ close(sock_fd);
+}
+
+示例代码，多播，两个用户空间程序在监听同一个netlink多播组，用户空间代码：
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
+#define MAX_PAYLOAD 1024  /* maximum payload size*/
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+int sock_fd;
+
+void main() {
+ sock_fd = socket(PF_NETLINK, SOCK_RAW,NETLINK_TEST);
+
+ memset(&src_addr, 0, sizeof(src_addr));
+ src__addr.nl_family = AF_NETLINK;
+ src_addr.nl_pid = getpid();  /* self pid */
+ src_addr.nl_groups = 0;  /* not in mcast groups */
+ bind(sock_fd, (struct sockaddr*)&src_addr,
+      sizeof(src_addr));
+
+ memset(&dest_addr, 0, sizeof(dest_addr));
+ dest_addr.nl_family = AF_NETLINK;
+ dest_addr.nl_pid = 0;   /* For Linux Kernel */
+ dest_addr.nl_groups = 0; /* unicast */
+
+ nlh=(struct nlmsghdr *)malloc(
+		         NLMSG_SPACE(MAX_PAYLOAD));
+ /* Fill the netlink message header */
+ nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+ nlh->nlmsg_pid = getpid();  /* self pid */
+ nlh->nlmsg_flags = 0;
+ /* Fill in the netlink message payload */
+ strcpy(NLMSG_DATA(nlh), "Hello you!");
+
+ iov.iov_base = (void *)nlh;
+ iov.iov_len = nlh->nlmsg_len;
+ msg.msg_name = (void *)&dest_addr;
+ msg.msg_namelen = sizeof(dest_addr);
+ msg.msg_iov = &iov;
+ msg.msg_iovlen = 1;
+
+ sendmsg(fd, &msg, 0);
+
+ /* Read message from kernel */
+ memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+ recvmsg(fd, &msg, 0);
+ printf(" Received message payload: %s\n",
+	NLMSG_DATA(nlh));
+
+ /* Close Netlink Socket */
+ close(sock_fd);
+}
+
+示例代码，多播，内核端
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
+#define MAX_PAYLOAD 1024  /* maximum payload size*/
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+int sock_fd;
+
+void main() {
+ sock_fd = socket(PF_NETLINK, SOCK_RAW,NETLINK_TEST);
+
+ memset(&src_addr, 0, sizeof(src_addr));
+ src__addr.nl_family = AF_NETLINK;
+ src_addr.nl_pid = getpid();  /* self pid */
+ src_addr.nl_groups = 0;  /* not in mcast groups */
+ bind(sock_fd, (struct sockaddr*)&src_addr,
+      sizeof(src_addr));
+
+ memset(&dest_addr, 0, sizeof(dest_addr));
+ dest_addr.nl_family = AF_NETLINK;
+ dest_addr.nl_pid = 0;   /* For Linux Kernel */
+ dest_addr.nl_groups = 0; /* unicast */
+
+ nlh=(struct nlmsghdr *)malloc(
+		         NLMSG_SPACE(MAX_PAYLOAD));
+ /* Fill the netlink message header */
+ nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+ nlh->nlmsg_pid = getpid();  /* self pid */
+ nlh->nlmsg_flags = 0;
+ /* Fill in the netlink message payload */
+ strcpy(NLMSG_DATA(nlh), "Hello you!");
+
+ iov.iov_base = (void *)nlh;
+ iov.iov_len = nlh->nlmsg_len;
+ msg.msg_name = (void *)&dest_addr;
+ msg.msg_namelen = sizeof(dest_addr);
+ msg.msg_iov = &iov;
+ msg.msg_iovlen = 1;
+
+ sendmsg(fd, &msg, 0);
+
+ /* Read message from kernel */
+ memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+ recvmsg(fd, &msg, 0);
+ printf(" Received message payload: %s\n",
+	NLMSG_DATA(nlh));
+
+ /* Close Netlink Socket */
+ close(sock_fd);
+}
+
+小结：
+netlink套接口是一种内核模块和用户空间程序的灵活的通信接口，它提供了易于使用的
+接口，提供了全双工，缓冲IO，多播和异步通信机制，而这些是其它内核和用户空间IPC所
+不具有或不完善的。
+
+---------------------------------------
+参考文档:
+http://qos.ittc.ku.edu/netlink/html/node1.html
+http://www.linuxjournal.com/article/7356?page=0,4

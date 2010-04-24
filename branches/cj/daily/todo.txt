@@ -1,0 +1,16 @@
+*******************************************************************************
+    编码类：
+    (-) 搞一下Kbuild系统的实现
+    (-) 能够拷贝空洞但不用0填充的cp; 多项式加减乘除;平衡符号;中缀变后缀;队列
+    (-) 排序：基数排序,卡式排序,桶式排序
+
+    知识类：
+    (*) 散列表
+    (-) 总结ARM中的伪指令，访存指令
+    (-) 总结内核启动参数的传递，arm启动参数的tag结构的使用
+    (-) 编码系统，内码，外码，utf8，gbk，字体等
+    (-) 几个cntl函数fcntl, ioctl, shmctl, sysctl, semctl, console_ioctl等
+
+    文档类：
+    (-) find, sed, awk, split/csplit, join, grep, sort, tr, fmt, man
+    (-) debian package: dpkg, apt-get, apt-cache, apt-config, apt-key, apt-mark

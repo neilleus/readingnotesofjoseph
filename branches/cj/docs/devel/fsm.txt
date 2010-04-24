@@ -1,0 +1,49 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+有限状态机
+有限状态机是对有限数量的状态、状态间的转换和动作的行为的描述。有限状态机是对拥
+有基本内存机器（可以保存当前状态）的抽象。
+
+基本要素：
+    状态：当前状态与过去的系统状态有关，即系统会记录过去的信息
+    转换：表示一个状态变化，通过一个会造成变化的条件来描述
+    动作：
+        进入动作：在进入特定状态时执行动作
+	退出动作：在离开特定状态时执行动作
+	输入动作：根据当前状态和输入条件而执行动作
+	转换动作：在发生特定转换时执行动作
+
+表示：
+    状态转换图
+    状态转换表
+
+分类：
+    接收器和识别器：由机器产生一个二进制输出来告诉外界该输入能否被接受，常用于
+    正则表达式。
+    转换器：根据给定输入和/或者一个状态执行动作产生输出，用于应用控制或者计算机
+    语义分析。典型如摩尔机和米利机。
+
+摩尔机：仅使用进入动作，即输出只取决于状态，状态简单。
+米利机：仅使用输入动作，即输出取决于输入和状态。常用来简化状态机。
+
+DFA：对于一个状态，每个可能的输入有且仅有一个确定的转换
+NFA：对于一个状态，每个可能的输入可能有零个、一个或者多个转换
+DFA和NFA在逻辑上是等价的，仅是实现上的不同，它们可以相互转换。
+
+优化：优化状态机就是要找到最小状态集合，最知名的算法是Hopcroft minimization算法
+
+
+
+确定状态有限状态机
+不确定状态有限状态机
+虚拟有限状态机
+
+---------------------------------------
+References:
+http://en.wikipedia.org/wiki/Finite_state_machine
+http://en.wikipedia.org/wiki/Nondeterministic_finite_state_machine
+http://en.wikipedia.org/wiki/Deterministic_finite-state_machine
+http://en.wikipedia.org/wiki/Vfsm
+http://en.wikipedia.org/wiki/State_transition_system
+http://en.wikipedia.org/wiki/Event_driven_finite_state_machine

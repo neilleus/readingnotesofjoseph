@@ -1,0 +1,75 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+使用UDP实现的典型应用程序：DNS，NFS，SNMP
+
+api
+#include <sys/socket.h>
+ssize_t recvfrom(int sockfd, void *buff, size_t nbytes, int flags,
+		 struct sockaddr *from, socklen_t *addrlen);
+ssize_t sendto(int sockfd, const void *buff, size_t nbytes, int flags,
+	       const void sockaddr *to, socklen_t addrlen);
+函数recvfrom用数据发送者的协议地址装填由from所指的套接口地址结构，存储在此套接
+口地址结构中的字节数也以addrlen所指的整数返回给调用者。
+这两个函数也可用于TCP，但没这个必要。
+
+从UDP输出操作返回成功仅仅表示在接口输出队列上为IP数据报留出空间，ICMP错误直到
+很晚才返回，所以称之为异步错误。一个基本规则是除非套接口已连接，否则异步错误是
+不给UDP套接口返回的。如此决策的原因是一个UDP套接口同时接收多个不同主机的报文时，
+单凭recvfrom返回的错误号无法判断是具体哪个主机不可达，所以只有在连接时才会返回
+异步错误。
+客户在发送UDP数据报时必须指定或选择四个值：
+    由UDP选择的客户临时端口
+    由IP选择的客户IP地址
+    指定服务器的IP地址
+    指定服务器的端口号
+客户可以调用bind绑定地址，但一般客户的地址和端口号都是由内核来自动选择的，如果
+这两个值都由内核选择，则客户的临时端口是在第一次调用sendto时一次性选定的，不能
+改变，而客户如果不绑定特定的IP地址，则客户的IP地址是可以随客户发送的每个UDP数据
+报修改的。
+如果客户捆绑了一个IP地址到其套接口上，但内核决定外出数据报必须从另一个数据链路
+发出时，IP数据报将包含一个不同于外出链路IP地址的源IP地址。
+服务器则必须制定服务器IP地址和端口，可获得客户IP地址和端口。
+对于TCP套接口，总是能便捷的访问已连接套接口的所有这四条信息，而对于UDP套接口，
+目的IP地址只能为IPv4设置IP_RECVDSTADDR套接口选项或为IPv6设置IPv6_PKTINFO套接口
+选项，然后调用recvmsg而不是recvfrom来得到。
+
+为UDP套接口调用connect，与TCP连接不同，没有三路握手过程，内核只是记录对方的IP
+地址和端口号，它们包含在传递给connect的套接口地址结构中，并立即返回给调用过程。
+
+已连接UDP套接口和未连接UDP套接口相比有三点变化：
+    不可以给输出操作指定目的IP地址和端口号，即sendto使用时目的地址必须为NULL
+    只能接收特定地址的UDP报文，即只接收从connect指定地址来的数据报。
+    异步错误由已连接UDP套接口返回给进程，未连接UDP套接口不接收任何异步错误。
+在已连接UDP套接口上调用指定目的地址的sendto会返回EISCONN错误，而在未连接UDP套
+接口上调用未指定目的地址的sendto会返回ENOTCONN错误。
+一般来说都是UDP客户调用connect，但也有UDP服务器和单个客户长时间通信的应用程序
+比如TFTP，这种情况下，客户和服务器都可调用connect。
+
+对于已连接UDP套接口，进城可给该套接口再次调用connect以达到下面目的：
+    指定新的IP地址和端口号
+    断开套接口
+
+在未连接UDP套接口上给两个数据报调用函数sendto时有如下六步：
+    连接套接口
+    输出第一个数据报
+    断开套接口连接
+    连接套接口
+    输出第二个数据报
+    断开套接口连接
+而已连接UDP套接口上给两个数据报调用sendto时为三步：
+    连接套接口
+    输出第一个数据报
+    输出第二个数据报
+在已连接的情况下，内核只拷贝一次含有目的地址和端口号的套接口地址结构，效率提高。
+
+已连接的UDP套接口还可用来确定用于特定目标的外出接口，这是由于函数connect被应用
+到UDP套接口时的副作用：内核选择本地IP地址。这个本地IP地址是通过给目的IP地址搜索
+路由表，然后使用结果接口的主IP地址而选定的。
+
+UDP套接口可以捆绑与TCP套接口相同的端口，无需设置SO_REUSEADDR，因为TCP端口独立
+于UDP端口。
+
+---------------------------------------
+References:
+UNP Volume 1 Chapter 8 基本UDP套接口编程

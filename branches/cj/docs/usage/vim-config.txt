@@ -1,0 +1,217 @@
+"Author: Joseph Lee
+"E-Mail: fdlixiaojun@gmail.com
+
+"nmap setting
+nmap Tf :tabfirst<CR>
+nmap Tl :tablast<CR>
+
+"set auto decoder
+set fenc=utf-8
+set fencs=utf-8,usc-bom,euc-jp,gb2312,gb18030,gbk,cp936
+
+"use vim's keyboard map, not vi's
+set nocompatible
+
+"show command input
+set showcmd
+
+"lines recorded in history
+set history=100
+
+"pump confirm when save nonsave or readonly file
+set confirm
+
+"probe file type
+filetype on
+
+"auto load plugin according to the file type
+filetype plugin on
+
+
+"don't wrap this stype word with these characters
+set iskeyword+=_,$,@,%,#,-
+
+"status bar color
+if has("gui_running")
+		highlight StatusLine guifg=SlateBlue guibg=Yellow
+		highlight StatusLineNC guifg=Gray guibg=White
+		set guifont=Courier\ New\ 12
+endif
+
+"highlight current line
+set cursorline
+"highlight current column
+"set cursorcolumn
+
+"do not generate backup files
+set nobackup
+
+"don't generate swap files and hidden it when buffer is closed
+setlocal noswapfile
+set bufhidden=hide
+
+"strengthen the command autocomplete
+set wildmenu
+
+"show cursor line number and column number on the status bar
+set ruler
+set rulerformat=%20(%2*%<%f%=\ %m%r\ %3l\ %c\ %p%%%)
+
+"set command line's height 2 lines
+set cmdheight=2
+
+"use mice
+set mouse=a
+
+"turn off the error bells and visualbells
+set noerrorbells
+set novisualbell
+
+"leave space between split windows
+set fillchars=vert:\ ,stl:\ ,stlnc:\
+
+"ignore case when all small, case sensitive when some character capitalized
+set ignorecase smartcase
+"use highlight when searching
+set hlsearch
+"highlight the search characters one by one
+set incsearch
+
+"content displayed on the status bar
+set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [POS=%l,%v][%p%%]\ %{strftime(\"%d/%m/%y\ -\ %H:%M\")}
+"show status bar always
+set laststatus=2
+
+"load indentation rules according to the detected filetypes
+filetype indent on
+"inherit the upper one line's indent style
+set autoindent
+"c indent auto
+set smartindent
+set cindent
+set cino=:0,ps,(0
+
+"use tab instead of spaces
+set noexpandtab
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Autocommands
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"The next autocmd used to open the last open file.
+"autocmd FileType java,c,cpp vmap <C-o> <ESC>'<o/*<ESC>'>o*/
+
+if has("autocmd")
+	"set syntax color and show line number
+	"autocmd FileType java,perl,shell,bash,cpp,vim, set number
+	autocmd FileType c,java,perl,shell,bash,cpp,vim,make syntax on
+	
+	"set tab width
+	autocmd FileType c,cpp,perl,bash,java,vim, set tabstop=8
+	autocmd FileType text set tabstop=4
+
+	"fold settings
+	autocmd FileType c,cpp, set foldmethod=syntax
+	autocmd FileType c,cpp, set foldlevel=99
+endif " has("autocmd")
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" CTags setting, needs Taglist plugin
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"sort by name
+let Tlist_Sort_Type = "name"
+
+"compact type
+let Tlist_Compart_Format = 1
+
+"if only one buffer exists, kill buffer when close window
+let Tlist_Exist_OnlyWindow = 1
+
+"don't close other files tags
+let Tlist_File_Fold_Auto_Close = 0
+
+"don't show fold tree
+let Tlist_Enable_Fold_Column = 1
+autocmd FileType c,cpp nmap <F9> :TlistToggle<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" omnicppcompelte plugin settings, need omnicppcomplete plugin 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Note: see help completeopt, here use none preview window
+set completeopt=menu,menuone
+
+"turn off the access(+public -private #protected) hint
+let OmniCpp_ShowAccess = 0
+"auto complete for dot and arrow
+let OmniCpp_MayCompleteDot = 1
+let OmniCpp_MayCompleteArrow = 1
+let OmniCpp_MayCompleteScope = 0
+"don't select the first popup item
+let OmniCpp_SelectFirstItem = 0
+
+" automatic close the preview windows after complete
+"  autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+"  autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Note: code browser, buffer explorer, file explorer
+" code explorer
+" 	help: ctags cscope TListToggle
+"	ctags:	<C-]>, <C-t>
+"	cscope: cscope_maps.vim, <C-\>s/g/c/t/e/f/i/d
+"	TList: TlistToggle
+"
+" buffer explorer
+" 	help: bufExplorerDefaultHelp bufExplorerDetailedHelp
+"	bufexplorer	\be
+"
+" file explorer
+" 	help: NERDTree
+"	NERDTree: NERDTree NERDTreeClose
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Note: Generate tags file use ctags and load them when vim starts
+"
+" generate cmd: 
+" $ctags -R -f ~/.vim/systags --exclude="c++" \
+"	--exclude="compiz" --exclude="python" \
+"	--c-kinds=+p	\
+"	--fields=+iaS	\
+"	--extra=+q	\
+"	<DIR>
+"
+" nmap <F12> :!ctags -R --c-kinds=+p --fields=+iaS --extra=+q .<CR>
+
+" if has("autocmd")
+"  autocmd FileType c,cpp set tags+=/home/joseph/.vim/systags
+"  autocmd FileType c, cpp set tags+=../TAGS
+"  autocmd FileType c, cpp set tags+=../tags
+" endif
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Generate cscope database for large project like linux
+"
+" Notes:
+" @. Use absolute path here
+" @. -path parameter need * to indicate all after the string, cannot add
+" @. '/' after the -path parameter's last character
+" @. use cscope_map.vim plugin to load the database when vim starts
+" 1. mkdir /home/joseph/work/linux/cscope
+" 2. LNX=/home/joseph/work/linux
+" 3. cd / 	
+" 4.find $LNX 							\
+"   -path "$LNX/arch/*" ! -path "$LNX/arch/x86*" -prune -o	\
+"   -path "$LNX/tools*" 			 -prune -o	\
+"   -path "$LNX/fs*"				 -prune -o	\
+"   -path "$LNX/Documentation*"			 -prune -o	\
+"   -path "$LNX/drivers*"			 -prune -o	\
+"   -path "$LNX/firmware*"			 -prune -o	\
+"   -path "$LNX/sound*"				 -prune -o	\
+"   -path "$LNX/include/sound*"			 -prune -o	\
+"   -name *."[chxsS]" -print >$LNX/cscope/cscope.files
+" 5. cd $LNX/cscope
+" 6. cscope -b -q -k
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

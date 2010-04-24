@@ -1,0 +1,115 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+--------------------------------windows-----------------------------------
+Windows
+01. 删除打开方式中的无用条目和删除选择程序列表中的多余项
+02. 输入法快捷键
+--------------------------------office-----------------------------------
+01. 如何去掉页眉那条横线？
+02. 如何多次使用格式刷？
+03. 如何建立矩形选区？
+04. 如何快速删除段前段后的空格
+05. 常用快捷键
+06. PPT中如何给表格的每行每列或每个单元格添加播放动作
+07. word如何取消首页页码和页眉页脚
+------------------------------visual studio------------------------------
+01. Visual Studio中如何安排工程的目录结构？
+02. 报错error LNK2001:unresolved external symbol _WinMain@16如何解决？
+--------------------------------------------------------------------------
+
+
+--------------------------------windows-----------------------------------
+01. 删除打开方式中的无用条目和删除选择程序列表中的多余项
+    a) 删除右键打开方式中的多余项：
+    [HKCU\Software\Microsoft\Windows\CurrentVersion\
+    Explorer\FileExts\.extension\OpenWithList .extension]
+    删除值和你所要去掉的程序名称相同的键就可以了
+    或者
+    [HKCU\Software\Microsoft\Windows\CurrentVersion\ Explorer\FileExts] 和
+    [HKCR\SystemFileAssociations]
+    分支下中找到相应扩展名分支，然后在“OpenWithList”项中删除不需要的键值
+    或项即可。
+    删除选择程序列表中的多余项 [HKCR\Applications]，删除对应程序的[shell\open]
+    子项。
+
+02. 输入法快捷键
+   a) 中日文切换和英日文切换以及平假片假名、全角半角的切换。
+      Alt+Shift，在中文和日文间切换，可以连续切换
+      Ctrl+Caps，切换到平假名
+      Alt+Caps，切换到全角片假名
+      Shift+Caps，切换到英文数字输入方式
+      输入句子后可以使用功能键转换：
+      F6，全部变成平假名
+      F7，全部变成全角片假名
+      F8，全部变成半角片假名，这个在记事本中不能正常显示
+      F9，全部变成全角英文数字，再按一次全大写，再按一次首字母大写
+      F10，全部变成半角英文数字，再按一次全大写，再按一次首字母大写
+
+--------------------------------office-----------------------------------
+01. 如何去掉页眉那条横线？
+    a) 在页眉中，在“格式”－“边框和底纹”中设置表格和边框为“无”，应用于
+       “段落”。同上，只是把边框的颜色设置为白色（其实并没有删的，只是看起
+       来没有了。
+    b) 在“样式”栏里把“页眉”换成“正文”。会多出--(两个横杠) 这是用户不愿
+       看到的,又要多出一步作删除解决方法：替换时在前引号前加上一个空格 问题就
+       解决了
+
+02. 如何多次使用格式刷？
+    在复制格式时双击。
+
+03. 如何建立矩形选区？
+    按住Alt，点击左键，这可以用来删除复制网文段首的成片空格
+
+04. 如何快速删除段前段后的空格
+    选中这些段落，先居中，然后再采用原来的对齐方式
+
+05. 常用快捷键
+    a) 添加当前日期，时间
+       ALT + SHIFT + 'T'
+       ALT + SHIFT + 'D'
+    b) 上标:
+       CTRL + SHIFT + '='
+       下标
+       CTRL + '='
+    c) 添加脚注:
+       CTRL + ALT + 'F'
+
+06. PPT中如何给表格的每行每列或每个单元格添加播放动作
+    a) 2007以前的版本，选中表格，右键，ungroup，然后添加动作。
+    b) 2007版本参看:
+       http://office.microsoft.com/en-us/powerpoint/HA102118841033.aspx
+
+07. word如何取消首页页码和页眉页脚
+    word 2007中在页面布局菜单中打开页面设置对话框，在版式选项卡上选中首页不同
+
+------------------------------visual studio------------------------------
+01. Visual Studio中如何安排工程的目录结构？
+    首先建立一个空白的Workspace/Solution，然后在workspace/Solution的根目录下
+    新建文件夹src, doc, obj, bin, include, lib目录，新建的工程都安排在src目录
+    下或者lib目录下；doc目录下存放开发有关文档；include目录下为全局的头文件；
+    lib目录下为库源文件所在路径；obj下为编译产生的临时文件所在的路径；bin为
+    生成的可执行文件的存放路径。这些路径的更改通过Settings/Property来进行
+
+02. 报错error LNK2001:unresolved external symbol _WinMain@16如何解决？
+    a) 原因：
+       1) 第一种可能是你用vc建了一个控制台程序，它的入口函数应该是main, 而你使
+          用了WinMain。
+       2) 第二种可能是你用vc打开了一个.c/.cpp 文件，然后直接编译这个文件，这个
+          文件中使用了WinMain而不是main作为入口函数。vc这时的默认设置是针对控
+  制台程序的
+    b) 解决方法：
+       1) 针对VC++ 6.0
+          进入project-?setting-?c/c++, 在category中选择preprocessor，
+      在processor definitions中删除_CONSOLE, 添加_WINDOWS
+          进入project-?setting-?Link, 在Project options中将 /subsystem:console
+              改为/subsystem:windows.
+          保存设置，Rebuild All.
+       2) 针对Visual Studio 2005
+          菜单中选择 Project-?Properties, 弹出Property Pages窗口
+          在左边栏中依次选择：Configuration Properties-?C/C++-?Preprocessor，
+      然后在右边栏的Preprocessor Definitions对应的项中删除_CONSOLE，
+      添加_WINDOWS
+          在左边栏中依次选择：Configuration Properties-?Linker-?System，然后在
+              右边栏的SubSystem对应的项改为Windows(/SUBSYSTEM:WINDOWS)
+          保存设置，Rebuild All

@@ -1,0 +1,33 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+----------------------------------MTD-------------------------------------
+一组闪存操作命令:
+#erase [addr] +[size]		擦除指定地址addr起大小为size字节的区域
+#tftp [addr] [fname]		下载指定文件fname存到地址addr起的那块内存区域
+#cp.b [dst] [src] [size]	在存储空间内从src地址拷贝大小为size字节的内容
+				到dst，这里dst可以是内存或者闪存，.b表示按字节
+#md.b [addr] [size]		按字节显示地址addr起size字节的存储区域的内容
+
+#mkfs.jffs2 -r dir -o fn.jffs2	主机命令，用mtd-utils工具制作jffs2映像该命令把
+				目录dir下的内容放到一个jffs2映像中。
+
+#mtdparts
+操作和查看mtd分区，需要三个环境变量partition, mtdids和mtdparts。
+其中partition中存放当前的活动分区，mtdids是指内核mtd设备ID和u-boot设备id的映射
+mtdparts存放分区表，这些环境变量的格式如下：
+    mtdids=nor0=nor0
+    mtdparts=mtdparts=nor0:192K(ucboot)ro,-(root)
+    partition=nor0,1
+上述内容表示，内核中的nor0设备对应u-boot中的nor0闪存，该闪存被分为两个区，一个
+大小为192K的只读ucboot分区，剩下部分是root分区，当前分区是nor0,1。
+
+---------------------------------FLASH------------------------------------
+什么是启动块，为什么启动块要比较小一些？
+一般一块FLASH可以分为启动块区、参数储存块区、主数据存储区这么些地方。顾名思
+义，启动块就是存放启动加载程序的位置，可以通过启动加载程序进行FLASH烧写。一
+般产品中，这块都应该被保护，防止意外破坏。
+另外一般启动代码比标准块要小很多，比如标准块一般64KB大小，而启动程序一般达不
+到这个大小，所以为了节省空间，启动块被分割为更下的子块，通常是第一块（顶端启
+动）或者最后一块（底端启动）分割。
+

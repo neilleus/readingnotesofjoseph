@@ -1,0 +1,205 @@
+??? 为疑问点
+******************************************************************************
+关于初始化
+
+几个值的含义：
+_start: 	代码段的起始位置，入口位置。
+_TEXT_BASE:	在Makefile中指定的代码段起始位置。
+_bss_start:	在ucboot.bin的最末尾的一个段
+_bss_end:	就是ucboot.bin的_end
+_armboot_start:	代码段的起始位置
+
+重定位（relocate）代码映像和设置栈指针及初始化BSS过程:
+    1. 首先取得当前代码位置并测试当前处于闪存还是RAM中
+    2. 当前位置如果位于RAM中则不做重定位，否则进行拷贝重定位U-Boot到RAM中
+    3. 设置栈指针
+    4. 清空BSS段
+    5. 启动start_armboot
+说明：一般bootloader中不必使用中断，但U-Boot支持中断处理
+
+start_armboot()几个重要过程
+    1.  初始化全局数据变量gd，使其指向一个gd_t结构，它位于堆栈之间，静态预留。
+	CONFIG_GBL_DATA_SIZE。
+    2.  初始化gd->bd指向一个bdinfo数据结构，并初始化之。
+    3.  调用init_sequence[]数组内的板子初始化函数
+    4.  初始化内存动态分配区，闪存，定位环境变量位置，配置网络信息，设备信息，
+        开中断等。
+    5.  调用do_initcalls()，调用各个模块的初始化函数（initcall类型）
+    c.  调用main_loop()
+
+__init和__initcall
+__init会把代码放到init.text段，这些代码的内存在调用后会被释放。这个是gcc的扩展。
+__initcall用来收集某些init函数，以便按照顺序调用这些函数。这个是链接器脚本确定
+的，这个是Linux的设计。
+
+??? 为什么要重定位到DRAM中，为什么只要做些堆栈初始化和BSS初始化过程即可？
+为什么bootloader可以不用启用中断？
+
+
+******************************************************************************
+关于console
+
+可配置项（提供配置项静态编译和环境变量动态指定两种方式，某些仅支持一种）
+    终端设备
+    标准输入输出设备
+    安静模式（通过启动Linux前设置终端为nulldev实现）
+    启动图片
+
+
+数据结构
+static int ctrlc_disabled = 0;
+static int ctrlc_was_pressed = 0;
+chardev_t stdio_devices[] = {NULL, NULL, NULL};
+char* stdio_names[] = {"stdin", "stdout", "stderr"};
+char console_buffer[MAX_CBSIZE];
+
+终端控制API：
+int console_assign(int file, char *devname);	/* 关联文件描述符和设备 */
+int console_init_f(void);			/* 第一阶段初始化 */
+int console_init_r(void);			/* 第二阶段初始化 */
+
+输入输出API:
+int fgetc(int file);				/* 读入字符 */
+void fprintf(int file, const char *fmt, ...);	/* 输出字符到file */
+void fputc(int file, const char c);
+void fputs(int file, const char *s);
+int ftstc(int file);				/* 测试是否有字符可接收 */
+int getc(void);
+int tstc(void);
+void putc(const char c);
+void puts(const char *s);
+void printf(const char *fmt, ...);
+void vprintf(const char *fmt, va_list args);
+
+
+******************************************************************************
+关于device
+
+数据结构
+LIST_HEAD(char_devices);
+LIST_HEAD(block_devices);
+
+API:
+int chrdev_init(void);				/* 初始化设备管理器 	  */
+
+struct chrdev *alloc_chrdev(int size);		/* 创建一个新设备   	  */
+void free_chrdev(struct chrdev *dev);		/* 销毁一个设备 	  */
+
+int register_chrdev(struct chardev_t *dev);	/* 注册新设备到管理器中   */
+void unregister_chrdev(struct chrdev *dev);	/* 从管理器中删除设备     */
+
+struct chrdev *search_chrdev(int flags, char *name);	/* 精确查找设备   */
+struct chrdev *search_device_flags(int flags);	/* 根据flag查找符合的设备 */
+
+
+******************************************************************************
+关于env
+根据配置ENV保存在flash的0x10050000~0x1005FFFF这个擦除块上
+由于ENV_ADDR小于MONITOR_BASE值，所以grocx的env不是嵌入的。
+
+env_t数据结构包括数据部分的CRC校验码、有效标志和ENV数据三部分。其中数据部分是
+形如name=value的字符串集合，通过'\0'将多个字符串隔离开来，最后以空字符串"\0"
+结尾，所有的字符串连贯保存在一个字符数组中。修改环境变量值相当于删除旧表项，然
+后在表格末尾添加一个同名新表项并重新计算32位CRC校验码的值。
+typedef struct environment_s {
+	unsigned long crc;		/* crc32 over data bytes */
+	unsigned char flags;		/* active / obsolete */
+	unsigned char data[ENV_SIZE];	/* data bytes */
+} env_t;
+
+env_t environment = {ENV_CRC, 1, {"..."}};
+env *env_ptr;			/* 指向系统中env_t数据结构的指针 */
+uchar default_environment[];	/* 在没有设置环境变量时使用缺省环境变量表 */
+extern uchar environment[];	/* FIXME: 自定义的环境变量表 */
+gd->env_addr;			/* env数据区的地址 */
+
+char *env_name_spec = "Flash";	/* env名字 */
+static env_t *flash_addr;	/* 环境变量在闪存上的首端地址 */
+static ulong end_addr;		/* 环境变量在闪存上的末端地址 */
+static env_t *flash_addr_new;	/* 冗余环境变量在闪存上的首端地址 */
+static ulong end_addr_new;	/* 冗余环境变量在闪存上的末端地址 */
+
+#define ACTIVE_FLAG 	1	/* 表示该环境变量组被启用 */
+#define OBSOLETE_FLAGS 	0	/* 表示该环境变量组没有被启用 */
+
+更新env CRC的时机：env_valid失效采用default时计算一次，setenv时会根据是（增
+加/修改）还是删除各计算一次，env修改即是删除旧的，增加新的。
+操作方法
+int env_init(void);		/* 设置gd->env_addr和gd->env_valid值，
+				 * gd->env_addr指向环境变量数据部分的首地址
+				 * 根据是否配置了备用环境变量分为两种情况：
+				 * 有备份）指向flash中的地址
+				 * 无备份）指向内存中重定向过的地址
+				 */
+void env_crc_update(void);  	/* 更新env_ptr指向的crc。 */
+int env_complete(*var,maxv,*cmdv[],bufsz,*buf); /* 用于命令自动完成 */
+
+void env_relocate(void);	/* 重定位env_ptr指向的ram中的位置：
+				 * 可能1）嵌入text段，重定位env_ptr位置即可。
+				 * 可能2）非嵌入方式，需要在堆上分配env空间
+				 */
+void env_relocate_spec(void);	/* 将env从flash拷贝到内存中的位置 */
+
+uchar (*env_get_char)(int);	/* 用于获取指定index处env值的函数指针 */
+static uchar env_get_char_init(int);	/* 调用spec或从default位置取env */
+uchar env_get_char_spec(int);	/* 由各种存储介质实现的取env值的函数 */
+uchar env_get_char_memory(int index);	/* 重定位后，用它直接从内存位置返回 */
+uchar *env_get_addr(int index); /* 返回env中index位置的指针 */
+
+static int envmatch(uchar *s1, int i2);
+char *getenv(char *);
+    在环境变量表中查找对应名字的环境变量并返回指向该环境变量字符串的指针
+int getenv_r(char *name, char *buf, unsigned len);
+    按照name查找环境变量，并把查到的结果填入传入的buf中，返回值表示查询到的长度
+int saveenv(void);
+void setenv(char *, char *);
+
+int do_setenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+    设置ENV变量，调用_do_setenv实现
+int _do_setenv(int flag, int argc, char *argv[]);
+    设置ENV变量，只对RAM中的ENV拷贝操作。
+int do_askenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_printenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+
+
+******************************************************************************
+关于jump table来自Wolfgang Denk的回复：
+The "jump table provided by U-Boot exactly for this purpose" is the
+list of functions exported through the "include/_exports.h" header
+file.
+Only these functions are available from standalone programs without
+linking against any of the U-Boot provided libraries. If your program
+links and runs fine using only these functions then you are free to
+license your standalone application whatever you like; if you need to
+link against any of the U-Boot libraries then you must release your
+code under GPL.
+上面的意思就是说：所谓jump table就是在include/_exports.h头文件中导出的函数的列
+表。如果外部的独立软件仅仅调用了这些函数，那么它可以是任意License，如果它内部链
+接了U-Boot的其它库函数，则必须以GPL方式发布。
+
+
+******************************************************************************
+MTD分区
+U-Boot实现了两种不同的方法来定义一个易于和linux内核共享的MTD分区模式
+第一种是在你的板子config文件中定义一个单一的，静态的分区，比如
+    #undef CONFIG_JFFS2_CMDLINE
+    #define CONFIG_JFFS2_DEV		"nor0"
+    #define CONFIG_JFFS2_PART_SIZE	0xFFFFFFFF	/* 使用整块闪存 */
+    #define CONFIG_JFFS2_PART_SIZE	0x00100000	/* 使用1MB闪存 */
+    #define CONFIG_JFFS2_PART_OFFSET	0x00000000	/* 分区偏移为0 */
+第二种方法是使用Linux内核的mtdparts命令行选项和动态分区，比如
+    #define CONFIG_JFFS2_CMDLINE
+    #define MTDIDS_DEFAULT	"nor1=zuma-1,nor2=zuma-2"
+    #define MTDPARTS_DEFAULT	"mtdparts=zuma-1:-(jffs2),zuma-2:-(user)"
+命令行过程会产生较大的映像，并且可能对某些目标会不适合，所以缺省是关闭的。
+
+mtdparts命令提供了一个强大易用的接口通过环境变量表来定义给内核传递的参数。
+此命令使用三个环境变量：
+    partition：保存当前分区标识，分区ID
+    part-id：设备ID，分区号
+    mtdid：内核MTD设备ID <-> u-boot设备ID映射
+    mtdparts：mtdparts=???
+
+
+******************************************************************************

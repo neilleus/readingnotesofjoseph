@@ -1,0 +1,88 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+*******************************************************************************
+内核中的链表用法和实现
+内核在include/linux/list.h中实现了一个循环双链表，基本上内核中所有的链表都采用
+它。关于并发访问需要使用者自己来进行控制。下面先阐述用法，再谈实现。
+
+*** 用法
+0.  链表结构：struct list_head {struct list_head *next, *prev;};
+1.  包含头文件<linux/list.h>
+2.  定义一个链表头：
+        a. 直接定义法： struct list_head todo_list;	/* 需要初始化 */
+	b. 使用内核宏： LIST_HEAD(todo_list);		/* 调用后者实现 */
+			LIST_HEAD_INIT(todo_list);	/* 已进行了初始化 */
+3.  初始化链表头，只有直接定义方式才需要初始化
+	调用内核函数INIT_LIST_HEAD(&todo_list);
+4.  在你要用链表管理的数据结构中增加类型为struct list_head成员。
+5.  链表操作方法API：
+    a. list_add(struct list_head *new, struct list_head *head);	/* 头部插入 */
+    b. list_del(struct list_head *entry);	/* 删除指定项 */
+    c. list_move(list_head *entry, struct list_head *head);	/* 移到头部 */
+    d. list_empty(list_head *head);		/* 检测空，非空返回非零 */
+    e. list_splice(struct list_head *list, struct list_head *head);
+    						/* 链接两个链表 */
+    f. list_entry(struct list_head *ptr, type_of_struct, field_name);
+    						/* 获取给定节点所在的结构 */
+    g. list_replace(struct list_head *old, struct list_head *new);
+    						/* 用新节点取代旧节点 */
+    j. list_for_each(struct list_head *cursor, struct list_head *list);
+    k  list_for_each_entry(type *cursor, struct list_head *list, member);
+
+*** 实现
+struct list_head {
+	struct list_head *next, *prev;
+};
+
+/* 使头节点的前驱和后继都指向自身 */
+static inline void INIT_LIST_HEAD(struct list_head *list)
+{
+	list->next = list;
+	list->prev = list;
+}
+
+/* 链表通过在结构中插入list_head结构来链接起来，每次遍历或者查找链表首先找到的
+ * 是数据结构中的list_head类型成员，而要获得该节点所在的数据结构的指针，需要使
+ * 用list_entry()这个宏
+ */
+#define list_entry(ptr, type, member)	container_of(ptr, type, member);
+
+*** 总结：
+    1.  定义一个链表节点并初始化
+    2.  构造的数据结构中包含链表节点
+    3.  链表操作包括
+	    检查链表是否为空
+	    检查当前节点是否是最后一个节点
+            将节点加入链表（从头部或尾部）
+	    将节点从一个链表移动到另一个链表（头部或者尾部）
+	    从链表中删除指定节点
+	    将链表中的节点用另一个节点替换
+	    将两个链表连接起来（从头部或者尾部）
+	    遍历链表（并取得每个元素）
+	    safe族API可以防止访问时节点被删除的不良影响，不进行预取。
+    4.  要考虑SMP安全性和并发访问
+
+*******************************************************************************
+内核中的散列表的用法和实现
+内核在include/linux/list.h中实现了一个散列表，下面阐述用法和实现。
+
+*** 实现
+struct hlist_head {
+	struct hlist_node *first;
+};
+
+struct hlist_node {
+	struct hlist node *next, **pprev;
+};
+
+static inline void INIT_HLIST_NODE(struct hlist_node *h)
+{
+	h->next = NULL;
+	h->pprev = NULL;
+}
+
+---------------------------------------
+References:
+Linux Device Driver Chapter 11
+kernel source tree: include/linux/list.h

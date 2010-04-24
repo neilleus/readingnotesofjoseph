@@ -1,0 +1,121 @@
+********************
+设备管理
+DEFINE_MUTEX(mtd_table_mutex);			管理数组访问锁
+struct mtd_info *mtd_table[MAX_MTD_DEVICES];	设备管理数组
+struct mtd_info{};				MTD设备信息
+LIST_HEAD(mtd_notifiers);
+struct mtd_notifier{};				通知结构
+add_mtd_device();				注册一个MTD设备
+del_mtd_device();				删除一个MTD设备
+register_mtd_user();				注册一个用户（回调）
+unregister_mtd_user();				删除一个用户（回调）
+get_mtd_device();				引用一个mtd设备
+get_mtd_device_nm();
+put_mtd_device();
+
+LIST_HEAD(chip_drvs_list);
+register_mtd_chip_driver();
+unregister_mtd_chip_driver();
+do_map_probe()->get_mtd_chip_driver();
+struct mtd_chip_driver{};
+
+分区管理
+LIST_HEAD(mtd_partitions);			分区管理链表
+struct mtd_part{};				分区节点
+add_mtd_partitions();				注册所有分区
+del_mtd_partitions();				删除所有分区
+
+分区解析器管理
+LIST_HEAD(part_parsers);			分区解析器管理链表
+struct mtd_part_parser{};			分区解析器节点
+register_mtd_parser();				注册解析器
+deregister_mtd_parser();			删除解析器
+parse_mtd_partitions();				调用注册的解析器解析分区
+
+
+********************
+分区解析器
+CONFIG_MTD_REDBOT_PARTS		redboot.c	Parse redboot-style flash iamge
+						system (FIS) tables and produce
+						a linux partition array to match
+CONFIG_MTD_CMDLINE_PARTS	cmdlinepart.c	Read flash partition table
+						from command line
+CONFIG_MTD_AFS_PARTS		afs.c		ARM flash layout/partitioning
+CONFIG_MTD_AR7_PARTS		ar7part.c	TI AR7 flash partition table
+CONFIG_MTD_OF_PARTS		ofpart.c	flash partitions described by
+						the OF or flattened device tree
+将分区信息（固化或通过引导加载器传递）转化为分区结构
+REDBOOT分区解析器	name="RedBoot"
+命令行分区解析器	name="cmdlinepart"
+ARM闪存分区解析器	name="afs"
+TI AR7分区解析器	name="ar7part"
+OF分区解析器		与前面不同
+
+ucboot采用命令行分区解析器方案
+需要三个环境变量：
+	当前分区：partition
+	u-boot分区和内核分区映射：mtdids
+	分区表：mtdparts
+
+OF：主要用于PPC系统维护了一个设备树，描述系统中所有硬件以及它们的连接信息。在
+启动时，启动内存管理之前，内核调用OF提供的例程扫描设备树并将其转化为内部结构。
+设备树包含表示设备和总线的节点，每个节点有属性、名值对。嵌入式系统的引导加载器
+一般只维护关键设备的少量信息，没有设备树。假如内核将各类信息硬编码的话会很难移
+植。
+
+REDBOOT: CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK指明那个闪存块存放了REDBOOT分区表信
+息，是CYGNUM_REDBOOT_FIS_DIRECTORY_BLOCK的副本
+该分区表会给出闪存内镜像的偏移、长度、名字信息。
+需要有自己的解析函数由此驱动调用。
+
+命令行：通过命令行参数mtdparts给内核传递mtd分区信息，格式为
+    mtdparts:devname:partsize(partname)flag,partsize(partname)flag,-(name)flag
+    也需要特定的解析函数（通过map driver调用来解析）
+
+AFS适用于基于ARM Firmware Suit的分区结构信息
+具体可查阅文档ARM Firmware Suite User Guide
+
+AR7PART是用于TI的AR7 SoC的闪存分区表
+
+********************
+创建超级块
+jffs2_get_mtd();->get_sb_mtd();->get_sb_mtd_aux();->sget();
+
+struct file_operations jffs2_file_operations;		file.c
+struct inode_operations jffs2_file_inode_operations;	file.c
+struct file_operations jffs2_dir_operations;		dir.c
+struct inode_operations jffs2_dir_inode_operations;	dir.c
+
+struct jffs2_inode_info{};				jffs2_fs_i.h
+struct jffs2_sb_info{};					jffs2_fs_sb.h
+
+jffs2_get_sb();->jffs2_fill_super();->jffs2_do_fill_super();->jffs2_do_mount_fs();
+
+do_new_mount();
+	do_kern_mount();
+		vfs_kern_mount();
+			alloc_vfsmnt();
+	do_add_mount();
+
+
+sys_mount();
+sys_oldumount();
+
+
+********************
+文件系统接口
+fs info -- Print filesystem information
+fs mount -- Mount a filesystem
+fs umount -- Unmount filesystem
+fs cd -- Change filesystem directory
+fs mkdir -- Create filesystem directory
+fs deldir -- Delete filesystem directory
+fs del -- Delete file
+fs move -- Move file
+fs list -- List filesystem directory
+fs write -- Write to filesystem
+
+map driver
+
+
+

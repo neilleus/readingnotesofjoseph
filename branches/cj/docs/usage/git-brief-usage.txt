@@ -1,0 +1,109 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+基础概念：
+    GIT是分布式版本控制系统，在每个主机上都保存这版本库的完整镜像，这于CVS，SVN
+    等集中式版本控制系统不同，集中式版本控制系统仅是在服务器上保存有所有信息。
+    GIT文件更改后是以快照的方式来保存每个版本，而传统的是保存不同版本见的差异。
+    GIT在提交前都要使用SHA-1算法进行内容校验和计算，并以此来标记文件和目录。
+    GIT控制下文件的三种状态：committed（已提交），modified（已修改），staged（
+    暂存状态，标记提交但尚未提交）。
+    GIT基本工作流程：在工作目录中修改文件；快照，保存到暂存区；提交。
+
+GIT安装
+    Linux下可以源码编译或二进制安装，依赖curl, zlib, openssl, expat, libiconv等
+    Windows下可以安装mysysGit，位于 http://code.google.com/p/msysgit
+
+GIT配置
+    使用git config或者git-config命令，可以配置用户名，电邮，默认日志编辑器等等
+    具体参见git help config 
+
+基础操作
+    (a) 检查文件状态，如果文件没有纳入git管理，会在Untracked files列出
+        $git status
+    (b) 将工作目录下的已修改的文件添加到staged状态
+        $git add <filename>
+    (c) 做差异比较，git保存快照而不是差异，所以diff的内容是运算得出的。
+        $git diff <filename>
+    git diff指示的是处于modified状态的修改内容，处于staged和committed的不显示。
+        $git diff --cached <filename>
+    上述命令显示处于staged状态的文件和committed状态之间的差异
+    (d) 提交更新，将文件从staged状态提交到committed状态
+        $git commit
+	自动将modified状态的文件也提交，跳过staged状态。
+	$git commit -a
+    (e) 删除文件或目录，强制删除添加-f选项（比如修改已经staged的文件）
+        $git rm <filename>
+	从仓库中删除，但保留本地文件
+	$git rm --cached <filename>
+    (f) 文件更名，实质是删除旧文件，添加新文件
+        $git mv <old_name> <new_name>
+    (g) 查看日志，
+        $git log <filename>
+	选项：
+	    -p选项显示每次差异
+	    -n显示最近n次更新的日志
+	    --stat统计更改的行数
+	    更多查看git help log
+	    gitk工具用于图形界面查看git日志
+    (h) 使用当前暂存区重做最后一次提交，可以修改提交日志信息，添加要提交的文件等
+        $git commit --amend
+    (i) staged -> modified
+        $git reset <filename>
+    (j) 丢弃修改，恢复到老版本
+        $git checkout -- <filename>
+	注意：reset和checkout --会导致修改丢失，要小心操作。
+    (k) 远程仓库操作：
+        关于orgin：clone以后这个指代当初clone时的源远程仓库
+        查看当前所有远程仓库和远程仓库信息（url以及跟踪的分支）：
+            $git remote -v
+	    $git remote show <remote-name>
+	添加一个远程仓库：
+	    $git remote add <shortname> <url>
+	从远程仓库获取数据，获取远程仓库有而本地没有的数据
+	    $git fetch <remote-name>
+	从远端仓库的master分支更新数据到本地的master分支（默认）
+	    $git pull
+	将本地更改推送到远程仓库，需要有提交权限并且没有别人推送过或正在推送
+	    $git push <remote-name> <remote-branch>
+	重命名和删除远程仓库
+	    $git remote rename <old> <new>
+	    $git remote rm <name>
+    (l) 添加标签
+        列出标签，按字母排序：
+	    $git tag
+	添加标签：
+	    $git -a <tagname> -m "tag info"
+	添加并签署标签，需要gpg签名：
+	    $git -s <tagname> -m "tag info"
+	查看标签信息：
+	    $git show <tagname>
+	验证标签，可以验证标签签名，需要有签署者的公钥放在keyring中：
+	    $git tag -v <tagname>
+	追加标签，通过某此更改后的校验和
+	    $git tag -a <tagname> <checksum>
+	标签分享到服务器，分享特定标签和所有标签
+	    $git push <remote-name> <tagname>
+	    $git push <remote-name> --tags
+    (m) 初始化一个工作目录采用git管理，目录下要管理哪些文件需要自行添加。
+        $git init
+    (n) 从服务器镜像一个仓库到本地，支持git, http, https, ssh等格式的url。
+        $git clone <url> <target project name>
+    (o) 忽略文件列表 .gitignore，被忽略的文件不会出现在Untracked files中。
+        忽略文件通配符： '*'匹配任意个任意字符，'[]'表示选择范围，'?'匹配一个
+	任意字符，'!'表示对匹配集合取反，这个可以参考各类正则表达式的规范，都
+	比较类似。.gitignore文件中以'#'开头的行为注释行，还支持忽略目录。
+    (p) 从本地git仓库中导出某个版本并打包成tar.bz2包
+        $git-archive -v --format=tar v2.6.32 |bzip2 > ../linux-2.6.32.tar.bz2
+
+GIT分支
+
+疑问：
+    GIT中镜像服务器是什么地位。
+
+
+---------------------------------------
+References:
+http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+http://progit.org/book/zh/index.html
+

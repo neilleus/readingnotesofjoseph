@@ -1,0 +1,46 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+一种同一主机上进行客户-服务器通信API，UNIX域协议是IPC通信方式的一种替代。UNIX
+域提供了两种类型的套接口： 字节流套接口和数据报套接口。
+
+为什么使用UNIX域套接口？
+    1.  同一主机上时，UNIX域套接口速度快于TCP套接口。典型应用X Window。
+    2.  UNIX域套接口可以用来在同一主机上的个进程之间传递描述字。
+    3.  UNIX域套接口可以向服务器提供客户凭证，这可提供附加的安全检查。
+
+地址：
+UNIX域用来标识客户和服务器的协议地址通常是文件系统里的路径名，这些路径名不是普
+通的UNIX文件，除非将它们和UNIX域套接口关联起来，否则程序不能读写这些文件。比如
+/dev/log文件。
+地址结构定义于sys/un.h中
+struct sockaddr_un {
+	uint8_t sun_len;		/* Linux无此字段 */
+	sa_family_t sun_family;		/* AF_LOCAL */
+	char sun_path[104];		/* '\0'字符串 */
+};
+路径名如果在文件系统中已经存在，则bind会失败。
+
+#include <sys/socket.h>
+int socketpair(int family, int type, int protocol, int sockfd[2]);
+参数family必须为AF_LOCAL，protocol必须为0。
+建立一对相互连接的套接口。创建的两个套接口是没有名字的，即没有涉及隐式bind。
+这样创建的SOCK_STREAM类型的连接套接口和一般UNIX管道类似，但流管道是全双工的。
+
+与UDP套接口不同，在未绑定的的UNIX域套接口上发送数据报不会给它自动bind路径名。
+同样，给UNIX域数据报套接口调用connect不会自动捆绑一个路径名。
+
+描述字传递（需要详细描述）
+从一个进程向另一个进程传递打开的描述字时，可以：
+    1.  fork调用后，子进程共享父进程所有打开的描述字，在调用exec时所有描述字仍
+    保持打开
+    2.  unix提供了一种方法，可以在没有任何关系的两个进程之间传递打开的描述字，
+    这种技术要求现在两个进程之间建立一个UNIX域套接口，然后用sendmsg从这个套接
+    口上发一个特殊消息，这个消息由内核做特殊处理，以将打开的描述字从发送方传到
+    接收方。
+    3.  利用ioctl的I_SENDFD和I_RECVFD方法。
+
+
+---------------------------------------
+References:
+UNP Chapter 14 UNIX域协议

@@ -1,0 +1,53 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+/* mtd_char.c */
+mtd_ioctl()
+	MEMGETREGIONCOUNT:
+	MEMGETREGIONINFO:
+	MEMGETINFO:
+	MEMERASE(64):
+	MEMWRITEOOB(64):
+	MEMREADOOB(64):
+	MEMLOCK:
+	MEMUNLOCK:
+	/* Legacy interface */	
+	MEMGETOOBSEL:
+	MEMGETBADBLOCK:
+	MEMSETBADBLOCK:
+	/* #ifdef CONFIG_HAVE_MTD_OTP */
+	OTPSELECT:
+	OTPGETREGIONCOUNT:
+	OTPGETREGIONINFO:
+	OTPLOCK:
+	/* #endif */
+	ECCGETLAYOUT:
+	ECCGETSTATS:
+	MTDFILEMODE:
+
+mtd_compat_ioctl()
+	MEMWRITEOOB32:
+	MEMREADOOB32:
+
+struct file_operations mtd_fops = {
+	.owner		= THIS_MODULE,
+	.llseek		= mtd_lseek,
+	.read		= mtd_read,
+	.write		= mtd_write,
+	.ioctl		= mtd_ioctl,
+	.compat_ioctl	= mtd_compat_ioctl,	/* 64-bit kernel gets ioctl
+						   call from 32-bit user */
+	.open		= mtd_open,
+	.release	= mtd_close,
+	.mmap		= mtd_mmap,
+	.get_unmapped_area = mtd_get_unmapped_are,
+};
+
+mtd的超级块管理, mtdsuper.c
+get_sb_mtd();			/* 建立超级块 */
+jffs2_get_sb();			/* 调用get_sb_mtd() */
+
+
+---------------------------------------
+References:
+

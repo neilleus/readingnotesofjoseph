@@ -1,0 +1,130 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+DNS基础
+DNS的条目称为资源记录RR（resource record）。
+记录类型：
+    A		A记录将主机名映射为32位的IPv4地址。
+    AAAA	AAAA（4A）记录将主机名映射为128位的IPv6地址，4A代表128/32=4
+    PTR		PTR（指针）记录将IP地址映射为主机名，对于IPv4地址，32位地址的
+    		4个字节顺序反转，每个字节都转换成它的十进制ASCII值，然后附上
+		in-addr.arpa；对于IPv6地址，128位地址中的32个4位组顺序反转，
+		每组被转换成相应的16进制ASCII值（0-9，a-f），并附上ip6.int。
+    MX		MX记录指定一个主机作为某主机的邮件交换器，当有多个MX记录存在时
+    		需按优先级顺序使用，从最小值开始。
+    CNAME	代表canonical name（规范名字），其常见用法是为常用服务入ftp和
+    		http指派一个CNAME记录。
+
+应用程序通过调用称为解析器库中的函数来与DNS服务器联系，最常见的解析器函数就是
+gethostbyname和gethostbyaddr。解析器位于系统库中。
+/etc/resolv.conf一般包含本地名字服务器的IP地址。解析器用UDP给本地名字服务器发
+查询。不使用DNS也可得到名字和地址信息，一种是静态主机文件，如/etc/hosts，一种
+是网络信息系统NIS。
+
+#include <netdb.h>
+struct hostent *gethostbyname(const char *hostname);
+
+参数hostname可以是一个主机名也可以是一个点分十进制的IPv4地址或者冒号分隔的IPv6
+地址。即如是IP地址，则不进行查询，直接拷贝返回。
+出错时这个函数不设置errno，而是将全局整数h_errno设置为定义在头文件<netdb.h>中的
+对应错误值。hstrerror转换错误号为字符串。
+
+struct hostent {
+	char *h_name;		/* 主机主名字 */
+	char **h_aliases;	/* 主机别名列表 */
+	int h_addrtype;		/* 主机地址类型：AF_INET还是AF_INET6 */
+	int h_length;		/* 地址长度，4或6 */
+	char **h_addr_list;	/* 指向IPv4或IPv6地址列表的指针，网络字节序，
+				 * 二进制格式的地址 */
+};
+#define h_addr	h_addr_list[0];	/* 地址列表中的第一个地址 */
+
+函数gethostbyname和gethostbyaddr会返回指向静态数据的指针，这些数据可能被后面的
+调用覆盖，拷贝结构struct hostent是不够的，因为可能包含指针，必须进行深度拷贝。
+
+res_init函数和RES_USE_INET6选项
+#include <resolv.h>
+res_init();
+_res.options |= RES_USE_INET6;
+这会导致gethostbyname和gethostbyaddr返回IPv6地址。
+res_xxx有一族函数
+
+gethostbyname2函数可以指定地址族
+
+#include <netdb.h>
+struct hostent *gethostbyaddr(const void *addr, socklen_t len, int family);
+参数addr是根据family值而不同的结构指针，可以是struct in_addr *或者
+struct in6_addr *，family可选AF_INET或者AF_INET6
+
+#include <sys/utsname.h>
+int uname(struct ustname *buf);
+返回的内容存放在传入的buf中。
+确定本机IP，可以调用uname获得本机名字，然后调用gethostbyname获得本机的所有IP。
+确定本机IP的另一个方法是ioctl的命令SIOCGIFCONF。
+
+#include <unistd.h>
+int gethostname(char *name, size_t namelen);
+返回当前主机名字。
+
+#include <netdb.h>
+struct servent *getservbyname(const char *servname, cosnt char *protoname);
+struct servent *getservbyport(int port, const char *protoname);
+参数servname必须指定，如果同时指定了protoname，则结果表项必须有匹配的协议。
+如果没有指定protoname且服务支持多个协议（UDP和TCP），则返回哪个端口依赖于实现。
+struct servent {
+	char *s_name;		/* 服务名 */
+	char **s_aliases;	/* 别名列表 */
+	int s_port;		/* 端口号，网络序存放 */
+	char *s_proto;		/* 使用的协议列表 */
+};
+一般同一端口号TCP和UDP用于同一服务，但也有例外，所以不能以此作为定理。
+
+
+可为应用程序提供协议独立性的getaddrinfo函数
+#include <netdb.h>
+int getaddrinfo(const char *hostname, const char *service,
+		const struct addrinfo *hints, struct addrinfo **result);
+char *gai_strerror(int error);
+void freeaddrinfo(struct addrinfo *ai);
+int getnameinfo(const struct sockaddr *sockaddr, socklen_t addrlen, char *host,
+		size_t hostlen, char *serv, size_t servlen, int flags);
+函数通过result指针返回一个指向addrinfo结构链表的指针，该结构在<netdb.h>中定义
+参数hostname是主机名或地址串（IPv4点分十进制地址或IPv6十六进制数串），service是
+服务名或十进制的端口号字符串。hints是一个控指针或指向一个addrinfo结构的指针，由
+调用者填写它想返回的信息类型的线索，其实可以看作是个返回结果的过滤器，调用者可
+以设置的hints结构的成员有ai_flags, ai_family, ai_socktype, ai_protocol。
+AI_PASSIVE标志表示该套接口是用作被动的打开，AI_CANONNAME标志则通知getaddrinfo
+函数返回主机的名字，如果hints中这个标志被设置，则返回的第一个结构的ai_canonname
+成员指向相应主机的名字。如果hints为NULL，则ai_flags, ai_socktype和ai_protocol
+会被置为0，ai_family设置为AF_UNSPEC。
+在addrinfo中返回的信息可用于调用socket，然后调用connect，sendto或bind等函数。
+
+struct addrinfo {
+	int ai_flags;		/* AI_PASSIVE, AI_CANONNAME */
+	int ai_family;		/* AF_xxx */
+	int ai_socktype;	/* SOCK_xxx */
+	int ai_protocol;	/* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+	size_t ai_addrlen;	/* ai_addr的长度 */
+	char *ai_canonname;	/* 指向主机权威名字的指针 */
+	struct sockaddr *ai_addr;
+	struct addrinfo	*ai_next;
+};
+
+由getaddrinfo()返回的存储空间，包括addrinfo结构，ai_addr结构和ai_canonname字符
+串都是malloc动态分配的，这些空间需要调用freeaddrinfo函数来释放。
+要复制addrinfo结构应该执行深拷贝（deep copy），浅拷贝（shallow copy）会导致指针
+指向的内容未进行拷贝的错误。
+
+getaddrinfo()解决了主机名和服务名转换成套接口地址结构的问题，与其功能相反的函
+数getnameinfo在把套接口地址结构转换成主机名或服务名。
+
+可重入问题：由于gethostbyname, gethostbyaddr, getservbyname, getservbyport等函
+数使用了静态的变量，是不可重入的。
+inet_pton和inet_ntop总是可重入的。
+
+getaddrinfo的实现（略）
+
+---------------------------------------
+References:
+UNP Chapter 9 基本名字与地址转换
+UNP Chapter 11 高级名字与地址转换

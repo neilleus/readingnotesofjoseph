@@ -1,0 +1,104 @@
+公司名称	产品举例
+
+** Host Controller **
+WCH-IC		CH37x
+CMD  		USB0670、USB0673 
+Cypress		CY7C670xx 
+Intel		440BX AGP、440LX AGP 
+Lucent		USS-302 
+Motorola	MPC850、MPC823 
+OPTi		82C861 
+ScanLogic	SL811H、SL11H 
+Symbios		SYM60800 
+TransDimension  UH1000 
+
+** HUB **
+Alcor Micro	AU2916,AU9412 
+Atmel		AT43301,AT43311 
+FDTI		FT8U2100AX 
+Intel		8x930Hx,8x931Hx 
+KC Technology	KC82C160,KC82C169 
+Motorola	MC141555,MC141556 
+Philips		PDIUSBH11,PDIUSBH12 
+Sola Electronics  MSE9701,MSE9712
+TI		TUSB204613 
+USAR Systems	UR3HCGNH 
+Winbond		W81C180,W82C620 
+
+** Device Controller **
+AKM		AK4170
+WCH-IC		CH3xx
+Lucent		USS-820,USS-620
+Micrel		MIC2550
+National	USBN9602 
+NetChip		NET2888,NET2890 
+OKI		MSM60851 
+Philips		PDUSBD11,PDUSBD12 
+ScanLogic	SL11,SL16 
+Thesys		TH6501,TH6503 
+Sipex		SP5301 
+
+** MCU **
+AMD		AM186CC,AM186CU 
+Anchor		EZ-USB 
+Atmel		AT43USB321,AT43320 
+Cypress		CY7C63xxx,CY7C64xxx,CY7C65xxx 
+Infineon	C161U,C167UTAH,C541U 
+Intel		8x930Ax,8x931Ax 
+Kawasiki	LSI USB1,USB2,USB3 
+Microchip	PIC16C745,PIC16C765 
+Mitsubishi	M7532,M7536 
+Freescale	MC68HC05JB3,MC68HC05JB4 
+NXP		P8xCx90,P8xCx95 
+ScanLogic	SL11R 
+ST		ST7277,ST7271NT 
+Standard Micro	USB97C100,USB97C102 
+
+** USB POWER **
+IMP		IMP2525,IMP2526 
+Micrel		MIC2525,MIC2526,MIC2527 
+Murata		BLM21P221SG 
+TI		TPS2014,TP2015 
+Unitrode	UCC3831 
+
+** Apps **
+ * HID *
+Alcor Micro	AU9412 
+CMD		USB678KM2,USB678KM3 
+Code Mercenaries  MouseWarrior,key Warrior 
+Fairchild	USB100 
+FDTI		FT8U20BM,FT8U24AM 
+Motorola	MC68HC05JB04 
+Samsung		KS86C6008,KS86C6104 
+Sola Electronics  MSE9750,MSE9751 
+USAR Systems	UR3HCGNH,UR3HCGNM 
+Vitera		Helium 
+Winbond		W81C280,W82C620 
+Zilog		Z8E520,Z86U18 
+ * USB to Parallel *
+Lucent		USS-720 
+Prolific Technology  PL2303 
+ScanLogic	SL11P2USB 
+Sola		MSE9810
+ * USB 2 USB
+Aox		SE200 
+Shadow logic	SS-20 
+Prolific Technology  PL2301,PL2302 
+ * USB Audio *
+AKM		AK5370 
+Dallas		DS4201 
+Philips		UDA1321H,UDA1331H 
+ * USB Video *
+Aox		SE400,SE510 
+Divio		NW801,NW802 
+Philips		SAA8115HL,SAA8117HL 
+Sunplus		SPCA501A 
+ * USB Ethernet *
+Kawasiki LSI	KCUSB16 
+ScanLogic	SL11ETRN 
+Dallas		DS2490 
+ * USB/RS-232 *
+Atmel		AT76C711 
+ * USB-ATAPI/IDE *
+ScanLogic	SL11RIDE 
+

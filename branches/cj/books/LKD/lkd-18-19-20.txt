@@ -1,0 +1,10 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+
+---------------------------------------
+References:
+Linux Kernel Development Chapter 18 调试
+Linux Kernel Development Chapter 19 可移植性
+Linux Kernel Development Chapter 20 补丁、开发和社区
+Linux Kernel Development 附录A, B, C 链表，内核随机数产生器，复杂度算法

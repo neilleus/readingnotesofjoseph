@@ -1,0 +1,24 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+重点文件：
+重点数据结构：
+    struct vfsmount;
+    struct namespace;
+
+每一个挂载好的文件系统都由一个vfsmount对象来表示，所有的vfsmount通过一个散列
+表来管理。
+每一个进程都有自己的namespace，每个进程管理文件系统在自己空间的表示
+
+对于已经挂载的文件系统，会有在一个文件系统上挂载另一个文件系统的情况。
+
+mount一个新设备，要先创建一个新的super block，这个通过要挂载的文件系统的
+get_sb()方法来创建，然后要创建vfsmount对象并设置属性，再把创建好的vfsmount对象
+加入到系统管理器中。
+
+Linux中可以将多个文件系统挂载到同一个目录上，这样新挂载的文件系统将覆盖原来的
+文件系统。而卸载之后则被覆盖的文件系统就会再次显露出来。
+
+---------------------------------------
+References:
+

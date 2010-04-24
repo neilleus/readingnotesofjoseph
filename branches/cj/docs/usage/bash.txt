@@ -1,0 +1,177 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+正则表达式，文本处理类：(3第4章) (第9,10,11,12章)
+配置，环境类型：(13)
+编程语法类：(27)
+
+01. 基本：
+	元字符：* ? [ ] ' " \ $ ; & ( ) | ^ < > 换行 制表符 空格（不是\n和\t）
+	返回值：0为真，1为假
+	特殊变量：
+		$0：正在执行的命令名
+		$n：对应命令行参数
+		$#：参数个数
+		$*：所有参数构成的双引号字符串
+		$@：所有参数分别被双引号引住的字符串
+		$?：前一命令的退出状态
+		$$：当前shell的PID
+		$!：前一个后台进程的PID
+	配置文件：/etc/profile ~/.profile ~/.bash_profile ~/.bashrc
+	文件权限中的SUID位和SGID位（表示用户继承了所有者/组的权限）以及粘滞位
+	执行整数运算：$((expression))
+	单引号和双引号，前者不解引用，后者解析特定引用
+	设置或取消信号动作：trap
+	重定向：通过文件描述符 >&，
+		>foo 2>&1：注意这里shell从左往右处理重定向，所以两个顺序不能换
+		重定向可以用exec来动态执行
+		>&-：关闭标准输出，如果前面加上文件描述符则关闭与之关联的文件
+		<&-：关闭标准输入，与上类似
+	判断shell是否为交互式：tty -s或者test -t
+	导出变量，当启动子shell时，父shell的环境会拷贝副本给子shell，
+	命令组：可以用()和{}来将命令组合在一起，比如多个命令输出都重定向到同一
+		文件或管道，组合进行逻辑运算等。
+	IFS环境变量：内部字段分隔符，可用如下命令查看echo $IFS|od -b
+
+02. 脚本：
+	变量：
+		定义：name=value
+		引用：$name
+		数组：name[n]=value $name[n]
+		只读：readonly name
+	4个对变量进行解引用并可能进行赋值得运算符
+		格式：${name'op'value}
+		':-'：如果设置了变量值，返回它的值，否则返回value
+		':='：如果设置了变量值，返回它的值，否则返回value并赋值
+		':?'：如果设置了变量值，返回它的值，否则value写入stderr并退出
+		':+'：如果设置了变量值，返回value，否则什么也不做
+	过程控制：
+		1) if-then-elif-then-else-fi语句：
+		注意：在then之前的条件语句后面要加分号，if和then通常写在一行
+		2) (case xx in)-pattern1) cmd1;;-pattern2) cmd2;;-esac语句
+		注意1：命令后要加双分号结束
+		注意2：case的模式支持模式匹配，模式后要加')'
+		注意3：不要忘了in关键字
+		3) (while/until)-cmd-do-cmds-done语句
+		注意：cmd是需要判断返回值的语句，cmds为执行的语句
+		4) (for name in word1 word2 ... wordN)-do-cmds-done语句
+		注意：word1-wordN为循环的列表，每次循环值被赋值到name变量
+		5) (select name in word1 word2 ... wordN)-do-cmds-done语句
+		注意：交互型的循环，列出循环清单，然后给出一个'#?'提示符，要求
+		用户从清单中选择一个值赋给name，常与case语句一起使用。
+		6) break和continue
+		注意：无限循环 while : 或者 while true
+		注意：break可接受大于等于1的整数参数，跳出指定的循环层数
+	函数：
+		定义：name() {cmds;}
+		调用：name，注意不带括号
+		参数：使用位置参数$1, $2...
+	调试：
+		调试选项，可在执行时传递给shell：
+			-n：读所有命令但不执行，语法检查
+			-v：在shell读脚本时显示所有执行的行，verbose
+			-x：执行时显示所有命令和它们的参数
+		启动调试：命令行上加-x参数或者脚本内set -x
+		取消调试：脚本内set +x或者set-
+	文件包含，可用于实现函数库
+		source命令，也可以用'.'
+	通配符：
+		'*'：匹配零到任意个任意字符
+		'?'：匹配一个任意字符
+		'[chars]'：匹配括号内指定字符集内的任意字符
+	shell脚本的命令行参数解析：
+		方法1：case语句，shift位置参数
+		方法2：getopt命令
+	输入输出：
+		输出：普通输出echo，格式化输出printf
+		输入：读行输入的read命令
+		重定向
+		管道
+03. test / [  ]
+	缩写形式：[ 空格 测试项 测试对象 空格]
+	测试对象：文件、字符串、整数
+	文件可测试内容：存在，类型，非空，权限，SUID/SGID/STICKY权限位
+	字符串测试内容：空，非空，等，不等
+	整数测试内容：等，不等，大于，小于，大于等于，小于等于
+	测试命令内部复合逻辑，测试对象的复合：与 -a，或 -o，非!
+	外部复合逻辑，两个测试命令的复合：与 &&，或 ||，非 !
+		
+04. 启动脚本，运行级别脚本rc.scripts, rcN.d
+	rcN.d：这里的脚本基本是些链接，真正的脚本存放在/etc/init.d目录下
+	运行级别：0为停机，1为单用户，2-5为多用户，6为重启
+	inittab：init程序会查看这个配置文件
+	过程：rc或rc.init脚本会使用for循环查看对应运行级别目录中的文件，对于每
+		个以S开头的脚本赋予参数start，对于每个以K开头的脚本赋予参数stop
+		在启动或者运行级别切换时都会执行。启动进程按数字从低到高进行，
+		杀死进程按照数字从高到低进行。
+05. sed
+	功能：可执行添加、删除、搜索、替换等编辑工作
+	命令
+		a\：在当前行后增加文本
+		i\：在当前行之前增加文本
+		c\：用新的文本替换当前行
+		d：删除文本
+		p：打印文本
+		r：读取一个文件
+		s：搜索并替换文件
+		w：写入一个文件
+	选项
+		-e SCRIPT：可以指定多个命令，比如-e a\ xxx -e i\ yyy filename
+		-f：指定命令从文件输入，比如-f script-file -e a\ xxx filename
+			文件行末不可以有多余空格，不能使用引用，用文本来替换或
+			添加时，出末尾行，文本行要用'\'结尾。
+		-n：安静模式，不打印输入的内容
+		-V：版本信息
+06. awk
+	功能：可执行正则表达式匹配，匹配规则可以写为程序，awk作为解析器来运行
+	位置参数：它可以把它读入的行根据输入域分隔符FS分成$1, $2,...，整体为$0。
+	特殊内置变量：
+	FS：输入域分隔符，与SHELL的IFS不是同一个，awk中根据需要改变。
+	OFS：输出域分隔符，打印时逗号分隔的部分间会插入它，比如，print $1, $2
+	ORS：输出记录分隔符，print末尾添加的分隔符ORS，默认为'\n'
+	NR：包含了当前已经处理过的记录的数量值。
+
+07. 正则表达式tips：
+	取不匹配指定模式的：/pattern/!
+
+98. 命令简介：
+	at, crontab, &, 
+	nohup：进程不会因所在终端退出而终止，默认会将输出重定向到文件nohup.out
+	stty：设置终端属性，-a选项列出当前终端的所有设置：包括可发送的信号等
+	basename：接收路径名返回目录或者文件名
+	getopt：参数解析命令，另外shell有内置的参数解析命令getopts
+	split, join, awk, cut, paste, head, tail, grep, sort, uniq, tr
+	sed：面向流机制的编辑器
+	type：给出命令的路径，或者说明命令是否是shell内置，关键字或别名等
+	expr：执行整数加减乘除和取余运算，乘法运算符为'\*'，运算符两端要有空格
+	
+	
+99. bash内置命令：
+	bg, fg，break，cd，continue, echo, export, fg, history, jobs, kill,
+	printf, logout, pwd, read, test, type, umask, unalias, unset
+	command, compgen, complete, dirs, disown, fc, getopts, hash, let, popd,
+	pushd, set, shift, shopt, suspend, times, ulimit, wait
+	: ：返回真值0，相当于true
+	alias：设置别名
+	bind：设置键盘映射	
+	builtin：执行指定的shell内置命令，可传递参数并获得返回值
+	caller：返回子过程的上下文
+	declare, typeset：设置变量属性
+	enable：启用禁止某个shell内置命令
+	eval：执行指定命令
+	exec：进程替换
+	exit：退出，可指定返回值
+	help：打印内置命令的帮助信息
+	local：创建本地变量
+	read：读取用户一行输入直到回车键
+	readonly：设置只读变量
+	return：从函数返回
+	
+	trap：设置或者取消信号处理函数
+	source：将指定文件包含到当前文件
+
+---------------------------------------
+References:
+UNIX Shell编程24学时教程
+UNIX Shell编程（第三版） 
+UNIX Shell编程指南

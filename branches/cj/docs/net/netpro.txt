@@ -1,0 +1,32 @@
+
+应用网络编程中常见的数据结构
+
+有关主机、网络、协议、服务的数据结构
+
+struct hostent;		/* 包含主机信息，包括主机名，地址类型，网络地址等 */
+struct netent;		/* 包含网络名，别名，地址类型，网络号等信息 */
+struct protoent;	/* 包含协议名，别名，协议号等信息 */
+struct servent;		/* 包含服务名，别名，端口，协议名等信息 */
+
+以上数据结构内容都可以通过getxxxent, setxxxent, endxxxent来访问
+
+有关地址的数据结构
+struct sockaddr;	/* 通用的socket地址结构，基本的API都使用它 */
+struct sockaddr_in;	/* ipv4的socket地址结构，包含协议族，端口和地址信息 */
+struct sockaddr_in6;	/* ipv6的socket地址结构 */
+struct addrinfo;	/* 包含主机和服务的信息 */
+
+字节序转换工具函数
+htonl, htons, ntohl, ntohs
+二进制地址和文本格式地址转换工具函数
+inet_ntop, inetpton
+
+getaddrinfo		/* 主机名和服务名映射到地址 */
+getnameinfo		/* socket地址转换成主机名和服务名 */
+getsockname		/* 获得绑定到socket的地址 */
+getpeername		/* 获得对方的地址 */
+
+read, write和send, recv的区别：后者可以设置标记。
+send
+sendto
+sendmsg

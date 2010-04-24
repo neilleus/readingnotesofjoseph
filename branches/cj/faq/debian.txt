@@ -1,0 +1,329 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+01. 英文系统配置中文输入法以及字体和中文显示相关问题
+02. 系统时间超前8小时的解决办法
+03. 使用debian安装盘和LiveCD修复GRUB
+04. 常用的软件包
+05. 配置网络
+06. 配置笔记本无线网络(bcm43xx)
+07. 声卡爆音问题
+08. xmms播放列表和标题中文乱码问题
+09. 如何编辑菜单
+10. 开机自动挂载windows分区
+11. wget使用
+12. 如何利用ssh传文件
+13. 如何将dos格式的文本文档转换为unix格式
+14. 使用find，xargs，grep
+15. 如何将光盘制作成ISO文件
+16. bash中有哪些特殊变量
+17. 如何建立GTK+开发环境
+18. 重定向标准输出，标准出错到文件
+19. apt-get出现gpg error错误时的修正脚本
+20. tar命令和dd命令常用选项组合
+21. 跟踪系统调用的工具:strace
+--------------------------------------------------------------------------
+
+01. 在英文系统中输入中文的设置方法
+    a) 首先系统要支持中文locales，确定方法为
+       $locale -a
+    b) 查看有无中文支持，若没有这个命令则安装locales包，若没有中文支持，
+       则运行命令
+       $sudo dpkg-reconfigure locales
+       在其中选中中文语言，可以选一种，也可以多种，我选的是zh_CN.UTF-8，
+       然后生成。
+    c) 然后在/etc/X11/Xsession.d目录下建立文件95im-init，内容如下：
+       export LC_CTYPE='zh_CN.UTF-8'
+       export XMODIFIERS=@im=SCIM
+       export GTK_IM_MODULE=scim
+       export QT_IM_MODULE=xim
+       scim &
+    d) 重起X window。
+    e) 几个字体，Qterm中选择Nsimsum 14，BBS Encoding选择GBK，Display Code
+       选择GBK，终端的字体采用默认的monospace 12就非常好用
+    f)  字体配置：拷贝windows的
+               simsun.ttc tahoma.ttf tahomabd.ttf
+         到/usr/share/fonts/zh_CN/truetype
+         然后到该目录下运行
+         #mkfontscale
+         #mkfontdir
+         #fc-cache /usr/share/fonts/zh_CN/truetype
+         在字体选择中作如下设定（字体选择在桌面背景的字体选项卡中）
+         应用程序字体，文档字体，桌面字体选择tahoma-9，窗口标题选择
+         tahoma bold-9，等宽字体选择DejaVu Sans Mono-10
+    g) Java程序无法显示中文
+       只需到jre/lib/fonts目录下建一个系统已有的中文字体的软链接即可，比如宋
+       体，如下：
+          #ln -sf /usr/share/fonts/truetype/simsun.ttc /usr/share/...../jre/lib/fonts/simsun.ttc
+    h) xmms播放列表和标题中文乱码问题
+    播放列表的字体填入：
+    -adobe-helvetica-medium-r-normal-*-14-*-*-*-p-*-iso8859-1,-*-*-medium-r-normal--16-*-*-*-*-*-gb2312.1980-0
+    标题格式使用%f，字体填入
+    -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1,-*-*-medium-r-normal--16-*-*-*-*-*-gb2312.1980-0,*-r-*
+        
+
+02. 时间超前八小时的问题
+    a) 首先配置时区，主要为两个文件：
+       /etc/localtime
+       /etc/timezone
+       timezone是个文本文件，里面只需要写一行自己的时区就行，Asia/Shanghai
+       localtime里写了timezone data，它可以从系统自带时区文件那里拷贝，将
+       /usr/share/zoneinfo/Asia/Shanghai拷贝到/etc下的localtime。
+    b) 设定了时区，还要确定Linux的时间方案。Linux支持UTC时间，在
+       /etc/default/rcS这个文件中，设定了系统是否使用UTC，UTC=yes就是用。
+       计算机有自己的时间，也就是硬件时间，即存在BIOS里那个时间，计算机启动
+       时，就要读取这个时间。这个时间如果设定为UTC（GMT），就要在rcS文件中
+       设定UTC=yes，反之则要设为no。
+       总之就是两种正确的设置：
+       BIOS=本地时间，UTC=no
+       BIOS=UTC时间，UTC=yes
+       一般来讲，这时UTC=no。
+       如果这样还不行，请继续，否则到此为止。
+    c) Linux读取硬件时间要用到hwclock这个命令：
+       hwclock --show ：显示硬件时间
+       hwclock --systohc ：将系统时间写入硬件
+       hwclock --hctosys ：将硬件时间写入系统时间
+       在出问题的时候，这组命令运行不成功，错误经常是这样的：
+         select() to /dev/rtc to wait for clock tick timed out
+       如果出现了上面那个timeout的问题，有两种方法可以解决：
+       1) 给hwclock加参数，--directisa，也就是：
+          hwclock --directisa --show
+          如果运行成功，则把此参数添加为hwclock的缺省参数即可。
+          在debian 4.0之后，可以直接在/etc/default/rcS中添加一行：
+          HWCLOCKPARS="--directisa“
+       在4.0以前，只能在hwclock启动脚本中添加，/etc/init.d/hwclock.sh，
+       把里面的”/sbin/hwclock“ 全部替换为 ”/sbin/hwclock --directisa"。
+       2) 换用其他内核rtc模块，用如下方法测试哪个模块好用：
+          # modprobe rtc
+          # hwclock --show
+          # rmmod rtc
+          # modprobe genrtc
+          # hwclock --show
+          # rmmod genrtc
+          # modprobe rtc_dev
+          # hwclock --show
+          # rmmod rtc_dev
+          没有显示time out的就是好用的了，然后可以在blacklist中阻止不好用的，
+  在modules里面加上好用的那个。用完这两个方法，hwclock应该能直接工作了，
+  也就是可以读取硬件时间了。再配上utc设置正确，重启之后时间就是对的了。
+  为了时间精确可以使用ntp对时，对时以后运行如下命令，把它写入硬件：
+          hwclock --systohc
+
+03. 使用debian安装盘和LiveCD修复GRUB
+    a) 使用LIVECD的方法：
+       终端下运行命令，进入grub命令行:
+       $sudo grub
+       grub命令行下输入：
+       grub?find /boot/grub/stage1
+       它会输出一个位置，比如(hda0,5)，这里0和5之间没有空格
+       运行如下命令，这里0和5根据上一条命令的结果得出，root和左括号间有空格：
+       grub?root (hda0,5)
+       运行命令：
+       grub?setup(hd0)
+       grub?quit
+       完成
+    b) 使用debian安装盘的方法：
+       用debian安装盘启动Alt+F2进入到busybox shell，运行
+       #mount /dev/hda7 /mnt		;my partition mounted at /root
+       #mount /dev/hda8 /mnt/usr	;my partition mounted at /usr
+       #mount /dev/hda9 /mnt/home	;my partition mounted at /home
+       #mount -o bind /dev /mnt/dev	;the devices should be mounted also
+       #chroot /mnt			;change root file system
+       #grub				;go into the grub shell
+   grub>find /boot/grub/stage1		;list the booting partition
+       (hd0,6)				;list the result like this
+   grub>root (hd0,6)
+   grub>setup (hd0)
+       success				;grub reinstall success
+   grub>quit
+       #exit
+       #umount /mnt/dev
+       #umount /mnt/usr
+       #umount /mnt/home
+       #umount /mnt
+       #reboot
+       这样修复后的menu.lst可能还有问题，根据前面等到的信息更改一下即可，注意
+       linux启动命令行参数中的硬盘分区次设备号和root(hd0,6)指定的数字相差1。
+       比如这里linux启动命令行的rootfs所在的分区应该是hda7，而第一行的命令为
+       root(hd0,6)。
+
+04. 常用的软件包
+    glibc-doc
+    libc6-dev
+    manpages-dev
+    binutils
+    libtools
+    scim/scim-pinyin/im-switch
+    vim/ctags/cscope
+    gnome-themes
+    pciutils 包含lspci命令
+    mesa-utils 包含glxgears那个齿轮程序，用来测试图形性能
+    strace 跟踪系统调用过程，开发用
+
+05. 网络问题
+    a) 重启本地网络？
+       #/etc/init.d/networking restart
+       如果这个不起作用，记得在/etc/network/interfaces文件中添加这么一行
+       auto eth0
+       这里以eth0为例，具体意义参见man interfaces
+    b) 重做DHCP？
+       #dhclient [interface]
+
+06. 无线网卡怎么配置
+    针对bcm4311 rev01 802.11 b/g型无线网卡，机器是Compaq V3334TU。
+    http://wiki.debian.org/bcm43xx#head-f66abae9184e4339478343c9be4249e04d7841ef
+    http://www.linuxwireless.org/en/users/Drivers/b43#devicefirmware
+    过程如下
+    a) 首先升级到2.6.24内核，2.6.24内核已经做好了这个网卡的驱动，但是需要一个
+       firmware才能生效，接下来的工作就是要找到这个firmware。
+       首先查找网卡型号:
+       #update-pciids    ;更新pci id库
+       #lspci            ;查看pci设备
+       我这里列出的无线网卡是：
+       05:00.0 Network controller: Broadcom Corporation BCM4311 802.11b/g
+          WLAN (rev 01)
+       #modprobe b43     ;添加b43内核模块
+    b) 查看是否有无线网卡
+       #ifconfig -a      ;如果成功，有一个wlan0设备
+       #iwconfig         ;如果成功，会列出wlan0设备
+       #ifconfig wlan0 up;如果成功，没有输出。失败，可能输出：
+             SIOCSIFFLAGS: No such file or directory，意味着需要添加firmware
+    c) 接下来添加firmware
+       首先下载b43-fwcutter包，解压，进入目录，make，这里不详述了就
+       #wget http://bu3sch.de/b43/fwcutter/b43-fwcutter-011.tar.bz2
+       然后下载firmware，解压，进入b43-fwcutter目录，运行b43-fwcutter命令
+       #wget http://downloads.openwrt.org/sources/broadcom-wl-4.80.53.0.tar.bz2
+       #./b43-fwcutter -w /lib/firmware "解压的firmware目录/kmod/wl_apsta.o"
+       OK
+    d) 通过iwlist和iwconfig来配置使用
+         modprobe b43
+         iwconfig wlan0 up
+         iwlist scanning 列出你要连接的AP
+         iwconfig wlan0 essid "HelloWorld" key s:lisan 设置essid和密码
+         dhclient wlan0 进行dhcp
+
+07. 声卡爆音问题
+    安装alsa-base，alsa-oss, alsa-utils，运行alsaconf配置
+
+08. 什么命令打开gnome下的“注册表”
+    gconf-editor
+
+09. 如何编辑菜单
+    有三个目录/usr/share/applications
+              /usr/share/gnome/apps
+              /etc/X11/applnk
+    第一个目录里都是desktop后缀的文件，是描述菜单项的
+    第二个是组织菜单项的
+    第三个是一些应用链接
+    我们只需要编辑第一项即可。一个.desktop文件中有这些项目：
+      [Desktop Entry]
+      Name=display name
+      Comment=hint
+      Exec=command
+      Icon=where_icon_is
+      Terminal=boolean
+      Type=Application
+      Categories=where you want it to show, split by semicolon.
+      StartupNotify=boolean
+
+      一个例子：
+      [Desktop Entry]
+      Name=Firefox
+      Comment=Browser
+      Exec=firefox
+      Icon=/home/joseph/icons/firefox.icon
+      Terminal=false;
+      Type=Application
+      Categories=GNOME:Application:Network;
+      StartupNotify=false
+
+10. 开机自动挂载windows分区
+     在/etc/fstab中添加如下行：
+     /dev/hda1    /media/SYS    ntfs    auto,user,nls=utf8,umask=222    0    0
+
+11. wget使用
+    a) 断点续传，加-c参数
+    b) 下载整个站点 -r -p -k -np
+       -c等同于--continue
+       -r等同于--recursive
+       -p等同于--page-requisites，用于下载正常显示一个html文件所需的其它文件
+       -k等同于--convert-links，把链接转化为本地链接
+       -np等同于--no-parent，递归下载时，不重复下载父目录的内容，防止死循环。
+
+12. 如何利用ssh传文件
+    利用scp命令即可，最简单用法为
+       下载：$scp username@servername:source-file-path target-file-path
+       上传：$scp source-file-path username@servername:target-file-path
+
+13. 如何将dos格式的文本文档转换为unix格式
+    find -type f | xargs dos2unix -o
+
+14. 使用find，xargs和grep
+    find 如何排除指定目录，使用 -path "?path?" -prune -o 参数，这里要注意几点：
+          0. 这里的路径要使用绝对路径，似乎相对路径不起作用，有待进一步确认。
+          1. -path的参数末尾不可以有'/'，否则无法排除该目录
+          2. 可以在指定排除某个目录后在其后面用 ! -path "?path?" -prune -o 来
+	  包括已排除目录的某个子目录，当然要把前面-path 后面的-prune -o去掉，
+	  即应该是连续的-path指定然后是-prune -o。
+          3. 要注意-path后面参数中 '*' 的使用，这个要多体会。
+          举例： find  /home/joseph/linux \
+		  -path "/home/joseph/linux/arch/*" \
+		  ! -path "/home/joseph/linux/arch/x86" -prune -o -print
+                     说明，这句find查找/home/joseph/linux中除了arch目录外所有
+		     的文件，但包括/home/jospeh/arch/x86目录。
+          4. 可以用 -name *."[chsS]" 指定查找的文件的后缀名为.c, .h, .s 或者.S
+
+15. 如何将光盘制作成ISO文件
+    $dd if=/dev/cdrom of=filename.iso
+
+16. bash中有哪些常用特殊变量
+    $?  执行的上一个命令的退出码
+    $$  当前执行命令的PID
+    $!  最后执行的后台命令的PID
+    $0  shell名或脚本名
+    $_  上个命令的最后一个参数
+    $#  参数个数
+    $@  将各个参数加双引号返回
+    $*  将参数列表加双引号返回
+
+17. 如何建立GTK+开发环境
+    Deibian: 需要安装如下开发包：
+             gnome-core-devel
+	     glade
+	     libglade2-dev 
+	     pkg-config
+	     devhelp
+	     libglib2.0-doc
+	     libgtk2.0-doc
+    第一个将安装libgtk2.0-dev libglib2.0-dev这一系列包
+    第二个是个界面绘制工具和开发包
+    第三个是安装包管理工具
+    后面三个是文档和文档阅读工具
+
+    Windows：解压缩gtk-bundle-win32.zip到某个目录，并将其下的bin目录加入PATH，
+    然后再visual C++中directories中添加各个include和lib路径，注意lib底下也有一
+    些头文件需要include，然后建立工程后，在setting中设置要连接的库。
+
+18. 重定向标准输出，标准出错到文件
+    $app >output 2>&1
+    #注意这里重定向的顺序不可掉换，首先重定向标准输出，然后重定向标准出错
+
+19. apt-get出现gpg error错误时的修正脚本
+    #!/bin/sh
+    gpg --keyserver pgpkeys.mit.edu --recv-key $1
+    gpg -a --export $1 | apt-key add -
+
+20. tar命令和dd命令常用选项组合
+    tar命令常用选项组合：
+    打包		tar cf	[tar-name] [file or dir]
+    打成gzip包		tar czf	[tar-name] [file or dir]
+    大城bzip2包 	tar cjf	[tar-name] [file or dir]
+    解包		tar xf	[tar-name]
+    解gzip包		tar xzf	[tar-name]
+    解bzip2包		tar xjf	[tar-name]
+    列出包内文件	tar tf	[tar-name]
+    增加文件到tar	tar uf	[tar-name] [file or dir] 注意：不能更新压缩过的
+    dd命令常用选项组合：
+    dd命令读取输入然后进行指定的转换，将转换后的内容输出到指定位置，通常对设备
+    使用。
+

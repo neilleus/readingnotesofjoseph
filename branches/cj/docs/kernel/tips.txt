@@ -1,0 +1,28 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+01. __u32和u32的区别
+    __u32多用于和用户空间交互，如果导出到用户空间那么用__u32
+    如果只在内核空间可见，那么会位于#ifdef __kernel__以内。
+    这是内核特有的数据类型定义，如果使用支持C99的编译器，那么uint32_t等是更好
+    的选择。
+    关于内核使用的数据类型定义参见《Linux设备驱动程序》第十一章
+
+02. 怎么计算一个某个成员在结构内的偏移量
+#define offset_of(type, memb)	(unsigned long)(&(((type *)0)->memb))
+    将地址0转化为该结构类型的指针，然后找到成员memb，并找到它的地址位置，此即
+    相对于地址零的偏移，将其转化为长整形即可。
+
+03. 如何通过成员名字找到所属的结构
+#define container_of(ptr, type, memb)				\
+	({const typeof(((type *)0)->memb) *__mptr = (ptr);	\
+	(type *)((char *))__mptr - offset_of(type, memb);})
+首先定义一个与给定成员类型相同的指针，然后将该指针的值赋值为该成员的地址，然后
+将该地址减去成员的字节偏移，然后进行强制类型转换得到指向成员所属结构的指针。
+背后的算法：已知成员地址和所属结构类型，则可计算成员在结构内的偏移，成员的地址
+减去成员在结构内的偏移量即是成员所属结构的地址值。
+
+
+---------------------------------------
+References:
+Linux Device Driver Chapter 11

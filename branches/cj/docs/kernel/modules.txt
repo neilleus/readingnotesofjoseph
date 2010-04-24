@@ -1,0 +1,56 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+### hello world 模块
+
+首先保证当前内核的头文件存在，然后写hello.c以如下内容：
+
+/*****************************************************************************/
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+static int hello_init(void)
+{
+	printk(KERN_ALERT "I bear a charmed life.\n");
+	return 0;
+}
+
+static void hello_exit(void)
+{
+	printk(KERN_ALERT "Out, out, brief candle!\n");
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Xiaojun Li");
+
+/*****************************************************************************/
+
+然后写Makefile以如下内容：
+
+/*****************************************************************************/
+obj-m	:= hello.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+/*****************************************************************************/
+
+然后make即可
+
+运行只要
+#insmod hello.ko
+#rmmod hello
+
+/* 问题点如下 */
+Makefile为什么要这么写？
+怎样安装modules？直接拷贝到/lib/modules/$(shell uname -r)
+
+---------------------------------------
+References:
+

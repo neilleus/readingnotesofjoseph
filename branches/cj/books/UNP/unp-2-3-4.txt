@@ -1,0 +1,103 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+UDP是一种简单的、不可靠的无连接的数据报协议，提供简单的、不可靠的数据报服务
+TCP是一种精致的、可靠的面向连接的字节流协议，提供可靠的全双工字节流服务。
+    TCP通过给所发送数据的每一个字节关联一个序列号进行排序，即TCP中的序列号类似
+    offset。TCP提供流量控制，总是告诉对方它能够接收多少字节的数据，这叫做通告
+    窗口大小，窗口时刻动态变化。TCP连接是全双工的，UDP可以是全双工的。
+ICMP是网际控制消息协议，处理路由器和主机间的错误和控制消息，一般由TCP/IP自身产
+生和处理
+IGMP是网际组管理协议，用于多播。
+ARP是地址解析协议，把IPv4地址映射到硬件地址，一般用于广播网络，不用于点对点网络
+RARP是反向地址解析协议，把硬件地址映射到IPv4地址，有时用于无盘节点。
+
+建立TCP连接的三步握手
+01) 服务器被动打开
+02) 客户调用connect。发送SYN(J)
+03) 服务器确认客户端的SYN(J)，并向客户发送SYN(K)，即SYN(K), ACK(J+1)，一般为一个分组
+04) 客户确认服务器的SYN(K)，发送ACK(K+1)，连接建立。
+
+SYN分节一般不携带数据，它只包含有一个IP头部、一个TCP头部以及可能有的TCP选项
+
+SYN中可以有若干TCP选项，常用的有:
+  MSS选项，通知对方自己的最大分节大小MSS(maximum segment size)
+  窗口规模选项，通知对方自己的最大窗口大小，窗口可扩大（高速或长延迟情况下）
+  时间戳选项，高速连接情况下
+
+TCP四步终止连接
+01) 调用close，active close，发送FIN
+02) passive close，确认对方的FIN，并将其作为文件结束符传给应用进程
+03) 应用进程调用close，发送FIN
+04) （主动关闭方）确认FIN。
+
+通常是客户端执行主动关闭，但某些协议，比如HTTP是服务器执行主动关闭。
+
+TIME_WAIT状态，执行主动关闭的一方在4步终止交互完成后进入TIME_WAIT状态，这么做
+的目的有二：一是实现终止TCP全双工连接的可靠性，即可以保证重发最后一个ACK；二是允许老的重复分组在网络中消逝，即保证连接关闭后存在于网络中的分组有足够的时间超时消失，不至于影响后面建立的连接。
+
+临时端口范围 49152-65535。
+IPv4数据报的最大大小为65535字节，包括IPv4头部。
+
+从进程到内核传递套接口地址结构的4个套接口函数：bind，connect，sendto，sendmsg。即在这里把填充好的地址结构传递给内核来处理。
+从内核到进程传递套接口地址结构的5个套接口函数：accept, recvfrom, recvmsg, getpeername, getsockname，即地址结构从这里传递指针进去，然后被填充后返回。
+
+为什么引入通用套接口地址结构struct sockaddr
+ANSI C有通用指针类型void *，但套接口函数是在ANSI C之前定义的，所以采用了定义通
+用地址结构的方法来访问不同地址族的的地址结构。
+从应用程序开发人员的角度来看，通用的套接口地址结构的唯一用途是给指向特定于协议
+的地址结构的指针转换类型。
+从内核的角度看，使用指向通用套借口地址结构指针的原因是，内核必须依据调用者的指
+针，将其转换为struct sockaddr *类型，然后检查sa_family的值来确定结构的类型。
+
+为什么有时需要传递套接口地址结构长度给bind等函数？
+对于IPv4，IPv6，UNIX域，前两者的地址长度是固定的，而后两者的地址长度
+是可变的，所以需要显示传递。
+
+地址族AF_xxx和协议族PF_xxx的由来，历史上曾想单个协议族可以支持多个地址族，PF_
+值用来创建套接口，而AF_值用于套接口的地址结构。但实际上，这种协议从未被实现过。
+
+每当调用函数connect失败时，都必须关闭套接口描述字，这样才能再次调用connect。
+connect失败的几种情况：
+    SYN握手没有响应，超时出错，重试
+    SYN握手响应RST，指定服务器的端口上没有进程等待与之连接，连接被拒绝错误
+    SYN握手出现了目标不可达错误，重试。
+
+bind函数为套接口分配一个本地协议地址。服务器一般主动调用bind函数绑定已知端口。
+一个例外是RPC调用，它们一般让内核来为它们的监听套接口选择一个临时端口，因为这
+个端口紧接着会通过RPC端口映射器注册，客户与服务器连接前，先要与端口映射器取得
+联系获取服务器的临时端口。
+如果TCP服务器不把IP地址捆绑到套接口上，内核就把客户所发SYN所在分组的目的IP地址
+作为服务器的源IP地址。
+为了获得bind绑定的临时端口值，必须调用函数getsockname来返回协议地址才行。
+
+fork后exec新程序，由于可执行代码被新程序覆盖，与父进程共享的资源也丢失了访问途径，这时假如要有一个套接口需要在新生成的程序中访问，有两种方法可以这样做。一是格
+式化成字符串后以命令行参数方式传递给新程序；一是确定调用exec前把某个描述符总是
+设定为已连接套接口的约定。inet采用这第二种方法。
+
+
+socket api 列表
+#include <sys/types.h>
+#include <sys/socket.h>
+int socket(int domain, int type, int protocol);		/* 返回套接字或-1 */
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen);
+int listen(int sockfd, int backlog);	/* 这三个返回0或-1 */
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen); /* 返回套接字或-1 */
+
+地址查询相关
+获取套接字关联的本地和对端地址结构。
+int getsockname(int sockfd, struct sockaddr *localaddr, socklen_t *addrlen);
+int getpeername(int sockfd, struct sockaddr *peeraddr, socklen_t *addrlen);
+
+
+注意！！！
+accept, getsockname, getpeername这三个函数的addrlen参数必须初始化为前面地址缓
+冲区的大小。
+
+---------------------------------------
+References:
+UNP Chapter 2 传输层: TCP UDP
+UNP Chapter 3 套接口编程简介
+UNP Chapter 4 基本TCP套接口编程
+
