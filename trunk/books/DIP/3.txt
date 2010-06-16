@@ -1,0 +1,7 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+---------------------------------------
+References:
+Dive into python Chapter 7, 13 to 18
+

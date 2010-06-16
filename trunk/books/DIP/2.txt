@@ -1,0 +1,49 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+1. from xx-module import *  / import xx-module
+   从模块中引入*，类似perl的use xx-module，可以直接使用引入的内容
+   引入xx模块，类似perl的require xx-module，需要指定名字空间来使用引入内容
+   一般出于清晰的考虑，尽量少用from xx import
+
+2. 类
+   定义：使用关键字class，指定类名，当然还有冒号和缩进以及docstring
+   pass关键字，表示空操作
+   指定继承，在类名后的小括号中指定基类名字，多重继承的话，多个类以逗号分割
+   类似构造函数的东西：__init__方法，但二者并不相同。init的方法是可选的。
+   编程习惯：任何python类方法的第一个参数（对当前实例的引用）都叫做self，类似
+   C++/Java中的this关键字，但self不是关键字。定义时你需要指定self，但调用时却
+   不必要。
+   当定义自己的类方法时，必须明确将self作为每个方法的第一个参数列出，当从类中
+   调用父类的方法时，必须包括self参数，但如果从外部调用你的方法，则不必对self
+   参数指定任何值，python会替你增加实例的引用。
+   创建类的实例：直接调用类即可，给定init方法需要的参数。
+   python里没有方法重载，子类会覆盖父类的同名方法
+   数据属性：被一个特定类实例所拥有的变量，数据属性定义在__init__方法中
+   类属性：由类本身所拥有，类属性紧跟着定义在类定义之后
+   私有函数，取决于其名字，以两个下划线开始的函数是私有函数，否则是公有的。
+   python没有保护方法
+   编程习惯：只有python的专用方法和内置属性采用前后两个下划线的命名方法
+
+2. 异常
+   语法：使用try...except来处理，使用raise来引发。C++/Java使用try..catch来处理
+   使用throw来引发。
+
+3. 文件处理
+   open：内置函数，用来打开在磁盘上的文件，返回一个文件对象。可以接受3个参数，
+   文件名、模式和缓冲区参数。
+   文件的方法
+   tell：告知被打开文件的当前位置
+   seek：
+   read：
+   close：
+   append
+   write
+   closed属性
+
+4. os.path模块有操作文件和目录的函数
+
+---------------------------------------
+References:
+Dive into python Chapter 5 to 6
+
