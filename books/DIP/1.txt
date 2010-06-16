@@ -55,11 +55,23 @@ E-Mail: fdlixiaojun@gmail.com
    割的多个变量。
 12. list映射，类似foreach。映射产生的list是全新的list，可以安全的赋值给源。
 13. 查看函数帮助，可以使用print obj.func.__doc__
+    Docutils，docstring的处理软件
+    __doc__，一般所有模块、模块导出的类、公有方法等都应该包含docstring。
 
-P38
-
-
-
+14. 内置函数：归属于__builtin__特殊模块
+    常用内置函数：
+    type：返回参数的类型，参数可以是任意东西
+    str：将数据强制转换为字符串，各种类型都可以，包括None（Python的null值）
+    dir：返回任意对象的属性和方法列表，包括模块、函数、字符串、列表、字典等等
+    callable：接受任何对象作为参数，如果参数对象可调用，返回True，否则False，可
+    调用对象包括函数、类方法、甚至类自身。
+    getattr：返回任何对象的任意属性
+    lambda：快速定义单行的最小函数，用来定义短函数
+15. 过滤列表，列表映射可以加入过滤条件，保证只有符合条件的列表元素被映射，语法
+    如下：[mapping-expression for element in src-list if filter-expression]
+16. and：从左到右，如果为真，and返回最后一个值，如果为假，返回第一个假值
+    or：从左到右，如果为真，返回第一个为真的值，如果为假，返回最后一个假值
+17. ljust用空格填充字符串以符合指定的长度。
 
 ---------------------------------------
 References:
