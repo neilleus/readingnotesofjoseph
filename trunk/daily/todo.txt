@@ -3,7 +3,3 @@
     (-) 搞一下Kbuild系统的实现
 
     知识类：
-    (-) 总结ARM中的伪指令，访存指令
-    (-) 总结内核启动参数的传递，arm启动参数的tag结构的使用
-    (-) 编码系统，内码，外码，utf8，gbk，字体等
-    (-) 几个cntl函数fcntl, ioctl, shmctl, sysctl, semctl, console_ioctl等
