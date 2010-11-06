@@ -1,0 +1,25 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+Posix IPC包括，
+    Posix消息队列
+    Posix信号灯
+    Posix共享内存区
+Posix在描述这三种IPC上有些共同特点，这里讲述这些共同点，包括：
+    名字，用于标识的路径名
+    打开或创建是指定的标志和访问权限
+
+SystemV IPC包括：
+    SystemV消息队列
+    SystemV信号灯
+    SystemV共享内存区
+SystemV在描述这三种IPC上有些共同特点，这里讲述这些共同点，包括：
+    名字：key_t值和ftok函数（用于赋予key_t值）
+    ipc_perm结构，内核为每个IPC对象维护一个信息结构，类似内核给文件维护的结构
+
+函数ftok把一个已存在的路径名和一个整数标识符转换成一个key_t值，成为IPC键。
+
+---------------------------------------
+References:
+UNP Volume 2 Chapter 2
+UNP Volume 2 Chapter 3
