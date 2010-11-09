@@ -1,6 +1,68 @@
 Author: Joseph Lee
 E-Mail: fdlixiaojun@gmail.com
 
+管道没有名字，只能再有亲缘关系的进程使用。联系fork，exec，_exit对IPC的影响。
+FIFO也叫命名管道，与管道不同的是具有名字，可以再无亲缘关系的进程间使用。
+技术上来说，可以通过管道传递描述字，这样管道也可以用于无亲缘关系的进程间通信，
+但一般出于现实目的，管道通常用在具有共同祖先的进程间。
+
+*** 传统单工管道
+创建函数pipe，返回两个描述字，fd[0]打开用来读，fd[1]打开用来写。
+宏S_ISFIFO用来确定一个描述字或文件是管道还是FIFO，参数为stat结构的st_mode成员。
+#include <unistd.h>
+int pipie(int fd[2]);	成功返回0，出错返回-1;
+
+管道编程模型：通常一个进程创建管道后会fork新进程，同时分别在父进程和子进程关闭
+管道的一端，形成父子进程间的一个单向通道，如果需要双工的通道，那么可以创建两条
+管道，分别进行读写。
+
+管道是通过内核来运作的。
+
+*** 全双工管道
+创建函数socketpair
+#include <sys/types.h>
+#include <sys/socket.h>
+int socketpair(int d, int type, int protocol, int sv[2]); 成功返回0，出错返回-1
+全双工管道的实现实际上是采用不同的读写缓冲区来实现的，其实和两个半双工管道类似。
+
+*** 标准库的管道，用于执行shell命令时创建管道。
+#include <stdio.h>
+FILE *popen(const char *command, const char *type);
+int pclose(FILE *stream);
+它创建一个管道并启动另外一个进程，该进程从该管道读出标准输入，或者往该管道写入
+标准输出。
+command是一个shell命令，由sh处理，popen在调用进程和所指定的命令之间创建一个管
+道，管道的读写类型取决于type。
+
+*** FIFO
+FIFO也是半双工的，只能打开读或者打开写，打开时需要小心多种制约规则，以免阻塞。
+FIFO只能再本地文件系统中创建，不能跨越网络文件系统。
+FIFO创建，mkfifo只是创建fifo，如果要使用它还需要调用open或者fopen来打开。
+#include <sys/types.h>
+#include <sys/stat.h>
+int mkfifo(const char *pathname, mode_t mode);	成功返回0，出错返回-1
+FIFO编程范式：如果打开一个已存在的fifo，先使用mkfifo创建它，如果返回EEXIST错
+误，再调用open函数打开它。
+对FIFO的写总是往尾部添加数据，读总是从头部读出数据，FIFO不可以seek。
+
+*** 管道和FIFO的属性
+属性设置方法：1）打开描述字时指定，fifo可以采用，pipe则不能，因为pipe创建即打
+开，不调用open函数。2）通过fcntl使用F_GETFL和F_SETFL来获取并设置文件状态标志。
+非阻塞属性
+
+*** 字节流与消息
+管道和FIFO都使用字节流IO模型，这种模型不存在记录边界，即读写操作根本不检查数
+据。后面说的消息队列则是有结构有消息边界的IO模型。
+当应用希望对所传送的数据加上某种结构，当数据有变长消息构成时，读出者必须知道
+消息边界以判定何时已读到一整个消息。这里有以下技巧可用：
+1. 使用特殊的终止序列来判断。
+2. 采用TLV格式或其变种
+3. 通过关闭连接来指示记录结束。
+
+*** 管道和FIFO的限制
+OPEN_MAX	最大打开文件描述符数
+PIPE_BUF	缓冲区大小，即一次最大可读写的数据量。
+
 ---------------------------------------
 References:
-UNP Volume 2 Chapter 1
+UNP Volume 2 Chapter 4
