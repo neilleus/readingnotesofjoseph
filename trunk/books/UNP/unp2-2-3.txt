@@ -21,5 +21,5 @@ SystemV在描述这三种IPC上有些共同特点，这里讲述这些共同点�
 
 ---------------------------------------
 References:
-UNP Volume 2 Chapter 2
-UNP Volume 2 Chapter 3
+Posix IPC
+SystemV IPC
