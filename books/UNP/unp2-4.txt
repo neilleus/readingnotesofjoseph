@@ -65,4 +65,4 @@ PIPE_BUF	缓冲区大小，即一次最大可读写的数据量。
 
 ---------------------------------------
 References:
-UNP Volume 2 Chapter 4
+管道和FIFO
