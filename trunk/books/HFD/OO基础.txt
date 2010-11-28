@@ -1,0 +1,11 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+四个OO基本概念：抽象、封装、继承、多态
+九个OO原则：
+
+
+抽象和封装怎么区别？？
+---------------------------------------
+References:
+

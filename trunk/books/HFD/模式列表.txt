@@ -1,0 +1,32 @@
+Author: Joseph Lee
+E-Mail: fdlixiaojun@gmail.com
+
+01. Strategy
+o2. Observer
+03. Decorator
+04. Abstract
+05. Factory
+06. Factory Method
+07. Singleton
+08. Command
+09. Adaptor
+10. Facade
+11. Template Method
+12. Iterator
+13. Composite
+14. State
+15. Proxy
+16. Bridge
+17. Builder
+18. Chain of Responsibility
+19. Flyweight
+20. Interpreter
+21. Mediator
+22. Memento
+23. Prototype
+24. Visitor
+25. MVC
+
+---------------------------------------
+References:
+
