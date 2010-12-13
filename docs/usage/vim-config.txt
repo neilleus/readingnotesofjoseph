@@ -102,16 +102,17 @@ set noexpandtab
 
 if has("autocmd")
 	"set syntax color and show line number
-	"autocmd FileType java,perl,shell,bash,cpp,vim, set number
-	autocmd FileType c,java,perl,shell,bash,cpp,vim,make syntax on
+	autocmd FileType c,java,perl,sh,cpp,vim,make colorscheme darkblue 
+	autocmd FileType java,perl,sh,cpp,vim set number
+	autocmd FileType c,java,perl,sh,cpp,vim,make syntax on
 	
 	"set tab width
-	autocmd FileType c,cpp,perl,bash,java,vim, set tabstop=8
-	autocmd FileType text set tabstop=4
+	autocmd FileType c set tabstop=8
+	autocmd FileType java,cpp,perl,sh,vim,text set tabstop=4
 
 	"fold settings
-	autocmd FileType c,cpp, set foldmethod=syntax
-	autocmd FileType c,cpp, set foldlevel=99
+	autocmd FileType c,cpp,java set foldmethod=syntax
+	autocmd FileType c,cpp,java set foldlevel=99
 endif " has("autocmd")
 
 
