@@ -100,8 +100,12 @@ set noexpandtab
 "The next autocmd used to open the last open file.
 "autocmd FileType java,c,cpp vmap <C-o> <ESC>'<o/*<ESC>'>o*/
 
+nmap <silent> <F8> <ESC>:Tlist<CR>
+nmap <silent> <F5> <ESC>:TlistUpdate<CR>
+
 if has("autocmd")
 	"set syntax color and show line number
+	autocmd BufRead,BufNewFile *.txt,*.log setlocal filetype=txt 
 	autocmd FileType c,java,perl,sh,cpp,vim,make colorscheme darkblue 
 	autocmd FileType java,perl,sh,cpp,vim set number
 	autocmd FileType c,java,perl,sh,cpp,vim,make syntax on
