@@ -127,6 +127,9 @@ endif " has("autocmd")
 "sort by name
 let Tlist_Sort_Type = "name"
 
+"set tlist window width
+let Tlist_WinWindth=20
+
 "compact type
 let Tlist_Compart_Format = 1
 
@@ -138,7 +141,6 @@ let Tlist_File_Fold_Auto_Close = 0
 
 "don't show fold tree
 let Tlist_Enable_Fold_Column = 1
-autocmd FileType c,cpp nmap <F9> :TlistToggle<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " omnicppcompelte plugin settings, need omnicppcomplete plugin 
