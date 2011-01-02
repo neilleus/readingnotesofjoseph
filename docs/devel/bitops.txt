@@ -49,7 +49,7 @@ E-Mail: fdlixiaojun@gmail.com
 	    return (!(n & (n-1)))
     }
 
----------------------------------------
+--------------------------------------
 References:
 http://graphics.stanford.edu/~seander/bithacks.html
 http://aggregate.ee.engr.uky.edu/MAGIC/
