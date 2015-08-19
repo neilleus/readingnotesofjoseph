@@ -1,0 +1,1 @@
+This project is used for storing my reading notes of the books documents and code.
